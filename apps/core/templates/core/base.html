@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ShareCar — Aluguel de carros entre pessoas{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Alugue carros de pessoas da sua região com preço, disponibilidade e condições transparentes.{% endblock %}">
+  <meta name="theme-color" content="#f4f5f2">
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <header>
+    {% block navbar %}
+      <nav class="navbar navbar-expand-lg navbar-light site-navbar sticky-top" aria-label="Navegação principal">
+        <div class="container">
+          <a class="navbar-brand d-inline-flex align-items-center gap-2" href="{% url 'core:home' %}">
+            <span class="brand-mark" aria-hidden="true">S</span>
+            <span>ShareCar</span>
+          </a>
+
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#menuPrincipal"
+            aria-controls="menuPrincipal"
+            aria-expanded="false"
+            aria-label="Abrir menu"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'core:home' %}#como-funciona">Como funciona</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'core:home' %}#vantagens">Vantagens</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'core:home' %}#para-proprietarios">Para proprietários</a>
+              </li>
+              <li class="nav-item ms-lg-3">
+                <a class="btn btn-brand btn-sm px-3" href="{% url 'core:home' %}#para-proprietarios">
+                  Anunciar carro
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    {% endblock %}
+  </header>
+
+  <main id="conteudo">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+    <footer class="site-footer">
+      <div class="container">
+        <div class="row gy-4">
+          <div class="col-lg-5">
+            <a class="footer-brand" href="{% url 'core:home' %}">ShareCar</a>
+            <p class="footer-text mt-3 mb-0">
+              Aluguel de carros entre pessoas, com mais liberdade para quem viaja
+              e mais aproveitamento para quem tem um veículo parado.
+            </p>
+          </div>
+
+          <div class="col-6 col-lg-3">
+            <h2 class="footer-title">Navegação</h2>
+            <ul class="list-unstyled footer-links mb-0">
+              <li><a href="{% url 'core:home' %}#como-funciona">Como funciona</a></li>
+              <li><a href="{% url 'core:home' %}#vantagens">Vantagens</a></li>
+              <li><a href="{% url 'core:home' %}#para-proprietarios">Para proprietários</a></li>
+            </ul>
+          </div>
+
+          <div class="col-6 col-lg-4">
+            <h2 class="footer-title">Sobre o projeto</h2>
+            <p class="footer-text mb-0">
+              Projeto acadêmico inspirado em plataformas de aluguel de carros
+              entre particulares.
+            </p>
+          </div>
+        </div>
+
+        <div class="footer-bottom d-flex flex-column flex-md-row justify-content-between gap-2">
+          <span>&copy; {% now "Y" %} ShareCar. Projeto acadêmico.</span>
+          <span>Django · PostgreSQL · Bootstrap 5</span>
+        </div>
+      </div>
+    </footer>
+  {% endblock %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

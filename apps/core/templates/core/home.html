@@ -1,0 +1,177 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}ShareCar — Aluguel de carros entre pessoas{% endblock %}
+
+{% block meta_description %}Encontre carros para alugar na sua cidade, compare preços e reserve com praticidade. Ou anuncie seu veículo e defina sua própria agenda.{% endblock %}
+
+{% block body_class %}home-page{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+  <section class="home-hero" aria-labelledby="home-title">
+    <div class="container">
+      <div class="row align-items-end g-4 g-lg-5">
+        <div class="col-lg-8">
+          <p class="home-eyebrow">Aluguel de carros entre pessoas</p>
+          <h1 id="home-title" class="home-title">
+            Seu próximo destino começa com a chave certa.
+          </h1>
+          <p class="home-lead">
+            Encontre o carro ideal para uma viagem, um fim de semana ou a rotina
+            na cidade. Quem tem um veículo parado também pode transformá-lo em
+            uma nova fonte de renda.
+          </p>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="home-actions">
+            <a class="btn btn-dark" href="#como-funciona">Ver como funciona</a>
+            <a class="btn btn-outline-secondary" href="#para-proprietarios">Quero anunciar</a>
+          </div>
+        </div>
+      </div>
+
+      <ul class="home-highlights">
+        <li>Preços transparentes</li>
+        <li>Reserva pelo celular</li>
+        <li>Perfis aprovados</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="como-funciona" class="home-section" aria-labelledby="como-funciona-title">
+    <div class="container">
+      <div class="home-section-head">
+        <p class="home-kicker">Como funciona</p>
+        <h2 id="como-funciona-title">Alugar um carro pode ser simples.</h2>
+        <p>
+          O ShareCar aproxima quem precisa de um veículo de quem tem um carro
+          disponível, com etapas claras para os dois lados.
+        </p>
+      </div>
+
+      <div class="row g-0 home-steps">
+        <div class="col-md-4 home-step">
+          <span class="home-step-number">01</span>
+          <h3>Encontre o carro ideal</h3>
+          <p>
+            Busque por cidade e período e compare características, preço e
+            disponibilidade antes de escolher.
+          </p>
+        </div>
+
+        <div class="col-md-4 home-step">
+          <span class="home-step-number">02</span>
+          <h3>Reserve com segurança</h3>
+          <p>
+            Envie sua solicitação, acompanhe a aprovação do proprietário e
+            consulte o valor total antes de confirmar.
+          </p>
+        </div>
+
+        <div class="col-md-4 home-step">
+          <span class="home-step-number">03</span>
+          <h3>Retire e aproveite</h3>
+          <p>
+            Faça o check-in, use o carro no período combinado e registre a
+            devolução ao final da locação.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="vantagens" class="home-section home-section-muted" aria-labelledby="vantagens-title">
+    <div class="container">
+      <div class="row g-5">
+        <div class="col-lg-4">
+          <p class="home-kicker">Vantagens</p>
+          <h2 id="vantagens-title">
+            Mais liberdade para quem aluga. Mais controle para quem anuncia.
+          </h2>
+          <p class="home-section-text">
+            A plataforma foi pensada para tornar a experiência transparente,
+            segura e simples — do primeiro filtro até a devolução do veículo.
+          </p>
+        </div>
+
+        <div class="col-lg-8">
+          <div class="row g-4">
+            <div class="col-sm-6 home-feature">
+              <h3>Busca do seu jeito</h3>
+              <p>
+                Filtre por cidade, período, preço, categoria, câmbio,
+                combustível e número de passageiros.
+              </p>
+            </div>
+
+            <div class="col-sm-6 home-feature">
+              <h3>Agenda sob controle</h3>
+              <p>
+                O proprietário define os períodos disponíveis e bloqueia as
+                datas em que o carro não pode ser alugado.
+              </p>
+            </div>
+
+            <div class="col-sm-6 home-feature">
+              <h3>Confiança em cada etapa</h3>
+              <p>
+                Perfis e veículos passam por aprovação, e os documentos ficam
+                protegidos durante todo o processo.
+              </p>
+            </div>
+
+            <div class="col-sm-6 home-feature">
+              <h3>Tudo na palma da mão</h3>
+              <p>
+                Uma experiência responsiva para buscar, reservar e acompanhar
+                a locação também pelo celular.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="para-proprietarios" class="home-section" aria-labelledby="proprietarios-title">
+    <div class="container">
+      <div class="home-owner">
+        <div class="row g-5 align-items-center">
+          <div class="col-lg-7">
+            <p class="home-kicker">Para proprietários</p>
+            <h2 id="proprietarios-title">
+              Seu carro pode render mais do que espaço na garagem.
+            </h2>
+            <p class="home-section-text">
+              Cadastre o veículo, defina o preço da diária e escolha quando ele
+              estará disponível. Você acompanha as solicitações e decide o que
+              faz sentido para a sua agenda.
+            </p>
+
+            <ul class="home-list">
+              <li>Defina preço, disponibilidade e períodos de bloqueio.</li>
+              <li>Acompanhe solicitações e o histórico de reservas.</li>
+              <li>Receba o repasse após a conclusão da locação.</li>
+            </ul>
+          </div>
+
+          <div class="col-lg-5">
+            <div class="home-owner-action">
+              <p class="home-owner-title">Entenda o fluxo</p>
+              <p>
+                Veja como uma reserva acontece, da busca do locatário até a
+                devolução do carro.
+              </p>
+              <a class="btn btn-dark w-100" href="#como-funciona">Ver o passo a passo</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

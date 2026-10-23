@@ -1,0 +1,47 @@
+services:
+  db:
+    image: docker.io/library/postgres:18
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Defina POSTGRES_DB no .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
+    ports:
+      - "${POSTGRES_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      # PostgreSQL 18+ usa um subdiretório versionado dentro deste caminho.
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Defina DJANGO_SECRET_KEY no .env}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      POSTGRES_DB: ${POSTGRES_DB:?Defina POSTGRES_DB no .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
+      # Na rede dos containers, o servidor é sempre o serviço db.
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_CONNECT_TIMEOUT: ${POSTGRES_CONNECT_TIMEOUT:-5}
+      DB_WAIT_TIMEOUT: ${DB_WAIT_TIMEOUT:-60}
+    ports:
+      - "${DJANGO_BIND_ADDRESS:-127.0.0.1}:${DJANGO_HOST_PORT:-8000}:8000"
+    depends_on:
+      - db
+    volumes:
+      - media_data:/app/media
+      - private_media_data:/app/private_media
+
+volumes:
+  postgres_data:
+  media_data:
+  private_media_data:

@@ -1,0 +1,282 @@
+/* Home minimalista — complementa os tokens e o layout de base.css */
+.home-page {
+  background: var(--sc-sand);
+}
+
+.home-hero {
+  padding: clamp(3.5rem, 8vw, 6.5rem) 0 clamp(2.5rem, 5vw, 4rem);
+  border-bottom: 1px solid var(--sc-line);
+  background: var(--sc-sand);
+}
+
+.home-eyebrow,
+.home-kicker {
+  margin-bottom: 1rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.home-eyebrow {
+  color: var(--sc-muted);
+}
+
+.home-kicker {
+  margin-bottom: 0.75rem;
+  color: var(--sc-teal-dark);
+}
+
+.home-title {
+  max-width: 18ch;
+  margin: 0 0 1.5rem;
+  color: var(--sc-ink);
+  font-size: clamp(2.4rem, 5vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+}
+
+.home-lead {
+  max-width: 40rem;
+  margin: 0;
+  color: var(--sc-muted);
+  font-size: clamp(1rem, 1.5vw, 1.1rem);
+  line-height: 1.7;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.home-page main .btn {
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.home-page main .btn-dark {
+  border-color: var(--sc-ink);
+  background: var(--sc-ink);
+}
+
+.home-page main .btn-dark:hover,
+.home-page main .btn-dark:focus {
+  border-color: var(--sc-navy-soft);
+  background: var(--sc-navy-soft);
+}
+
+.home-page main .btn-outline-secondary {
+  border-color: #d2d8d2;
+  color: var(--sc-muted);
+}
+
+.home-page main .btn-outline-secondary:hover,
+.home-page main .btn-outline-secondary:focus {
+  border-color: #bfc7c0;
+  background: var(--sc-white);
+  color: var(--sc-ink);
+}
+
+.home-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
+  margin: clamp(2rem, 4vw, 3rem) 0 0;
+  padding: 1.25rem 0 0;
+  border-top: 1px solid var(--sc-line);
+  color: var(--sc-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+  list-style: none;
+}
+
+.home-highlights li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.home-highlights li::before {
+  flex-shrink: 0;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--sc-teal-dark);
+  content: "";
+}
+
+.home-section {
+  padding: clamp(3.5rem, 7vw, 5.5rem) 0;
+}
+
+.home-section-muted {
+  border-top: 1px solid var(--sc-line);
+  border-bottom: 1px solid var(--sc-line);
+  background: #e9eee8;
+}
+
+.home-section-head {
+  max-width: 42rem;
+  margin-bottom: 2.5rem;
+}
+
+.home-section h2 {
+  max-width: 24ch;
+  margin: 0 0 1rem;
+  color: var(--sc-ink);
+  font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.home-section-head p,
+.home-section-text {
+  max-width: 40rem;
+  margin: 0;
+  color: var(--sc-muted);
+  line-height: 1.75;
+}
+
+.home-section-text {
+  margin-top: 1.25rem;
+}
+
+.home-step {
+  padding: 1.5rem 2.5rem 0 0;
+  border-top: 1px solid var(--sc-line);
+}
+
+.home-step-number {
+  display: block;
+  margin-bottom: 1.25rem;
+  color: var(--sc-teal-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.home-step h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.home-step p {
+  margin: 0;
+  color: var(--sc-muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.home-feature {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--sc-line);
+}
+
+.home-feature h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.home-feature p {
+  margin: 0;
+  color: var(--sc-muted);
+  font-size: 0.93rem;
+  line-height: 1.7;
+}
+
+.home-owner {
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--sc-line);
+  border-radius: 0.75rem;
+  background: var(--sc-white);
+}
+
+.home-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  color: var(--sc-ink);
+  font-size: 0.95rem;
+  list-style: none;
+}
+
+.home-list li {
+  position: relative;
+  padding-left: 1.25rem;
+  line-height: 1.6;
+}
+
+.home-list li::before {
+  position: absolute;
+  top: 0.7em;
+  left: 0;
+  width: 0.5rem;
+  height: 1px;
+  background: var(--sc-teal-dark);
+  content: "";
+}
+
+.home-owner-action {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--sc-line);
+}
+
+.home-owner-title {
+  margin: 0 0 0.5rem;
+  color: var(--sc-ink);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.home-owner-action p {
+  margin: 0;
+  color: var(--sc-muted);
+  font-size: 0.93rem;
+  line-height: 1.7;
+}
+
+.home-owner-action .btn {
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 992px) {
+  .home-actions {
+    justify-content: flex-end;
+    padding-bottom: 0.35rem;
+  }
+
+  .home-owner-action {
+    padding: 0 0 0 2rem;
+    border-top: 0;
+    border-left: 1px solid var(--sc-line);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .home-step {
+    padding: 1.5rem 0;
+  }
+
+  .home-step + .home-step {
+    padding-top: 1.5rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .home-section {
+    padding: 3rem 0;
+  }
+
+  .home-owner {
+    border-radius: 0.5rem;
+  }
+}
