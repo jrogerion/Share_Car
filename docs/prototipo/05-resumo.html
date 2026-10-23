@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShareCar · Resumo da reserva</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="proto">
+  <div class="phone">
+    <div class="screen">
+      <header class="appbar">
+        <a class="icon-btn" href="04-detalhes.html" aria-label="Voltar"><i class="bi bi-chevron-left"></i></a>
+        <div class="appbar__center"><strong>Resumo da reserva</strong></div>
+        <span></span>
+      </header>
+
+      <main class="screen-body">
+        <div class="card card-pad res-card">
+          <div class="photo photo--a res-card__img"></div>
+          <div class="res-card__body">
+            <strong>Fiat Argo 2021</strong>
+            <span class="muted-sm">Hatch · Manual · Flex</span>
+            <span class="loc"><i class="bi bi-geo-alt"></i> Vila Madalena, São Paulo</span>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="row-between">
+            <div>
+              <small class="muted-xs">Retirada</small>
+              <strong style="display:block;font-size:15px">12 nov</strong>
+              <span class="muted-sm">09:00</span>
+            </div>
+            <div style="text-align:center">
+              <i class="bi bi-arrow-right" style="color:var(--brand)"></i>
+              <span class="muted-sm" style="display:block">4 diárias</span>
+            </div>
+            <div style="text-align:right">
+              <small class="muted-xs">Devolução</small>
+              <strong style="display:block;font-size:15px">16 nov</strong>
+              <span class="muted-sm">18:00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <h3 class="card-title">Valores</h3>
+          <div class="price-line"><span>4 diárias × R$ 150</span><strong>R$ 600,00</strong></div>
+          <div class="price-line"><span>Taxa de serviço</span><strong>R$ 0,00</strong></div>
+          <div class="price-line price-line--total"><span>Total</span><strong>R$ 600,00</strong></div>
+          <p class="muted-xs" style="margin:8px 0 0">Comissão da plataforma de 15% (R$ 90,00) já incluída. Repasse ao proprietário: R$ 510,00.</p>
+        </div>
+
+        <div class="notice notice--info">
+          <i class="bi bi-info-circle"></i>
+          <div>
+            <strong>Solicitação sujeita a aprovação</strong>
+            <span>O proprietário tem até 24 h para aceitar. Se recusar, o pagamento é estornado automaticamente.</span>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="row-between">
+            <strong style="font-size:13px">Política de cancelamento</strong>
+            <i class="bi bi-chevron-right" style="color:var(--muted-2)"></i>
+          </div>
+          <p class="muted-sm" style="margin:6px 0 0">Cancelamento grátis até 48 h antes da retirada. Depois disso, reembolso parcial de 50%.</p>
+        </div>
+
+        <div class="notice notice--brand">
+          <i class="bi bi-shield-check"></i>
+          <div>
+            <strong>Pagamento simulado</strong>
+            <span>Nenhum valor real será cobrado. O fluxo serve para validar a experiência.</span>
+          </div>
+        </div>
+      </main>
+
+      <div class="sticky-cta">
+        <div class="price-wrap">
+          <span class="muted-xs">Total</span>
+          <span class="price price--lg">R$ 600,00</span>
+        </div>
+        <a class="btn-brand" href="06-pagamento.html">Ir para pagamento</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

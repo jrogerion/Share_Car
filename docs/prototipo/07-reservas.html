@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShareCar · Minhas reservas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="proto">
+  <div class="phone">
+    <div class="screen">
+      <header class="appbar">
+        <a class="icon-btn" href="02-home.html" aria-label="Voltar"><i class="bi bi-chevron-left"></i></a>
+        <div class="appbar__center appbar__center--left"><h1>Minhas reservas</h1></div>
+        <button class="icon-btn" type="button" aria-label="Filtros"><i class="bi bi-sliders"></i></button>
+      </header>
+
+      <main class="screen-body">
+        <div class="seg">
+          <button type="button">Como locatário</button>
+          <button class="is-active" type="button">Como proprietário</button>
+        </div>
+
+        <div class="chip-row">
+          <span class="chip is-active">Todas</span>
+          <span class="chip">Solicitadas</span>
+          <span class="chip">Ativas</span>
+          <span class="chip">Concluídas</span>
+        </div>
+
+        <a class="res-card card" href="08-checkin.html">
+          <div class="photo photo--b res-card__img"></div>
+          <div class="res-card__body">
+            <div class="row-between">
+              <strong>Hyundai HB20</strong>
+              <span class="badge-status is-pending">Solicitada</span>
+            </div>
+            <span class="muted-sm">Locatário: João Lima</span>
+            <div class="res-meta">
+              <span><i class="bi bi-calendar3"></i> 18–21 nov</span>
+              <strong>R$ 387,00</strong>
+            </div>
+            <div class="action-row">
+              <button class="btn-ghost" type="button">Recusar</button>
+              <button class="btn-brand" type="button">Aceitar</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="res-card card" href="08-checkin.html">
+          <div class="photo photo--c res-card__img"></div>
+          <div class="res-card__body">
+            <div class="row-between">
+              <strong>Jeep Renegade</strong>
+              <span class="badge-status is-ok">Confirmada</span>
+            </div>
+            <span class="muted-sm">Locatário: Carla Dias</span>
+            <div class="res-meta">
+              <span><i class="bi bi-calendar3"></i> 22–25 nov</span>
+              <strong>R$ 567,00</strong>
+            </div>
+            <div class="muted-xs"><i class="bi bi-check-circle"></i> Pagamento aprovado · check-in em 22 nov</div>
+          </div>
+        </a>
+
+        <a class="res-card card" href="08-checkin.html">
+          <div class="photo photo--d res-card__img"></div>
+          <div class="res-card__body">
+            <div class="row-between">
+              <strong>Honda City</strong>
+              <span class="badge-status is-info">Em andamento</span>
+            </div>
+            <span class="muted-sm">Locatário: Pedro Alves</span>
+            <div class="res-meta">
+              <span><i class="bi bi-calendar3"></i> 10–14 nov</span>
+              <strong>R$ 960,00</strong>
+            </div>
+            <div class="muted-xs"><i class="bi bi-camera"></i> Check-in feito · aguardando devolução</div>
+          </div>
+        </a>
+
+        <a class="res-card card" href="10-avaliacao.html">
+          <div class="photo photo--e res-card__img"></div>
+          <div class="res-card__body">
+            <div class="row-between">
+              <strong>Toyota Corolla</strong>
+              <span class="badge-status is-done">Concluída</span>
+            </div>
+            <span class="muted-sm">Locatário: Ana Beatriz</span>
+            <div class="res-meta">
+              <span><i class="bi bi-calendar3"></i> 01–05 nov</span>
+              <strong>R$ 1.280,00</strong>
+            </div>
+            <div class="muted-xs"><i class="bi bi-star"></i> Avaliação pendente</div>
+          </div>
+        </a>
+
+        <p class="muted-xs" style="text-align:center;margin:2px 0 0">
+          Reservas sobrepostas são bloqueadas automaticamente · RN01 e RN02
+        </p>
+      </main>
+
+      <nav class="tabbar">
+        <a class="tab" href="02-home.html"><i class="bi bi-house"></i> Início</a>
+        <a class="tab" href="03-resultados.html"><i class="bi bi-search"></i> Buscar</a>
+        <a class="tab is-active" href="07-reservas.html"><i class="bi bi-journal-text"></i> Reservas</a>
+        <a class="tab" href="01-entrar.html"><i class="bi bi-person"></i> Perfil</a>
+      </nav>
+    </div>
+  </div>
+</body>
+</html>

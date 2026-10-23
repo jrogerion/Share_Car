@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShareCar · Cadastro de veículo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="proto">
+  <div class="phone">
+    <div class="screen">
+      <header class="appbar">
+        <a class="icon-btn" href="02-home.html" aria-label="Voltar"><i class="bi bi-chevron-left"></i></a>
+        <div class="appbar__center"><strong>Anunciar veículo</strong></div>
+        <button class="icon-btn" type="button" aria-label="Ajuda"><i class="bi bi-question-lg"></i></button>
+      </header>
+
+      <main class="screen-body">
+        <div>
+          <div class="stepper">
+            <span class="is-on"></span><span class="is-on"></span><span></span><span></span>
+          </div>
+          <div class="row-between" style="margin-top:8px">
+            <span class="muted-sm">Etapa 2 de 4 · Preço, fotos e agenda</span>
+            <span class="muted-sm">50%</span>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <h3 class="card-title">Dados do veículo</h3>
+          <div class="field" style="margin-bottom:10px">
+            <label for="modelo">Marca e modelo</label>
+            <div class="input">
+              <i class="bi bi-car-front"></i>
+              <input id="modelo" type="text" value="Chevrolet Onix LT 1.0">
+            </div>
+          </div>
+          <div class="grid-2" style="margin-bottom:10px">
+            <div class="field">
+              <label for="ano">Ano</label>
+              <div class="input"><input id="ano" type="text" value="2023"></div>
+            </div>
+            <div class="field">
+              <label for="categoria">Categoria</label>
+              <div class="input"><input id="categoria" type="text" value="Hatch"></div>
+            </div>
+          </div>
+          <div class="grid-2" style="margin-bottom:10px">
+            <div class="field">
+              <label for="cambio">Câmbio</label>
+              <div class="input"><input id="cambio" type="text" value="Automático"></div>
+            </div>
+            <div class="field">
+              <label for="combustivel">Combustível</label>
+              <div class="input"><input id="combustivel" type="text" value="Flex"></div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="passageiros">Passageiros</label>
+              <div class="input"><input id="passageiros" type="text" value="5"></div>
+            </div>
+            <div class="field">
+              <label for="portas">Portas</label>
+              <div class="input"><input id="portas" type="text" value="4"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <h3 class="card-title">Preço e localização</h3>
+          <div class="field" style="margin-bottom:10px">
+            <label for="diaria">Valor da diária</label>
+            <div class="input input--money">
+              <span class="prefix">R$</span>
+              <input id="diaria" type="text" value="139">
+              <span class="suffix">/dia</span>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:10px">
+            <label for="cidade">Cidade</label>
+            <div class="input">
+              <i class="bi bi-geo-alt"></i>
+              <input id="cidade" type="text" value="São Paulo, SP">
+            </div>
+          </div>
+          <div class="field">
+            <label for="bairro">Bairro</label>
+            <div class="input">
+              <i class="bi bi-pin-map"></i>
+              <input id="bairro" type="text" value="Moema">
+            </div>
+          </div>
+          <p class="hint" style="margin-top:10px"><i class="bi bi-info-circle"></i> A comissão da plataforma é de 15% sobre as diárias (RN06).</p>
+        </div>
+
+        <div class="card card-pad">
+          <div class="row-between" style="margin-bottom:10px">
+            <h3 class="card-title" style="margin:0">Fotos</h3>
+            <span class="muted-xs">4 de 8</span>
+          </div>
+          <div class="upload-grid">
+            <div class="upload upload--filled" style="background-color:#dbeafe"><span class="upload__badge">Capa</span></div>
+            <div class="upload upload--filled" style="background-color:#fef3c7"></div>
+            <div class="upload upload--filled" style="background-color:#ede9fe"></div>
+            <div class="upload upload--filled" style="background-color:#d1fae5"></div>
+            <div class="upload"><i class="bi bi-camera"></i><span>Adicionar</span></div>
+            <div class="upload"><i class="bi bi-plus-lg"></i><span>Adicionar</span></div>
+          </div>
+          <p class="hint" style="margin-top:10px"><i class="bi bi-shield-check"></i> JPG ou PNG, até 5 MB por foto. Tipo e tamanho validados.</p>
+        </div>
+
+        <div class="card card-pad">
+          <div class="row-between" style="margin-bottom:10px">
+            <h3 class="card-title" style="margin:0">Disponibilidade</h3>
+            <span class="badge-status is-info">Novembro</span>
+          </div>
+          <div class="cal">
+            <span class="dow">D</span><span class="dow">S</span><span class="dow">T</span><span class="dow">Q</span><span class="dow">Q</span><span class="dow">S</span><span class="dow">S</span>
+            <span class="day">1</span><span class="day">2</span><span class="day">3</span><span class="day">4</span><span class="day day--blocked">5</span><span class="day day--blocked">6</span><span class="day day--blocked">7</span>
+            <span class="day">8</span><span class="day">9</span><span class="day">10</span><span class="day">11</span><span class="day day--sel">12</span><span class="day">13</span><span class="day">14</span>
+            <span class="day">15</span><span class="day">16</span><span class="day">17</span><span class="day">18</span><span class="day">19</span><span class="day day--blocked">20</span><span class="day day--blocked">21</span>
+            <span class="day day--blocked">22</span><span class="day">23</span><span class="day">24</span><span class="day">25</span><span class="day">26</span><span class="day">27</span><span class="day">28</span>
+            <span class="day">29</span><span class="day">30</span><span class="day day--out">1</span><span class="day day--out">2</span><span class="day day--out">3</span><span class="day day--out">4</span><span class="day day--out">5</span>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot--free"></i> Livre</span>
+            <span><i class="dot dot--blocked"></i> Bloqueado</span>
+            <span><i class="dot dot--sel"></i> Selecionado</span>
+          </div>
+        </div>
+
+        <div class="notice">
+          <i class="bi bi-hourglass-split"></i>
+          <div>
+            <strong>Análise do administrador</strong>
+            <span>Seu anúncio só aparece na busca depois de aprovado. Enquanto isso, fica como "em análise".</span>
+          </div>
+        </div>
+      </main>
+
+      <div class="sticky-cta">
+        <a class="btn-brand" href="02-home.html"><i class="bi bi-cloud-arrow-up"></i> Salvar e enviar para análise</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

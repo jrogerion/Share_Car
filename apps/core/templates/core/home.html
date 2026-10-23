@@ -1,177 +1,64 @@
 {% extends "core/base.html" %}
 {% load static %}
-
-{% block title %}ShareCar — Aluguel de carros entre pessoas{% endblock %}
-
-{% block meta_description %}Encontre carros para alugar na sua cidade, compare preços e reserve com praticidade. Ou anuncie seu veículo e defina sua própria agenda.{% endblock %}
-
+{% block title %}ShareCar — Encontre seu próximo carro{% endblock %}
 {% block body_class %}home-page{% endblock %}
-
 {% block extra_head %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock %}
-
 {% block content %}
-  <section class="home-hero" aria-labelledby="home-title">
+  <section class="discovery-hero" aria-labelledby="home-title">
     <div class="container">
-      <div class="row align-items-end g-4 g-lg-5">
-        <div class="col-lg-8">
-          <p class="home-eyebrow">Aluguel de carros entre pessoas</p>
-          <h1 id="home-title" class="home-title">
-            Seu próximo destino começa com a chave certa.
-          </h1>
-          <p class="home-lead">
-            Encontre o carro ideal para uma viagem, um fim de semana ou a rotina
-            na cidade. Quem tem um veículo parado também pode transformá-lo em
-            uma nova fonte de renda.
-          </p>
-        </div>
-
-        <div class="col-lg-4">
-          <div class="home-actions">
-            <a class="btn btn-dark" href="#como-funciona">Ver como funciona</a>
-            <a class="btn btn-outline-secondary" href="#para-proprietarios">Quero anunciar</a>
-          </div>
-        </div>
-      </div>
-
-      <ul class="home-highlights">
-        <li>Preços transparentes</li>
-        <li>Reserva pelo celular</li>
-        <li>Perfis aprovados</li>
-      </ul>
+      <p>Bem-vindo ao ShareCar <span aria-hidden="true">👋</span></p>
+      <h1 id="home-title">Onde você vai hoje?</h1>
+      <p>Carros de pessoas reais, perto de você.</p>
     </div>
   </section>
-
-  <section id="como-funciona" class="home-section" aria-labelledby="como-funciona-title">
-    <div class="container">
-      <div class="home-section-head">
-        <p class="home-kicker">Como funciona</p>
-        <h2 id="como-funciona-title">Alugar um carro pode ser simples.</h2>
-        <p>
-          O ShareCar aproxima quem precisa de um veículo de quem tem um carro
-          disponível, com etapas claras para os dois lados.
-        </p>
+  <div class="container discovery-content">
+    <section id="busca" class="discovery-search" aria-label="Prévia da busca" aria-describedby="demo-notice">
+      <div class="discovery-fields">
+        <div class="discovery-location"><label for="cidade"><i class="bi bi-geo-alt" aria-hidden="true"></i> Localização</label><input id="cidade" type="text" placeholder="Qual é a sua cidade?" autocomplete="address-level2"></div>
+        <div><label for="retirada">Retirada</label><input id="retirada" type="date"></div>
+        <div><label for="devolucao">Devolução</label><input id="devolucao" type="date"></div>
+        <a class="discovery-button" href="#destaques"><i class="bi bi-search" aria-hidden="true"></i> Explorar exemplos</a>
       </div>
-
-      <div class="row g-0 home-steps">
-        <div class="col-md-4 home-step">
-          <span class="home-step-number">01</span>
-          <h3>Encontre o carro ideal</h3>
-          <p>
-            Busque por cidade e período e compare características, preço e
-            disponibilidade antes de escolher.
-          </p>
-        </div>
-
-        <div class="col-md-4 home-step">
-          <span class="home-step-number">02</span>
-          <h3>Reserve com segurança</h3>
-          <p>
-            Envie sua solicitação, acompanhe a aprovação do proprietário e
-            consulte o valor total antes de confirmar.
-          </p>
-        </div>
-
-        <div class="col-md-4 home-step">
-          <span class="home-step-number">03</span>
-          <h3>Retire e aproveite</h3>
-          <p>
-            Faça o check-in, use o carro no período combinado e registre a
-            devolução ao final da locação.
-          </p>
-        </div>
+      <p id="demo-notice" class="discovery-note">Prévia visual: os campos ainda não filtram carros nem geram reservas.</p>
+    </section>
+    <section id="vantagens" class="discovery-categories" aria-label="Categorias ilustradas">
+      <span><i class="bi bi-car-front" aria-hidden="true"></i> Hatch</span>
+      <span><i class="bi bi-car-front-fill" aria-hidden="true"></i> Sedã</span>
+      <span><i class="bi bi-truck" aria-hidden="true"></i> SUV</span>
+      <span><i class="bi bi-truck-flatbed" aria-hidden="true"></i> Picape</span>
+    </section>
+    <section id="destaques" class="discovery-section" aria-labelledby="destaques-title">
+      <div class="discovery-heading"><h2 id="destaques-title">Encontre o seu estilo</h2><span>Exemplos ilustrativos</span></div>
+      <p class="discovery-note">Veículos, preços e notas fictícios para demonstrar a experiência.</p>
+      <div class="discovery-cars" tabindex="0" role="region" aria-label="Exemplos de veículos; role para ver mais no celular">
+        <article class="discovery-car"><div class="discovery-photo photo-blue"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Fiat Argo</h3><p>2021 · Hatch</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,8 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,8</span><strong>R$ 150<small>/dia</small></strong></div></div></article>
+        <article class="discovery-car"><div class="discovery-photo photo-lilac"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Jeep Renegade</h3><p>2022 · SUV</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 189<small>/dia</small></strong></div></div></article>
+        <article class="discovery-car"><div class="discovery-photo photo-mint"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Honda City</h3><p>2023 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 240<small>/dia</small></strong></div></div></article>
+        <article class="discovery-car"><div class="discovery-photo photo-rose"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Toyota Corolla</h3><p>2022 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 5 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 5,0</span><strong>R$ 320<small>/dia</small></strong></div></div></article>
       </div>
-    </div>
-  </section>
-
-  <section id="vantagens" class="home-section home-section-muted" aria-labelledby="vantagens-title">
-    <div class="container">
-      <div class="row g-5">
-        <div class="col-lg-4">
-          <p class="home-kicker">Vantagens</p>
-          <h2 id="vantagens-title">
-            Mais liberdade para quem aluga. Mais controle para quem anuncia.
-          </h2>
-          <p class="home-section-text">
-            A plataforma foi pensada para tornar a experiência transparente,
-            segura e simples — do primeiro filtro até a devolução do veículo.
-          </p>
-        </div>
-
-        <div class="col-lg-8">
-          <div class="row g-4">
-            <div class="col-sm-6 home-feature">
-              <h3>Busca do seu jeito</h3>
-              <p>
-                Filtre por cidade, período, preço, categoria, câmbio,
-                combustível e número de passageiros.
-              </p>
-            </div>
-
-            <div class="col-sm-6 home-feature">
-              <h3>Agenda sob controle</h3>
-              <p>
-                O proprietário define os períodos disponíveis e bloqueia as
-                datas em que o carro não pode ser alugado.
-              </p>
-            </div>
-
-            <div class="col-sm-6 home-feature">
-              <h3>Confiança em cada etapa</h3>
-              <p>
-                Perfis e veículos passam por aprovação, e os documentos ficam
-                protegidos durante todo o processo.
-              </p>
-            </div>
-
-            <div class="col-sm-6 home-feature">
-              <h3>Tudo na palma da mão</h3>
-              <p>
-                Uma experiência responsiva para buscar, reservar e acompanhar
-                a locação também pelo celular.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="para-proprietarios" class="home-section" aria-labelledby="proprietarios-title">
-    <div class="container">
-      <div class="home-owner">
-        <div class="row g-5 align-items-center">
-          <div class="col-lg-7">
-            <p class="home-kicker">Para proprietários</p>
-            <h2 id="proprietarios-title">
-              Seu carro pode render mais do que espaço na garagem.
-            </h2>
-            <p class="home-section-text">
-              Cadastre o veículo, defina o preço da diária e escolha quando ele
-              estará disponível. Você acompanha as solicitações e decide o que
-              faz sentido para a sua agenda.
-            </p>
-
-            <ul class="home-list">
-              <li>Defina preço, disponibilidade e períodos de bloqueio.</li>
-              <li>Acompanhe solicitações e o histórico de reservas.</li>
-              <li>Receba o repasse após a conclusão da locação.</li>
-            </ul>
-          </div>
-
-          <div class="col-lg-5">
-            <div class="home-owner-action">
-              <p class="home-owner-title">Entenda o fluxo</p>
-              <p>
-                Veja como uma reserva acontece, da busca do locatário até a
-                devolução do carro.
-              </p>
-              <a class="btn btn-dark w-100" href="#como-funciona">Ver o passo a passo</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+    </section>
+    <section id="como-funciona" class="discovery-section" aria-labelledby="como-title">
+      <div class="discovery-heading"><h2 id="como-title">Como funciona</h2><span>Simples, do início ao fim</span></div>
+      <ol class="discovery-steps">
+        <li><span aria-hidden="true">1</span><div><h3>Busque</h3><p>Escolha a cidade e o período da locação.</p></div></li>
+        <li><span aria-hidden="true">2</span><div><h3>Reserve e pague</h3><p>Após o aceite do proprietário, confirme com um pagamento simulado.</p></div></li>
+        <li><span aria-hidden="true">3</span><div><h3>Retire e devolva</h3><p>Registre fotos, quilometragem e combustível em cada etapa.</p></div></li>
+      </ol>
+    </section>
+    <section id="para-proprietarios" class="discovery-owner" aria-labelledby="owner-title">
+      <i class="bi bi-car-front" aria-hidden="true"></i><div><h2 id="owner-title">Tem um carro parado?</h2><p>Anuncie e ganhe uma renda extra, com preço e agenda sob seu controle.</p></div><span>Cadastro de veículos em breve</span>
+    </section>
+  </div>
+  <nav class="discovery-tabbar" aria-label="Navegação mobile">
+    <a href="{% url 'core:home' %}" aria-current="page"><i class="bi bi-house" aria-hidden="true"></i>Início</a>
+    <a href="#busca"><i class="bi bi-search" aria-hidden="true"></i>Explorar</a>
+    <span aria-disabled="true"><i class="bi bi-journal-text" aria-hidden="true"></i>Reservas<small>Em breve</small></span>
+    <span aria-disabled="true"><i class="bi bi-person" aria-hidden="true"></i>Perfil<small>Em breve</small></span>
+  </nav>
 {% endblock %}

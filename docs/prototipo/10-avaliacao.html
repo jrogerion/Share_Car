@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShareCar · Avaliação</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="proto">
+  <div class="phone">
+    <div class="screen">
+      <header class="appbar">
+        <a class="icon-btn" href="07-reservas.html" aria-label="Voltar"><i class="bi bi-chevron-left"></i></a>
+        <div class="appbar__center"><strong>Avaliar locação</strong></div>
+        <span></span>
+      </header>
+
+      <main class="screen-body">
+        <div class="card card-pad eval-head">
+          <div class="photo photo--a thumb"></div>
+          <div>
+            <strong style="font-size:14px">Fiat Argo 2021</strong>
+            <span class="muted-sm">12–16 nov · 4 diárias</span>
+            <span class="muted-xs"><i class="bi bi-check-circle"></i> Locação concluída</span>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <p class="eval-q">Como foi sua experiência com Rafael?</p>
+          <div class="stars">
+            <i class="bi bi-star-fill is-on"></i>
+            <i class="bi bi-star-fill is-on"></i>
+            <i class="bi bi-star-fill is-on"></i>
+            <i class="bi bi-star-fill is-on"></i>
+            <i class="bi bi-star-fill is-on"></i>
+          </div>
+          <span class="eval-hint">Excelente · toque nas estrelas para alterar</span>
+
+          <div class="chip-wrap" style="margin:14px 0 12px;justify-content:center">
+            <span class="chip chip--soft is-active">Limpeza</span>
+            <span class="chip chip--soft is-active">Estado do carro</span>
+            <span class="chip chip--soft">Comunicação</span>
+            <span class="chip chip--soft">Pontualidade</span>
+          </div>
+
+          <div class="field">
+            <label for="comentario">Comentário (opcional)</label>
+            <textarea id="comentario" rows="3" placeholder="Conte como foi a retirada, o carro e a comunicação com o proprietário..."></textarea>
+          </div>
+        </div>
+
+        <div class="notice notice--info">
+          <i class="bi bi-eye-slash"></i>
+          <div>
+            <strong>Avaliação cega</strong>
+            <span>Sua nota só aparece no perfil depois que a outra parte avaliar ou em até 7 dias.</span>
+          </div>
+        </div>
+
+        <div class="card card-pad waiting">
+          <div class="avatar">RC</div>
+          <div>
+            <strong style="font-size:12.5px">Rafael ainda não avaliou</strong>
+            <span class="muted-sm">Você pode editar sua avaliação até o envio dele.</span>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="row-between">
+            <span class="muted-sm">Avaliação da locação</span>
+            <span class="badge-status is-ok">Liberada</span>
+          </div>
+          <p class="muted-xs" style="margin:6px 0 0">Disponível após o check-out, uma vez por parte e por reserva (RN09).</p>
+        </div>
+      </main>
+
+      <div class="sticky-cta">
+        <a class="btn-brand" href="07-reservas.html"><i class="bi bi-send"></i> Enviar avaliação</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

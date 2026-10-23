@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShareCar · Pagamento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="proto">
+  <div class="phone">
+    <div class="screen">
+      <header class="appbar">
+        <a class="icon-btn" href="05-resumo.html" aria-label="Voltar"><i class="bi bi-chevron-left"></i></a>
+        <div class="appbar__center"><strong>Pagamento</strong></div>
+        <span></span>
+      </header>
+
+      <main class="screen-body">
+        <div class="pay-total">
+          <span>Total a pagar</span>
+          <strong>R$ 600,00</strong>
+          <span class="muted-xs">Fiat Argo · 12–16 nov · 4 diárias</span>
+        </div>
+
+        <div class="seg">
+          <button class="is-active" type="button"><i class="bi bi-qr-code"></i> Pix</button>
+          <button type="button"><i class="bi bi-credit-card"></i> Cartão</button>
+        </div>
+
+        <div class="card card-pad">
+          <div class="qr"></div>
+          <p class="muted-sm" style="text-align:center;margin:0">Escaneie o QR code ou copie o código Pix.</p>
+          <div class="copy-box">
+            <span>00020126580014BR.GOV.BCB.PIX0136sharecar-demo-60000</span>
+            <button type="button" aria-label="Copiar"><i class="bi bi-clipboard"></i></button>
+          </div>
+          <p class="muted-xs" style="text-align:center;margin:10px 0 0">QR code fictício · nenhum valor real será cobrado</p>
+        </div>
+
+        <div class="card card-pad">
+          <div class="row-between" style="margin-bottom:10px">
+            <strong style="font-size:13px">Simular resultado</strong>
+            <span class="badge-status is-info">Demonstração</span>
+          </div>
+          <div class="seg seg--sm">
+            <button class="is-active" type="button">Aprovado</button>
+            <button type="button">Recusado</button>
+            <button type="button">Estornado</button>
+          </div>
+          <p class="muted-xs" style="margin:10px 0 0">Use este seletor para testar os cenários do pagamento simulado.</p>
+        </div>
+
+        <div class="card card-pad">
+          <h3 class="card-title">Resumo</h3>
+          <div class="price-line"><span>4 diárias × R$ 150</span><span>R$ 600,00</span></div>
+          <div class="price-line"><span>Taxa de serviço</span><span>R$ 0,00</span></div>
+          <div class="price-line price-line--total"><span>Total</span><strong>R$ 600,00</strong></div>
+        </div>
+
+        <p class="muted-xs" style="text-align:center;margin:0">
+          <i class="bi bi-shield-lock"></i> Ambiente de demonstração. Nenhum dado de cartão é armazenado.
+        </p>
+      </main>
+
+      <div class="sticky-cta">
+        <a class="btn-brand" href="07-reservas.html"><i class="bi bi-shield-lock"></i> Confirmar pagamento</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
