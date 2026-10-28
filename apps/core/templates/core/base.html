@@ -6,17 +6,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}ShareCar — Aluguel de carros entre pessoas{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}Alugue carros de pessoas da sua região com preço, disponibilidade e condições transparentes.{% endblock %}">
-  <meta name="theme-color" content="#f4f5f2">
+  <meta name="theme-color" content="#0f766e">
 
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-  <header>
+  <header class="site-header">
     {% block navbar %}
       <nav class="navbar navbar-expand-lg navbar-light site-navbar sticky-top" aria-label="Navegação principal">
         <div class="container">
@@ -32,37 +36,17 @@
             data-bs-target="#menuPrincipal"
             aria-controls="menuPrincipal"
             aria-expanded="false"
-            aria-label="Abrir menu"
+            aria-label="Alternar menu principal"
           >
             <span class="navbar-toggler-icon"></span>
           </button>
 
           <div class="collapse navbar-collapse" id="menuPrincipal">
-            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:home' %}#como-funciona">Como funciona</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:home' %}#vantagens">Vantagens</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:home' %}#para-proprietarios">Para proprietários</a>
-              </li>
-              <li class="nav-item ms-lg-3">
-                <a class="nav-link" href="{% url 'core:resultados' %}">Buscar</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:reservas' %}">Reservas</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:entrar' %}">Entrar</a>
-              </li>
-              <li class="nav-item">
-                <a class="btn btn-brand btn-sm px-3" href="{% url 'core:veiculo' %}">
-                  Anunciar carro
-                </a>
-              </li>
-            </ul>
+            <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+              {% include "core/includes/navigation_links.html" with link_class="nav-link" %}
+              <a class="nav-link" href="{% url 'core:home' %}#como-funciona">Como funciona</a>
+              <a class="btn btn-brand btn-sm px-3" href="{% url 'core:veiculo' %}" {% if request.resolver_match.url_name == 'veiculo' %}aria-current="page"{% endif %}>Anunciar carro</a>
+            </div>
           </div>
         </div>
       </nav>
@@ -72,6 +56,7 @@
   <main id="conteudo">
     {% block content %}{% endblock %}
   </main>
+  {% include "core/includes/tabbar.html" %}
 
   {% block footer %}
     <footer class="site-footer">

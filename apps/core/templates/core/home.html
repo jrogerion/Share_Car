@@ -3,10 +3,6 @@
 {% block title %}ShareCar — Encontre seu próximo carro{% endblock %}
 {% block body_class %}home-page{% endblock %}
 {% block extra_head %}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock %}
 {% block content %}
@@ -55,10 +51,4 @@
       <i class="bi bi-car-front" aria-hidden="true"></i><div><h2 id="owner-title">Tem um carro parado?</h2><p>Anuncie e ganhe uma renda extra, com preço e agenda sob seu controle.</p></div><a class="discovery-button" href="{% url 'core:veiculo' %}">Conhecer cadastro</a>
     </section>
   </div>
-  <nav class="discovery-tabbar" aria-label="Navegação mobile">
-    <a href="{% url 'core:home' %}" aria-current="page"><i class="bi bi-house" aria-hidden="true"></i>Início</a>
-    <a href="{% url 'core:resultados' %}"><i class="bi bi-search" aria-hidden="true"></i>Explorar</a>
-    <a href="{% url 'core:reservas' %}"><i class="bi bi-journal-text" aria-hidden="true"></i>Reservas</a>
-    <a href="{% url 'core:entrar' %}"><i class="bi bi-person" aria-hidden="true"></i>Perfil</a>
-  </nav>
 {% endblock %}

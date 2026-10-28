@@ -2,10 +2,6 @@
 {% load static %}
 {% block body_class %}home-page flow-page{% endblock %}
 {% block extra_head %}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="{% static 'css/home.css' %}">
   <link rel="stylesheet" href="{% static 'css/pages.css' %}">
 {% endblock %}
@@ -13,8 +9,10 @@
   <div class="container flow-content">
     <nav aria-label="Voltar"><a class="flow-back" href="{% block back_url %}{% url 'core:home' %}{% endblock %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> {% block back_label %}Início{% endblock %}</a></nav>
     <header class="flow-heading"><p class="flow-kicker">ShareCar · Prévia visual</p><h1>{% block page_title %}{% endblock %}</h1><p>{% block page_subtitle %}{% endblock %}</p></header>
-    <aside class="flow-notice" aria-label="Aviso de demonstração">Dados fictícios. Esta prévia não autentica, filtra, salva, envia arquivos ou realiza pagamentos. Não informe dados pessoais reais.</aside>
+    <aside class="flow-notice flow-demo-notice" aria-label="Aviso de demonstração">
+      <i class="bi bi-info-circle" aria-hidden="true"></i>
+      <div><strong>Ambiente de demonstração</strong><p>Dados fictícios. Esta prévia não autentica, filtra, salva, envia arquivos ou realiza pagamentos. Não informe dados pessoais reais.</p></div>
+    </aside>
     {% block page_content %}{% endblock %}
   </div>
-  {% include "core/includes/tabbar.html" %}
 {% endblock %}

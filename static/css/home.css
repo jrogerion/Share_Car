@@ -1,22 +1,17 @@
 /* Visual do protótipo, sem moldura de celular e isolado dos estilos globais. */
-.home-page { --home-brand: #0f766e; --home-ink: #0f172a; --home-muted: #526176; --home-line: #e2e8f0; background: #f8fafc; color: var(--home-ink); font-family: "Inter", "Segoe UI", system-ui, sans-serif; }
-.home-page .brand-mark { background: #ccfbf1; color: var(--home-brand); border-color: #99e4d7; }
-.home-page .site-navbar .btn-brand { background: #f0fdfa; color: var(--home-brand); border-color: #b5e7de; }
+.home-page { --home-brand: var(--sc-teal); --home-ink: var(--sc-ink); --home-muted: var(--sc-muted); --home-line: var(--sc-line); }
 .home-page .site-footer { background: #f1f5f9; border-color: var(--home-line); }
-.home-page :focus-visible { outline: 3px solid var(--home-brand); outline-offset: 4px; }
 .discovery-hero { padding: 48px 0 100px; color: #fff; background: linear-gradient(125deg, #115e59, #0f766e 55%, #0d9488); border-radius: 0 0 32px 32px; }
 .discovery-hero h1 { max-width: 12ch; margin: 24px 0 16px; font-size: clamp(2.1rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -.045em; line-height: 1.08; }
 .discovery-hero p { margin: 0; color: #e4fff9; font-size: .95rem; }
 .discovery-content { position: relative; padding-bottom: 56px; }
-.discovery-search { margin-top: -52px; padding: 24px; background: #fff; border: 1px solid var(--home-line); border-radius: 22px; box-shadow: 0 16px 40px rgba(15,23,42,.09); }
+.discovery-search { margin-top: -52px; padding: var(--sc-space-3); background: var(--sc-white); border: 1px solid var(--home-line); border-radius: var(--sc-radius); box-shadow: var(--sc-shadow-hover); }
 .discovery-fields { display: grid; grid-template-columns: minmax(0,1.4fr) repeat(2,minmax(0,1fr)) auto; align-items: center; gap: 20px; }
 .discovery-fields > div { min-width: 0; }
 .discovery-fields label { display: block; margin-bottom: 6px; color: var(--home-muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .discovery-fields input { display: block; width: 100%; min-width: 0; min-height: 36px; padding: 4px 0; border: 0; background: transparent; color: var(--home-ink); font: inherit; font-size: .9rem; font-weight: 600; }
 .discovery-fields input::placeholder { color: var(--home-muted); opacity: 1; }
 .discovery-location i { color: var(--home-brand); }
-.discovery-button { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 48px; padding: 14px 20px; background: var(--home-brand); color: #fff; border-radius: 14px; font-size: .9rem; font-weight: 700; text-decoration: none; }
-.discovery-button:hover { color: #fff; background: #115e59; }
 .discovery-note { margin: 12px 0 16px; color: var(--home-muted); font-size: .75rem; line-height: 1.6; }
 .discovery-search .discovery-note { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid #f1f5f9; }
 .discovery-categories { display: flex; flex-wrap: wrap; gap: 10px; padding: 28px 0 4px; }
@@ -27,7 +22,7 @@
 .discovery-heading h2 { margin: 0; font-size: clamp(1.1rem,2vw,1.4rem); font-weight: 800; letter-spacing: -.025em; }
 .discovery-heading > span { color: var(--home-muted); font-size: .75rem; }
 .discovery-cars { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 18px; padding: 4px 4px 12px; }
-.discovery-car { overflow: hidden; background: #fff; border: 1px solid var(--home-line); border-radius: 20px; box-shadow: 0 6px 20px rgba(15,23,42,.035); }
+.discovery-car { overflow: hidden; background: var(--sc-white); border: 1px solid var(--home-line); border-radius: var(--sc-radius); box-shadow: var(--sc-shadow); }
 .discovery-photo { display: grid; place-items: center; aspect-ratio: 1.65; padding: 18px; }
 .discovery-photo img { width: 100%; height: auto; }
 .photo-blue { background: #dbeafe; }
@@ -62,7 +57,8 @@
   .discovery-owner > span { margin-left: 0; }
 }
 @media (max-width: 575.98px) {
-  .home-page { padding-bottom: calc(78px + env(safe-area-inset-bottom,0px)); }
+  .home-page { padding-bottom: calc(84px + env(safe-area-inset-bottom,0px)); }
+  .home-page #conteudo { scroll-margin-bottom: 100px; }
   .home-page .site-navbar { padding: .6rem 0; }
   .discovery-hero { padding: 28px 0 88px; border-radius: 0 0 28px 28px; }
   .discovery-search { padding: 18px; }
@@ -74,8 +70,8 @@
   .discovery-steps, .discovery-owner { padding: 20px; }
   .discovery-owner > i { display: none; }
   .discovery-tabbar { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); position: fixed; inset: auto 0 0; z-index: 1040; padding: 10px 8px calc(8px + env(safe-area-inset-bottom,0px)); background: #fff; border-top: 1px solid var(--home-line); }
-  .discovery-tabbar > a, .discovery-tabbar > span { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 3px; min-height: 54px; color: var(--home-muted); font-size: .65rem; font-weight: 600; text-decoration: none; }
+  .discovery-tabbar > a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: var(--sc-radius-control); color: var(--home-muted); font-size: .7rem; font-weight: 600; text-decoration: none; }
   .discovery-tabbar i { font-size: 1.15rem; }
-  .discovery-tabbar [aria-current] { color: var(--home-brand); }
+  .discovery-tabbar [aria-current] { color: var(--home-brand); background: var(--sc-teal-light); box-shadow: inset 0 2px var(--home-brand); }
   .discovery-tabbar small { font-size: .55rem; font-weight: 400; }
 }

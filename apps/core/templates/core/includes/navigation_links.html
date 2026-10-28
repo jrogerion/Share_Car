@@ -1,0 +1,6 @@
+{% with page=request.resolver_match.url_name %}
+  <a class="{{ link_class }}" href="{% url 'core:home' %}" {% if page == 'home' %}aria-current="page"{% endif %}><i class="bi bi-house" aria-hidden="true"></i>Início</a>
+  <a class="{{ link_class }}" href="{% url 'core:resultados' %}" {% if page == 'resultados' or page == 'detalhes' or page == 'resumo' or page == 'pagamento' %}aria-current="{% if page == 'resultados' %}page{% else %}location{% endif %}"{% endif %}><i class="bi bi-search" aria-hidden="true"></i>Buscar</a>
+  <a class="{{ link_class }}" href="{% url 'core:reservas' %}" {% if page == 'reservas' or page == 'checkin' or page == 'avaliacao' %}aria-current="{% if page == 'reservas' %}page{% else %}location{% endif %}"{% endif %}><i class="bi bi-journal-text" aria-hidden="true"></i>Reservas</a>
+  <a class="{{ link_class }}" href="{% url 'core:entrar' %}" {% if page == 'entrar' %}aria-current="page"{% endif %}><i class="bi bi-person" aria-hidden="true"></i>Entrar</a>
+{% endwith %}

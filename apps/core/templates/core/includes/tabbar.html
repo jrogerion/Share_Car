@@ -1,6 +1,3 @@
 <nav class="discovery-tabbar" aria-label="Navegação mobile">
-  <a href="{% url 'core:home' %}"><i class="bi bi-house" aria-hidden="true"></i>Início</a>
-  <a href="{% url 'core:resultados' %}" {% if request.resolver_match.url_name == 'resultados' %}aria-current="page"{% endif %}><i class="bi bi-search" aria-hidden="true"></i>Buscar</a>
-  <a href="{% url 'core:reservas' %}" {% if request.resolver_match.url_name == 'reservas' %}aria-current="page"{% endif %}><i class="bi bi-journal-text" aria-hidden="true"></i>Reservas</a>
-  <a href="{% url 'core:entrar' %}" {% if request.resolver_match.url_name == 'entrar' %}aria-current="page"{% endif %}><i class="bi bi-person" aria-hidden="true"></i>Perfil</a>
+  {% include "core/includes/navigation_links.html" with link_class="tab-link" %}
 </nav>
