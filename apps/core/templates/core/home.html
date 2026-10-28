@@ -23,7 +23,7 @@
         <div class="discovery-location"><label for="cidade"><i class="bi bi-geo-alt" aria-hidden="true"></i> Localização</label><input id="cidade" type="text" placeholder="Qual é a sua cidade?" autocomplete="address-level2"></div>
         <div><label for="retirada">Retirada</label><input id="retirada" type="date"></div>
         <div><label for="devolucao">Devolução</label><input id="devolucao" type="date"></div>
-        <a class="discovery-button" href="#destaques"><i class="bi bi-search" aria-hidden="true"></i> Explorar exemplos</a>
+        <a class="discovery-button" href="{% url 'core:resultados' %}"><i class="bi bi-search" aria-hidden="true"></i> Explorar exemplos</a>
       </div>
       <p id="demo-notice" class="discovery-note">Prévia visual: os campos ainda não filtram carros nem geram reservas.</p>
     </section>
@@ -52,13 +52,13 @@
       </ol>
     </section>
     <section id="para-proprietarios" class="discovery-owner" aria-labelledby="owner-title">
-      <i class="bi bi-car-front" aria-hidden="true"></i><div><h2 id="owner-title">Tem um carro parado?</h2><p>Anuncie e ganhe uma renda extra, com preço e agenda sob seu controle.</p></div><span>Cadastro de veículos em breve</span>
+      <i class="bi bi-car-front" aria-hidden="true"></i><div><h2 id="owner-title">Tem um carro parado?</h2><p>Anuncie e ganhe uma renda extra, com preço e agenda sob seu controle.</p></div><a class="discovery-button" href="{% url 'core:veiculo' %}">Conhecer cadastro</a>
     </section>
   </div>
   <nav class="discovery-tabbar" aria-label="Navegação mobile">
     <a href="{% url 'core:home' %}" aria-current="page"><i class="bi bi-house" aria-hidden="true"></i>Início</a>
-    <a href="#busca"><i class="bi bi-search" aria-hidden="true"></i>Explorar</a>
-    <span aria-disabled="true"><i class="bi bi-journal-text" aria-hidden="true"></i>Reservas<small>Em breve</small></span>
-    <span aria-disabled="true"><i class="bi bi-person" aria-hidden="true"></i>Perfil<small>Em breve</small></span>
+    <a href="{% url 'core:resultados' %}"><i class="bi bi-search" aria-hidden="true"></i>Explorar</a>
+    <a href="{% url 'core:reservas' %}"><i class="bi bi-journal-text" aria-hidden="true"></i>Reservas</a>
+    <a href="{% url 'core:entrar' %}"><i class="bi bi-person" aria-hidden="true"></i>Perfil</a>
   </nav>
 {% endblock %}

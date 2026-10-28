@@ -1,0 +1,25 @@
+{% extends "core/page.html" %}
+{% load static %}
+{% block title %}Resultados da busca — ShareCar{% endblock %}
+{% block page_title %}Encontre seu próximo carro{% endblock %}
+{% block page_subtitle %}São Paulo, SP · 12–16 nov 2026 · 4 diárias ilustrativas{% endblock %}
+{% block page_content %}
+  <section class="flow-panel flow-filter" aria-labelledby="filtros-title">
+    <h2 id="filtros-title">Filtros de exemplo</h2>
+    <div class="flow-filter-fields flow-fields">
+      <div><label for="preco">Diária até (R$)</label><input id="preco" type="number" min="1" placeholder="300"></div>
+      <div><label for="categoria">Categoria</label><select id="categoria"><option>Todas</option><option>Hatch</option><option>Sedã</option><option>SUV</option></select></div>
+      <div><label for="cambio">Câmbio</label><select id="cambio"><option>Todos</option><option>Manual</option><option>Automático</option></select></div>
+      <div><label for="combustivel">Combustível</label><select id="combustivel"><option>Todos</option><option>Flex</option><option>Diesel</option></select></div>
+      <div><label for="passageiros">Passageiros</label><input id="passageiros" type="number" min="1" max="9" placeholder="5"></div>
+    </div>
+    <p class="flow-small">Os filtros são apenas visuais e não alteram a listagem.</p>
+  </section>
+  <div class="flow-section-heading"><h2>4 exemplos de veículos</h2><span>Sem disponibilidade real</span></div>
+  <div class="flow-cars">
+    <a class="flow-panel flow-car" href="{% url 'core:detalhes' %}"><div class="flow-car-photo photo-blue"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="flow-car-body"><h2>Fiat Argo 2021</h2><p>Hatch · Manual · Flex · 5 lugares</p><p>Vila Madalena · ★ 4,8</p><strong>R$ 150 <small>/dia</small></strong><span>Ver detalhes do exemplo</span></div></a>
+    <article class="flow-panel flow-car"><div class="flow-car-photo photo-rose"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="flow-car-body"><h2>Hyundai HB20 2022</h2><p>Hatch · Automático · Flex · 5 lugares</p><p>Pinheiros · ★ 4,7</p><strong>R$ 129 <small>/dia</small></strong><span>Exemplo ilustrativo</span></div></article>
+    <article class="flow-panel flow-car"><div class="flow-car-photo photo-mint"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="flow-car-body"><h2>Chevrolet Onix 2023</h2><p>Hatch · Automático · Flex · 5 lugares</p><p>Moema · ★ 4,9</p><strong>R$ 139 <small>/dia</small></strong><span>Exemplo ilustrativo</span></div></article>
+    <article class="flow-panel flow-car"><div class="flow-car-photo photo-lilac"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="flow-car-body"><h2>Jeep Renegade 2022</h2><p>SUV · Automático · Diesel · 5 lugares</p><p>Itaim Bibi · ★ 4,9</p><strong>R$ 189 <small>/dia</small></strong><span>Exemplo ilustrativo</span></div></article>
+  </div>
+{% endblock %}

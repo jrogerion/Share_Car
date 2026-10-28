@@ -1,0 +1,18 @@
+{% extends "core/page.html" %}
+{% load static %}
+{% block title %}Fiat Argo — ShareCar{% endblock %}
+{% block back_url %}{% url 'core:resultados' %}{% endblock %}
+{% block back_label %}Resultados{% endblock %}
+{% block page_title %}Fiat Argo Drive{% endblock %}
+{% block page_subtitle %}Hatch · 2021 · Vila Madalena, São Paulo · ★ 4,8{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <div class="flow-stack">
+      <div class="flow-hero-photo photo-blue"><img src="{% static 'images/car.svg' %}" alt="Ilustração do veículo de exemplo" width="640" height="320"></div>
+      <section class="flow-panel"><h2>Características</h2><ul class="flow-specs"><li>Manual</li><li>Flex</li><li>5 lugares</li><li>Ar-condicionado</li><li>4 portas</li><li>Bluetooth</li></ul></section>
+      <section class="flow-panel"><h2>Sobre o carro</h2><p>Argo em ótimo estado, revisado e com pneus novos. Ideal para a cidade e viagens curtas. Entregue limpo e com tanque cheio.</p><h3>Proprietário de exemplo</h3><p>Rafael Costa · ★ 4,8</p></section>
+      <section class="flow-panel"><h2>Avaliações ilustrativas</h2><blockquote><p>“Carro impecável e retirada rápida.”</p><footer>Camila M. · ★ 5,0 · outubro de 2026</footer></blockquote><blockquote><p>“Tudo certo com o carro.”</p><footer>Bruno T. · ★ 4,5 · setembro de 2026</footer></blockquote></section>
+    </div>
+    <aside class="flow-stack"><section class="flow-panel flow-fields"><h2>Disponibilidade ilustrativa</h2><label for="retirada">Retirada</label><input id="retirada" type="date" value="2026-11-12" readonly><label for="devolucao">Devolução</label><input id="devolucao" type="date" value="2026-11-16" readonly><p>4 diárias × R$ 150</p><strong class="flow-price">R$ 600,00</strong><p class="flow-small">Período fixo de demonstração, sem consulta à agenda.</p><a class="discovery-button" href="{% url 'core:resumo' %}">Ver resumo da reserva</a></section></aside>
+  </div>
+{% endblock %}

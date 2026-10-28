@@ -1,0 +1,14 @@
+{% extends "core/page.html" %}
+{% block title %}Anunciar veículo — ShareCar{% endblock %}
+{% block page_title %}Seu carro pode ir mais longe{% endblock %}
+{% block page_subtitle %}Prévia do cadastro de veículo, preço, fotos e agenda.{% endblock %}
+{% block page_content %}
+  <div class="flow-columns"><section class="flow-panel flow-fields"><h2>Dados do veículo</h2>
+    <label for="modelo">Marca e modelo</label><input id="modelo" type="text" value="Chevrolet Onix LT 1.0">
+    <div class="flow-field-grid"><div><label for="ano">Ano</label><input id="ano" type="number" value="2023"></div><div><label for="categoria">Categoria</label><select id="categoria"><option>Hatch</option><option>Sedã</option><option>SUV</option><option>Picape</option></select></div><div><label for="cambio">Câmbio</label><select id="cambio"><option>Automático</option><option>Manual</option></select></div><div><label for="combustivel">Combustível</label><select id="combustivel"><option>Flex</option><option>Gasolina</option><option>Diesel</option><option>Elétrico</option></select></div><div><label for="passageiros">Passageiros</label><input id="passageiros" type="number" min="1" value="5"></div><div><label for="portas">Portas</label><input id="portas" type="number" min="1" value="4"></div></div>
+    <label for="caracteristicas">Características</label><textarea id="caracteristicas" rows="3" placeholder="Descreva o estado e os equipamentos do veículo de exemplo."></textarea>
+  </section><div class="flow-stack"><section class="flow-panel flow-fields"><h2>Preço e localização</h2><label for="diaria">Valor da diária (R$)</label><input id="diaria" type="number" min="0.01" step="0.01" value="139"><label for="cidade">Cidade</label><input id="cidade" type="text" value="São Paulo, SP"><label for="bairro">Bairro</label><input id="bairro" type="text" value="Moema"><p class="flow-small">Comissão ilustrativa da plataforma: 15% sobre as diárias.</p></section>
+    <section class="flow-panel flow-fields"><h2>Fotos e disponibilidade</h2><label for="fotos">Fotos do veículo (indisponível)</label><input id="fotos" type="file" accept="image/jpeg,image/png" multiple disabled><p class="flow-small">No fluxo previsto: JPG ou PNG, até 5 MB por foto.</p><label for="inicio">Disponível a partir de</label><input id="inicio" type="date" value="2026-11-12"><label for="fim">Disponível até</label><input id="fim" type="date" value="2026-11-30"></section>
+    <aside class="flow-notice">O anúncio dependerá da análise do administrador. Esta prévia não salva nem envia o cadastro.</aside><button class="btn btn-outline-secondary" type="button" disabled>Salvar e enviar para análise · em breve</button>
+  </div></div>
+{% endblock %}

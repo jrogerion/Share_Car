@@ -1,0 +1,13 @@
+{% extends "core/page.html" %}
+{% block title %}Check-in e check-out — ShareCar{% endblock %}
+{% block back_url %}{% url 'core:reservas' %}{% endblock %}
+{% block back_label %}Reservas{% endblock %}
+{% block page_title %}Reserva #1042{% endblock %}
+{% block page_subtitle %}Fiat Argo · 12–16 nov 2026 · Rafael e Marina (fictícios){% endblock %}
+{% block page_content %}
+  <div class="flow-columns"><div class="flow-stack">
+    <section class="flow-panel"><h2>Acompanhamento ilustrativo</h2><ol class="flow-timeline"><li>Solicitada · 20 out, 14:32</li><li>Aceita pelo proprietário · 20 out, 14:35</li><li>Pagamento simulado aprovado · 20 out, 14:40</li><li>Check-in realizado · 12 nov, 09:12</li><li>Check-out · aguardando devolução</li></ol></section>
+    <section class="flow-panel"><h2>Retirada · check-in</h2><span class="flow-status">Concluído (exemplo)</span><dl class="flow-prices"><div><dt>Quilometragem</dt><dd>42.180 km</dd></div><div><dt>Combustível</dt><dd>7 de 8</dd></div><div><dt>Fotos ilustrativas</dt><dd>6 registros previstos</dd></div></dl></section>
+    <section class="flow-panel"><h2>Comparativo</h2><div class="flow-compare"><div><h3>Retirada</h3><p>42.180 km</p><p>7/8 de combustível</p></div><div><h3>Devolução</h3><p>Aguardando registro</p><p>Sem fotos enviadas</p></div></div></section>
+  </div><section class="flow-panel flow-fields"><h2>Devolução · check-out</h2><label for="fotos">Fotos da devolução (indisponível)</label><input id="fotos" type="file" accept="image/jpeg,image/png" multiple disabled><p class="flow-small">Frente, traseira, laterais, interior e painel. JPG ou PNG, até 5 MB por foto no fluxo previsto.</p><label for="km">Quilometragem final</label><input id="km" type="number" min="42180" value="42180"><p class="flow-small">Não poderá ser menor que a quilometragem de retirada.</p><label for="combustivel">Nível de combustível</label><select id="combustivel"><option>0 de 8</option><option>1 de 8</option><option>2 de 8</option><option>3 de 8</option><option>4 de 8</option><option>5 de 8</option><option>6 de 8</option><option selected>7 de 8</option><option>8 de 8</option></select><label for="obs">Observações de exemplo</label><textarea id="obs" rows="3" placeholder="Arranhões, avarias ou detalhes da devolução..."></textarea><a class="discovery-button" href="{% url 'core:avaliacao' %}">Continuar para prévia da avaliação</a><p class="flow-small">Nada será registrado ou enviado.</p></section></div>
+{% endblock %}

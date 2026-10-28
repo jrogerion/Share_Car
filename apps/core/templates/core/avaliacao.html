@@ -1,0 +1,13 @@
+{% extends "core/page.html" %}
+{% block title %}Avaliar locação — ShareCar{% endblock %}
+{% block back_url %}{% url 'core:reservas' %}{% endblock %}
+{% block back_label %}Reservas{% endblock %}
+{% block page_title %}Como foi sua experiência?{% endblock %}
+{% block page_subtitle %}Prévia da avaliação após uma locação concluída.{% endblock %}
+{% block page_content %}
+  <div class="flow-columns"><section class="flow-panel flow-fields"><h2>Avaliar Rafael · exemplo fictício</h2><p>Fiat Argo · 12–16 nov 2026</p>
+    <fieldset class="flow-stars"><legend>Sua nota</legend><div>{% for nota in "12345" %}<label><input type="radio" name="nota" value="{{ nota }}" {% if nota == '5' %}checked{% endif %}><span>{{ nota }} <i class="bi bi-star-fill" aria-hidden="true"></i></span></label>{% endfor %}</div></fieldset>
+    <fieldset class="flow-tags"><legend>O que se destacou?</legend><label><input type="checkbox" checked> Limpeza</label><label><input type="checkbox" checked> Estado do carro</label><label><input type="checkbox"> Comunicação</label><label><input type="checkbox"> Pontualidade</label></fieldset>
+    <label for="comentario">Comentário de exemplo (opcional)</label><textarea id="comentario" rows="4" maxlength="1000" placeholder="Conte como foi a retirada, o carro e a comunicação..."></textarea><button class="btn btn-outline-secondary" type="button" disabled>Enviar avaliação · em breve</button>
+  </section><div class="flow-stack"><aside class="flow-notice"><strong>Avaliação cega</strong><p>No fluxo previsto, a nota será exibida após a outra parte avaliar ou depois do prazo definido.</p></aside><section class="flow-panel"><h2>Rafael ainda não avaliou</h2><p>Exemplo de avaliação pendente da outra parte.</p><p class="flow-small">A avaliação será disponibilizada após o check-out, uma vez por parte e por reserva.</p></section><a class="discovery-button" href="{% url 'core:reservas' %}">Voltar aos exemplos de reservas</a></div></div>
+{% endblock %}

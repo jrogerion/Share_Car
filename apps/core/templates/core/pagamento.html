@@ -1,0 +1,10 @@
+{% extends "core/page.html" %}
+{% block title %}Pagamento simulado — ShareCar{% endblock %}
+{% block back_url %}{% url 'core:resumo' %}{% endblock %}
+{% block back_label %}Resumo da reserva{% endblock %}
+{% block page_title %}Pagamento simulado{% endblock %}
+{% block page_subtitle %}Nenhum valor será cobrado e nenhuma transação será criada.{% endblock %}
+{% block page_content %}
+  <div class="flow-columns"><section class="flow-panel flow-stack"><div class="flow-pay-total"><span>Total ilustrativo</span><strong>R$ 600,00</strong><span>Fiat Argo · 12–16 nov 2026</span></div><h2>Pix de demonstração</h2><div class="flow-qr" role="img" aria-label="Desenho ilustrativo, não é um QR code de pagamento"></div><p class="flow-small">QR code fictício, sem código Pix válido. Não tente efetuar um pagamento.</p><button class="btn btn-outline-secondary" type="button" disabled>Cartão · indisponível nesta prévia</button></section>
+  <div class="flow-stack">{% include "core/includes/valores.html" %}<section class="flow-panel"><h2>Resultados previstos</h2><ul class="flow-specs"><li>Aprovado</li><li>Recusado</li><li>Estornado</li></ul><p class="flow-small">Estados apenas ilustrativos; não há processamento ou alteração de status.</p></section><a class="discovery-button" href="{% url 'core:reservas' %}">Ver exemplos de reservas</a></div></div>
+{% endblock %}

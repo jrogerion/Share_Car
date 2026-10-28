@@ -1,0 +1,12 @@
+{% extends "core/page.html" %}
+{% block title %}Minhas reservas — ShareCar{% endblock %}
+{% block page_title %}Minhas reservas{% endblock %}
+{% block page_subtitle %}Exemplos da visão de proprietário, da solicitação à devolução.{% endblock %}
+{% block page_content %}
+  <div class="flow-reservations">
+    <article class="flow-panel"><span class="flow-status flow-status-pending">Solicitada</span><h2>Hyundai HB20</h2><p>Locatário fictício: João Lima</p><p>18–21 nov 2026 · R$ 387,00</p><div class="flow-actions"><button class="btn btn-outline-secondary" type="button" disabled>Recusar</button><button class="btn btn-outline-secondary" type="button" disabled>Aceitar</button></div></article>
+    <article class="flow-panel"><span class="flow-status">Confirmada</span><h2>Jeep Renegade</h2><p>Locatária fictícia: Carla Dias</p><p>22–25 nov 2026 · R$ 567,00</p><p class="flow-small">Exemplo de pagamento aprovado e retirada pendente.</p></article>
+    <article class="flow-panel"><span class="flow-status flow-status-info">Em andamento</span><h2>Fiat Argo</h2><p>Locatária fictícia: Marina</p><p>12–16 nov 2026 · R$ 600,00</p><a class="discovery-button" href="{% url 'core:checkin' %}">Ver check-in e check-out</a></article>
+    <article class="flow-panel"><span class="flow-status">Concluída</span><h2>Toyota Corolla</h2><p>Locatária fictícia: Ana Beatriz</p><p>01–05 nov 2026 · R$ 1.280,00</p><a class="discovery-button" href="{% url 'core:avaliacao' %}">Conhecer avaliação</a></article>
+  </div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "core/page.html" %}
+{% block title %}Resumo da reserva — ShareCar{% endblock %}
+{% block back_url %}{% url 'core:detalhes' %}{% endblock %}
+{% block back_label %}Detalhes do veículo{% endblock %}
+{% block page_title %}Resumo da reserva{% endblock %}
+{% block page_subtitle %}Confira o exemplo antes de conhecer o pagamento.{% endblock %}
+{% block page_content %}
+  <div class="flow-columns"><div class="flow-stack">
+    {% include "core/includes/carro.html" %}
+    <section class="flow-panel"><h2>Seu período</h2><dl class="flow-prices"><div><dt>Retirada</dt><dd>12 nov 2026 · 09:00</dd></div><div><dt>Devolução</dt><dd>16 nov 2026 · 09:00</dd></div><div><dt>Duração</dt><dd>4 diárias</dd></div></dl></section>
+    <section class="flow-panel"><h2>Solicitação sujeita à aprovação</h2><p>A reserva dependerá do aceite do proprietário. Esta tela não envia uma solicitação.</p><h3>Cancelamento</h3><p class="flow-small">As condições de cancelamento e reembolso deverão ser confirmadas na implementação do fluxo real.</p></section>
+  </div><div class="flow-stack">{% include "core/includes/valores.html" %}<a class="discovery-button" href="{% url 'core:pagamento' %}">Conhecer pagamento simulado</a></div></div>
+{% endblock %}

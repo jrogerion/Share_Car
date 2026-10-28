@@ -1,0 +1,18 @@
+{% extends "core/page.html" %}
+{% block title %}Entrar — ShareCar{% endblock %}
+{% block page_title %}Seu próximo caminho começa aqui{% endblock %}
+{% block page_subtitle %}Alugue o carro de alguém. Ou alugue o seu.{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="entrar-title">
+      <h2 id="entrar-title">Entrar</h2>
+      <label for="email">E-mail de exemplo</label><input id="email" type="email" placeholder="voce@exemplo.com" autocomplete="off">
+      <label for="senha">Senha de exemplo</label><input id="senha" type="password" placeholder="Não use sua senha real" autocomplete="off">
+      <label class="flow-check"><input type="checkbox" disabled> Manter conectado (indisponível na prévia)</label>
+      <button class="btn btn-outline-secondary" type="button" disabled>Recuperar senha · em breve</button>
+      <a class="discovery-button" href="{% url 'core:home' %}">Explorar sem entrar <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      <button class="btn btn-outline-secondary" type="button" disabled>Criar conta · em breve</button>
+    </section>
+    <aside class="flow-panel"><h2>Uma comunidade de confiança</h2><h3>Para anunciar</h3><p>O documento de identidade será enviado para análise do administrador quando o cadastro estiver disponível.</p><h3>Para reservar</h3><p>Será necessário informar uma CNH válida. Uma CNH vencida não permite reservar.</p><p class="flow-small">Autenticação, criação de conta e instalação como aplicativo ainda não estão disponíveis.</p></aside>
+  </div>
+{% endblock %}
