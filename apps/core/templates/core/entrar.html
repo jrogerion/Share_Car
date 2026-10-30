@@ -1,18 +1,37 @@
 {% extends "core/page.html" %}
 {% block title %}Entrar — ShareCar{% endblock %}
+{% block page_kicker %}ShareCar · Sua conta{% endblock %}
 {% block page_title %}Seu próximo caminho começa aqui{% endblock %}
 {% block page_subtitle %}Alugue o carro de alguém. Ou alugue o seu.{% endblock %}
+{% block page_notice %}{% endblock %}
 {% block page_content %}
   <div class="flow-columns">
     <section class="flow-panel flow-fields" aria-labelledby="entrar-title">
       <h2 id="entrar-title">Entrar</h2>
-      <label for="email">E-mail de exemplo</label><input id="email" type="email" placeholder="voce@exemplo.com" autocomplete="off">
-      <label for="senha">Senha de exemplo</label><input id="senha" type="password" placeholder="Não use sua senha real" autocomplete="off">
-      <label class="flow-check"><input type="checkbox" disabled> Manter conectado (indisponível na prévia)</label>
-      <button class="btn btn-outline-secondary" type="button" disabled>Recuperar senha · em breve</button>
-      <a class="discovery-button" href="{% url 'core:home' %}">Explorar sem entrar <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
-      <a class="btn btn-outline-secondary" href="{% url 'contas:cadastro' %}">Criar conta</a>
+      {% if user.is_authenticated %}
+        <p>Sua sessão está ativa.</p>
+        <a class="discovery-button" href="{% url 'core:home' %}">Voltar ao início</a>
+        <form method="post" action="{% url 'contas:sair' %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-secondary" type="submit">Sair da conta</button>
+        </form>
+      {% else %}
+        <form method="post" action="{% url 'core:entrar' %}" class="flow-fields">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+          {% if form.errors %}
+            <div role="alert"><p>Não foi possível entrar. Confira os dados informados.</p>{{ form.non_field_errors }}</div>
+          {% endif %}
+          {% for field in form %}
+            <div>{{ field.label_tag }}{{ field }}{{ field.errors }}</div>
+          {% endfor %}
+          <button class="discovery-button" type="submit">Entrar</button>
+        </form>
+        <button class="btn btn-outline-secondary" type="button" disabled>Recuperar senha · em breve</button>
+        <a class="discovery-button" href="{% url 'core:home' %}">Explorar sem entrar <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        <a class="btn btn-outline-secondary" href="{% url 'contas:cadastro' %}">Criar conta</a>
+      {% endif %}
     </section>
-    <aside class="flow-panel"><h2>Uma comunidade de confiança</h2><h3>Para anunciar</h3><p>O envio do documento de identidade para análise será disponibilizado em uma próxima etapa.</p><h3>Para reservar</h3><p>Será necessário informar uma CNH válida. Uma CNH vencida não permite reservar.</p><p class="flow-small">A criação de conta já está disponível. Autenticação e instalação como aplicativo ainda não estão disponíveis.</p></aside>
+    <aside class="flow-panel"><h2>Uma comunidade de confiança</h2><h3>Para anunciar</h3><p>O envio do documento de identidade para análise será disponibilizado em uma próxima etapa.</p><h3>Para reservar</h3><p>Será necessário informar uma CNH válida. Uma CNH vencida não permite reservar.</p><p class="flow-small">Cadastro e login já estão disponíveis. Anúncios e reservas continuam demonstrativos.</p></aside>
   </div>
 {% endblock %}

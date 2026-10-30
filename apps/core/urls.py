@@ -1,13 +1,15 @@
 from django.urls import path
 from django.views.generic import TemplateView
 
+from apps.contas.views import LoginEmailView
+
 from .views import HomeView
 
 app_name = "core"
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
-    path("entrar/", TemplateView.as_view(template_name="core/entrar.html"), name="entrar"),
+    path("entrar/", LoginEmailView.as_view(), name="entrar"),
     path("buscar/", TemplateView.as_view(template_name="core/resultados.html"), name="resultados"),
     path("veiculo/", TemplateView.as_view(template_name="core/detalhes.html"), name="detalhes"),
     path("reserva/resumo/", TemplateView.as_view(template_name="core/resumo.html"), name="resumo"),

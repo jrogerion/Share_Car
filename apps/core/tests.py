@@ -40,12 +40,14 @@ class TemplatePagesTests(SimpleTestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertTemplateUsed(response, f"core/{page}.html")
                 self.assertContains(response, 'id="conteudo"')
-                if page != "home":
+                if page not in ("home", "entrar"):
                     self.assertContains(response, "Dados fictícios.")
                     self.assertContains(response, "css/pages.css")
 
     def test_demo_pages_do_not_accept_submissions(self):
         for page in self.pages:
+            if page == "entrar":
+                continue
             with self.subTest(page=page):
                 response = self.client.post(reverse(f"core:{page}"))
                 self.assertEqual(response.status_code, 405)

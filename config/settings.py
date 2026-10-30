@@ -65,6 +65,9 @@ DATABASES = {
     }
 }
 AUTH_USER_MODEL = "contas.Usuario"
+AUTHENTICATION_BACKENDS = ["apps.contas.backends.EmailBackend"]
+LOGIN_URL = "core:entrar"
+LOGIN_REDIRECT_URL = "core:home"
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": f"django.contrib.auth.password_validation.{name}"}
     for name in [

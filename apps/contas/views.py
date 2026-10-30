@@ -1,10 +1,20 @@
+from django.contrib.auth.views import LoginView, LogoutView
 from django.db import IntegrityError, transaction
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
 
-from .forms import CadastroUsuarioForm
+from .forms import CadastroUsuarioForm, LoginEmailForm
 from .models import Usuario
+
+
+class LoginEmailView(LoginView):
+    template_name = "core/entrar.html"
+    authentication_form = LoginEmailForm
+
+
+class SairView(LogoutView):
+    next_page = reverse_lazy("core:entrar")
 
 
 class CadastroUsuarioView(FormView):
