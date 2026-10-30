@@ -1,0 +1,39 @@
+{% extends "core/page.html" %}
+{% block title %}Criar conta — ShareCar{% endblock %}
+{% block page_kicker %}ShareCar · Sua conta{% endblock %}
+{% block page_title %}Crie sua conta{% endblock %}
+{% block page_subtitle %}Informe seus dados e escolha como deseja participar.{% endblock %}
+{% block page_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel" aria-labelledby="cadastro-title">
+      <h2 id="cadastro-title">Dados de cadastro</h2>
+      <form method="post" class="flow-fields">
+        {% csrf_token %}
+        {% if form.errors %}
+          <div role="alert"><p>Não foi possível criar a conta. Confira os campos abaixo.</p>{{ form.non_field_errors }}</div>
+        {% endif %}
+        {% for field in form %}
+          <div>
+            {% if field.field.widget.input_type == 'checkbox' %}
+              <label class="flow-check" for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
+            {% else %}
+              {{ field.label_tag }}
+              {{ field }}
+            {% endif %}
+            {% if field.help_text %}<div id="{{ field.auto_id }}_helptext" class="flow-small">{{ field.help_text }}</div>{% endif %}
+            {{ field.errors }}
+          </div>
+        {% endfor %}
+        <button type="submit" class="discovery-button">Criar conta</button>
+      </form>
+    </section>
+    <aside class="flow-panel">
+      <h2>Uma conta, dois perfis</h2>
+      <p>Você pode alugar carros, anunciar o seu ou escolher as duas opções.</p>
+      <p>O cadastro não aprova automaticamente documentos nem autoriza anúncios ou reservas. Essas funcionalidades serão disponibilizadas em etapas futuras.</p>
+      <p>Nesta etapa, a conta será gravada, mas o login ainda está em implementação. Em ambiente de desenvolvimento, use dados fictícios e uma senha exclusiva para testes.</p>
+      <a href="{% url 'core:entrar' %}">Voltar à prévia de login</a>
+    </aside>
+  </div>
+{% endblock %}

@@ -1,12 +1,15 @@
 """Gera o diagrama da estrutura do banco de dados a partir dos models do projeto.
 
 Uso:
-    .venv/bin/python docs/gerar_diagrama_banco.py
+    python3 docs/gerar_diagrama_banco.py
 
 Saída:
     docs/diagrama-banco-de-dados.png
 
 Requisitos: Pillow (já listado no ambiente) e as fontes Liberation do sistema.
+
+O esquema abaixo é mantido manualmente com base nos models. O script não
+consulta o PostgreSQL nem confirma se as migrations foram aplicadas.
 """
 
 from __future__ import annotations
@@ -334,7 +337,7 @@ EDGES = [
         "color": COLORS["pagamentos"],
         "target": "one",
         "src_label": "1",
-        "dst_label": "1",
+        "dst_label": "0..1",
     },
     {
         "points": [(1610, 344), (1660, 344), (1660, 687), (1740, 687)],
@@ -656,7 +659,7 @@ def main() -> None:
     text(
         draw,
         (90, 105),
-        "Modelo relacional PostgreSQL gerado a partir dos Django models · 7 apps · 10 tabelas de negócio",
+        "Modelo relacional PostgreSQL baseado nos Django models · 7 apps · 10 tabelas de negócio",
         F_SUBTITLE,
         MUTED,
     )
@@ -710,7 +713,7 @@ def main() -> None:
     text(
         draw,
         (82, 1446),
-        "UNIQUE (reserva, tipo) · UNIQUE (reserva, autor) · 1 pagamento por reserva · comissão global única (id = 1). Auxiliares Django: auth_group, auth_permission, django_admin_log, django_content_type, django_migrations, django_session.",
+        "UNIQUE (reserva, tipo) · UNIQUE (reserva, autor) · até 1 pagamento por reserva · comissão global única (id = 1). M2M usa tabelas intermediárias; tabelas internas Django omitidas.",
         F_LEGEND,
         "#94A3B8",
     )

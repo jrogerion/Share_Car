@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.files.storage import storages
 from django.db import models
+from django.db.models.functions import Lower
 
 
 def armazenamento_documentos():
@@ -33,3 +34,11 @@ class Usuario(AbstractUser):
     class Meta:
         verbose_name = "usuário"
         verbose_name_plural = "usuários"
+        constraints = [
+            # Contas antigas sem e-mail continuam válidas até serem atualizadas.
+            models.UniqueConstraint(
+                Lower("email"),
+                condition=~models.Q(email=""),
+                name="contas_usuario_email_unico_ci",
+            ),
+        ]
