@@ -1,25 +1,120 @@
 {% extends "core/page.html" %}
 {% load static %}
 {% block title %}Resultados da busca — ShareCar{% endblock %}
+{% block page_kicker %}ShareCar · Busca{% endblock %}
 {% block page_title %}Encontre seu próximo carro{% endblock %}
-{% block page_subtitle %}São Paulo, SP · 12–16 nov 2026 · 4 diárias ilustrativas{% endblock %}
+{% block page_subtitle %}{% if cidade_busca %}Busca em “{{ cidade_busca }}”{% else %}Veículos publicados e disponíveis para alugar{% endif %}{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Critério de exibição">
+    <i class="bi bi-shield-check" aria-hidden="true"></i>
+    Apenas veículos ativos, aprovados e não bloqueados aparecem nesta busca.
+  </aside>
+{% endblock %}
 {% block page_content %}
   <section class="flow-panel flow-filter" aria-labelledby="filtros-title">
-    <h2 id="filtros-title">Filtros de exemplo</h2>
-    <div class="flow-filter-fields flow-fields">
-      <div><label for="preco">Diária até (R$)</label><input id="preco" type="number" min="1" placeholder="300"></div>
-      <div><label for="categoria">Categoria</label><select id="categoria"><option>Todas</option><option>Hatch</option><option>Sedã</option><option>SUV</option></select></div>
-      <div><label for="cambio">Câmbio</label><select id="cambio"><option>Todos</option><option>Manual</option><option>Automático</option></select></div>
-      <div><label for="combustivel">Combustível</label><select id="combustivel"><option>Todos</option><option>Flex</option><option>Diesel</option></select></div>
-      <div><label for="passageiros">Passageiros</label><input id="passageiros" type="number" min="1" max="9" placeholder="5"></div>
-    </div>
-    <p class="flow-small">Os filtros são apenas visuais e não alteram a listagem.</p>
+    <form method="get" action="{% url 'core:resultados' %}" role="search" aria-labelledby="filtros-title">
+      <h2 id="filtros-title">Filtros da busca</h2>
+      <div class="flow-filter-fields flow-fields">
+        <div class="flow-filter-city">
+          <label for="{{ filtro.cidade.id_for_label }}">{{ filtro.cidade.label }}</label>
+          {{ filtro.cidade }}
+          {{ filtro.cidade.errors }}
+        </div>
+        <div>
+          <label for="{{ filtro.categoria.id_for_label }}">{{ filtro.categoria.label }}</label>
+          {{ filtro.categoria }}
+          {{ filtro.categoria.errors }}
+        </div>
+        <div>
+          <label for="{{ filtro.cambio.id_for_label }}">{{ filtro.cambio.label }}</label>
+          {{ filtro.cambio }}
+          {{ filtro.cambio.errors }}
+        </div>
+        <div>
+          <label for="{{ filtro.combustivel.id_for_label }}">{{ filtro.combustivel.label }}</label>
+          {{ filtro.combustivel }}
+          {{ filtro.combustivel.errors }}
+        </div>
+        <div>
+          <label for="{{ filtro.passageiros.id_for_label }}">{{ filtro.passageiros.label }}</label>
+          {{ filtro.passageiros }}
+          {{ filtro.passageiros.errors }}
+        </div>
+        <div>
+          <label for="{{ filtro.diaria_min.id_for_label }}">{{ filtro.diaria_min.label }}</label>
+          {{ filtro.diaria_min }}
+          {{ filtro.diaria_min.errors }}
+        </div>
+        <div>
+          <label for="{{ filtro.diaria_max.id_for_label }}">{{ filtro.diaria_max.label }}</label>
+          {{ filtro.diaria_max }}
+          {{ filtro.diaria_max.errors }}
+        </div>
+        <div class="flow-filter-actions">
+          <button class="discovery-button" type="submit">
+            <i class="bi bi-funnel" aria-hidden="true"></i> Aplicar filtros
+          </button>
+          <a class="btn btn-outline-secondary" href="{% url 'core:resultados' %}">Limpar filtros</a>
+        </div>
+      </div>
+      <p class="flow-small">Combine os filtros, inclusive a faixa de diária, para refinar a busca. Apenas veículos publicados são exibidos.</p>
+    </form>
   </section>
-  <div class="flow-section-heading"><h2>4 exemplos de veículos</h2><span>Sem disponibilidade real</span></div>
-  <div class="flow-cars">
-    <a class="flow-panel flow-car" href="{% url 'core:detalhes' %}"><div class="flow-car-photo photo-blue"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="flow-car-body"><h2>Fiat Argo 2021</h2><p>Hatch · Manual · Flex · 5 lugares</p><p>Vila Madalena · ★ 4,8</p><strong>R$ 150 <small>/dia</small></strong><span>Ver detalhes do exemplo</span></div></a>
-    <article class="flow-panel flow-car"><div class="flow-car-photo photo-rose"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="flow-car-body"><h2>Hyundai HB20 2022</h2><p>Hatch · Automático · Flex · 5 lugares</p><p>Pinheiros · ★ 4,7</p><strong>R$ 129 <small>/dia</small></strong><span>Exemplo ilustrativo</span></div></article>
-    <article class="flow-panel flow-car"><div class="flow-car-photo photo-mint"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="flow-car-body"><h2>Chevrolet Onix 2023</h2><p>Hatch · Automático · Flex · 5 lugares</p><p>Moema · ★ 4,9</p><strong>R$ 139 <small>/dia</small></strong><span>Exemplo ilustrativo</span></div></article>
-    <article class="flow-panel flow-car"><div class="flow-car-photo photo-lilac"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="flow-car-body"><h2>Jeep Renegade 2022</h2><p>SUV · Automático · Diesel · 5 lugares</p><p>Itaim Bibi · ★ 4,9</p><strong>R$ 189 <small>/dia</small></strong><span>Exemplo ilustrativo</span></div></article>
+
+  {% if filtro.errors %}
+    <aside class="flow-notice flow-error" role="alert">
+      <strong>Não foi possível aplicar os filtros.</strong>
+      <p>Revise os valores informados e tente novamente.</p>
+    </aside>
+  {% endif %}
+
+  <div class="flow-section-heading">
+    <h2>{{ total_veiculos }} veículo{{ total_veiculos|pluralize }} encontrado{{ total_veiculos|pluralize }}</h2>
+    <span>Diária em reais</span>
   </div>
+
+  <div class="flow-cars">
+    {% for veiculo in veiculos %}
+      <article class="flow-panel flow-car">
+        <div class="flow-car-photo {% cycle 'photo-blue' 'photo-rose' 'photo-mint' 'photo-lilac' %}">
+          <img src="{% static 'images/car.svg' %}" alt="" width="320" height="160">
+        </div>
+        <div class="flow-car-body">
+          <h2>{{ veiculo.categoria }} em {{ veiculo.cidade }}</h2>
+          <p>{{ veiculo.caracteristicas|truncatechars:90 }}</p>
+          <p>{{ veiculo.cambio }} · {{ veiculo.combustivel }} · {{ veiculo.passageiros }} lugares</p>
+          <strong>R$ {{ veiculo.preco_diaria|floatformat:2 }} <small>/dia</small></strong>
+        </div>
+      </article>
+    {% empty %}
+      <div class="flow-panel flow-empty" role="status">
+        <h2>Nenhum veículo encontrado</h2>
+        <p>Não há veículos publicados com esses filtros. Ajuste a busca ou veja todos os disponíveis.</p>
+        <a class="discovery-button" href="{% url 'core:resultados' %}">Limpar filtros</a>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if is_paginated %}
+    <nav class="flow-pagination" aria-label="Paginação dos resultados">
+      <p class="flow-small">Página {{ page_obj.number }} de {{ paginator.num_pages }}</p>
+      <div class="flow-pagination-links">
+        {% if page_obj.has_previous %}
+          <a class="btn btn-outline-secondary" href="{% querystring page=page_obj.previous_page_number %}">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Anterior
+          </a>
+        {% else %}
+          <span class="btn btn-outline-secondary disabled" aria-disabled="true">Anterior</span>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+          <a class="btn btn-outline-secondary" href="{% querystring page=page_obj.next_page_number %}">
+            Próxima <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </a>
+        {% else %}
+          <span class="btn btn-outline-secondary disabled" aria-disabled="true">Próxima</span>
+        {% endif %}
+      </div>
+    </nav>
+  {% endif %}
 {% endblock %}

@@ -8,11 +8,13 @@
 {% block content %}
   <div class="container flow-content">
     <nav aria-label="Voltar"><a class="flow-back" href="{% block back_url %}{% url 'core:home' %}{% endblock %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> {% block back_label %}Início{% endblock %}</a></nav>
-    <header class="flow-heading"><p class="flow-kicker">ShareCar · Prévia visual</p><h1>{% block page_title %}{% endblock %}</h1><p>{% block page_subtitle %}{% endblock %}</p></header>
-    <aside class="flow-notice flow-demo-notice" aria-label="Aviso de demonstração">
-      <i class="bi bi-info-circle" aria-hidden="true"></i>
-      <div><strong>Ambiente de demonstração</strong><p>Dados fictícios. Esta prévia não autentica, filtra, salva, envia arquivos ou realiza pagamentos. Não informe dados pessoais reais.</p></div>
-    </aside>
+    <header class="flow-heading"><p class="flow-kicker">{% block page_kicker %}ShareCar · Prévia visual{% endblock %}</p><h1>{% block page_title %}{% endblock %}</h1><p>{% block page_subtitle %}{% endblock %}</p></header>
+    {% block demo_notice %}
+      <aside class="flow-notice flow-demo-notice" aria-label="Aviso de demonstração">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <div><strong>Ambiente de demonstração</strong><p>Dados fictícios. Esta prévia não autentica, filtra, salva, envia arquivos ou realiza pagamentos. Não informe dados pessoais reais.</p></div>
+      </aside>
+    {% endblock %}
     {% block page_content %}{% endblock %}
   </div>
 {% endblock %}

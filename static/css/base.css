@@ -144,6 +144,8 @@ a {
   font-size: .9rem;
   font-weight: 700;
   line-height: 1.4;
+  font-family: inherit;
+  cursor: pointer;
   text-decoration: none;
   transition: background-color var(--sc-transition), box-shadow var(--sc-transition);
 }

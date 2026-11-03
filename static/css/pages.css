@@ -27,9 +27,19 @@
 .flow-fields input[type=checkbox], .flow-fields input[type=radio] { accent-color: var(--sc-teal); width: 18px; height: 18px; flex-shrink: 0; }
 .flow-check { display: flex; align-items: center; gap: 8px; min-height: 44px; }
 .flow-filter { margin-bottom: 28px; }
-.flow-filter-fields { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); }
+.flow-filter-fields { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
+.flow-filter-fields > .flow-filter-city { grid-column: span 2; }
 .flow-filter-fields label, .flow-field-grid label { display: block; margin-bottom: 6px; }
 .flow-filter .flow-small { margin-top: 14px; }
+.flow-filter-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; grid-column: 1 / -1; }
+.flow-filter-actions .btn { min-height: 48px; }
+.flow-fields .errorlist { margin: 6px 0 0; padding-left: 1.1rem; color: #b91c1c; font-size: .78rem; }
+.flow-error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+.flow-error p { color: inherit; }
+.flow-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; grid-column: 1 / -1; }
+.flow-empty h2, .flow-empty p { margin: 0; }
+.flow-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--sc-line); }
+.flow-pagination-links { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .flow-section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 20px 0; }
 .flow-section-heading h2 { margin: 0; }
 .flow-section-heading span { color: #526176; font-size: .8rem; }
@@ -80,12 +90,17 @@ a.flow-car:hover, a.flow-car:focus-visible { color: inherit; border-color: var(-
 @media (max-width: 991.98px) {
   .flow-columns { grid-template-columns: minmax(0,1fr); }
   .flow-filter-fields { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .flow-filter-fields > .flow-filter-city { grid-column: auto; }
 }
 @media (max-width: 575.98px) {
   .flow-content { padding-top: 20px; }
   .flow-panel { padding: 18px; }
+  .flow-filter-fields { grid-template-columns: minmax(0,1fr); }
   .flow-cars, .flow-reservations { grid-template-columns: minmax(0,1fr); }
   .flow-car-summary { grid-template-columns: 90px minmax(0,1fr); gap: 12px; }
   .flow-car-summary h2 { font-size: .95rem; }
   .flow-car-summary .flow-car-photo { min-height: 90px; }
+  .flow-pagination { align-items: flex-start; }
+  .flow-pagination-links { width: 100%; justify-content: space-between; }
+  .flow-pagination-links .btn { flex: 1 1 auto; }
 }

@@ -1,14 +1,14 @@
 from django.urls import path
 from django.views.generic import TemplateView
 
-from .views import HomeView
+from .views import HomeView, ResultadosView
 
 app_name = "core"
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("entrar/", TemplateView.as_view(template_name="core/entrar.html"), name="entrar"),
-    path("buscar/", TemplateView.as_view(template_name="core/resultados.html"), name="resultados"),
+    path("buscar/", ResultadosView.as_view(), name="resultados"),
     path("veiculo/", TemplateView.as_view(template_name="core/detalhes.html"), name="detalhes"),
     path("reserva/resumo/", TemplateView.as_view(template_name="core/resumo.html"), name="resumo"),
     path("reserva/pagamento/", TemplateView.as_view(template_name="core/pagamento.html"), name="pagamento"),
