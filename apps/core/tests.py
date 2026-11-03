@@ -1,10 +1,21 @@
+import base64
+import shutil
+import tempfile
 from html.parser import HTMLParser
 
-from django.test import SimpleTestCase, TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from apps.contas.models import Usuario
-from apps.veiculos.models import Veiculo
+from apps.veiculos.models import FotoVeiculo, Veiculo
+
+
+PNG_1X1 = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8"
+    "/x8AAusB9Wl2n0kAAAAASUVORK5CYII="
+)
+TEMP_MEDIA_ROOT = tempfile.mkdtemp()
 
 
 class NavigationParser(HTMLParser):
@@ -32,8 +43,8 @@ class TemplatePagesTests(SimpleTestCase):
     """As prévias devem renderizar e navegar sem acesso ao banco."""
 
     pages = (
-        "home", "entrar", "detalhes", "resumo",
-        "pagamento", "reservas", "checkin", "veiculo", "avaliacao",
+        "home", "entrar", "resumo",
+        "pagamento", "reservas_exemplo", "checkin", "veiculo", "avaliacao",
     )
 
     def test_pages_render_without_database(self):
@@ -41,23 +52,31 @@ class TemplatePagesTests(SimpleTestCase):
             with self.subTest(page=page):
                 response = self.client.get(reverse(f"core:{page}"))
                 self.assertEqual(response.status_code, 200)
-                self.assertTemplateUsed(response, f"core/{page}.html")
+                template = (
+                    "core/reservas.html"
+                    if page == "reservas_exemplo"
+                    else f"core/{page}.html"
+                )
+                self.assertTemplateUsed(response, template)
                 self.assertContains(response, 'id="conteudo"')
-                if page != "home":
+                if page not in ("home", "entrar"):
                     self.assertContains(response, "Dados fictícios.")
                     self.assertContains(response, "css/pages.css")
 
     def test_demo_pages_do_not_accept_submissions(self):
         for page in self.pages:
+            if page == "entrar":
+                # A autenticação real aceita POST para validar as credenciais.
+                continue
             with self.subTest(page=page):
                 response = self.client.post(reverse(f"core:{page}"))
                 self.assertEqual(response.status_code, 405)
 
     def test_primary_navigation(self):
         response = self.client.get(reverse("core:home"))
-        for page in ("resultados", "reservas", "entrar", "veiculo"):
+        for page in ("core:resultados", "reservas:minhas", "core:entrar", "core:veiculo"):
             with self.subTest(page=page):
-                self.assertContains(response, f'href="{reverse(f"core:{page}")}"')
+                self.assertContains(response, f'href="{reverse(page)}"')
 
     def test_home_search_form_targets_results(self):
         response = self.client.get(reverse("core:home"))
@@ -70,12 +89,23 @@ class TemplatePagesTests(SimpleTestCase):
         self.assertContains(response, 'type="submit"')
         self.assertContains(response, "Buscar carros")
 
+    def test_home_search_form_tem_estado_de_carregamento(self):
+        response = self.client.get(reverse("core:home"))
+
+        for atributo in (
+            "data-search-form",
+            "data-search-submit",
+            "data-search-spinner",
+            "data-search-status",
+        ):
+            with self.subTest(atributo=atributo):
+                self.assertContains(response, atributo)
+
     def test_reservation_demo_flow(self):
         steps = (
-            ("detalhes", "resumo"),
-            ("resumo", "pagamento"), ("pagamento", "reservas"),
-            ("reservas", "checkin"), ("checkin", "avaliacao"),
-            ("avaliacao", "reservas"),
+            ("resumo", "pagamento"), ("pagamento", "reservas_exemplo"),
+            ("reservas_exemplo", "checkin"), ("checkin", "avaliacao"),
+            ("avaliacao", "reservas_exemplo"),
         )
         for source, destination in steps:
             with self.subTest(source=source):
@@ -102,20 +132,26 @@ class TemplatePagesTests(SimpleTestCase):
                 mobile = parser.links["Navegação mobile"]
                 self.assertEqual(
                     [link["href"] for link in mobile],
-                    [reverse(f"core:{name}") for name in (
-                        "home", "resultados", "reservas", "entrar",
-                    )],
+                    [
+                        reverse("core:home"),
+                        reverse("core:resultados"),
+                        reverse("reservas:minhas"),
+                        reverse("core:entrar"),
+                    ],
                 )
 
     def test_current_navigation_page_and_section(self):
         sections = {
-            "home": "home", "entrar": "entrar",
-            "detalhes": "resultados", "resumo": "resultados",
-            "pagamento": "resultados", "reservas": "reservas",
-            "checkin": "reservas", "avaliacao": "reservas",
-            "veiculo": "veiculo",
+            "home": ("core:home", True),
+            "entrar": ("core:entrar", True),
+            "resumo": ("core:resultados", False),
+            "pagamento": ("core:resultados", False),
+            "reservas_exemplo": ("reservas:minhas", True),
+            "checkin": ("reservas:minhas", False),
+            "avaliacao": ("reservas:minhas", False),
+            "veiculo": ("core:veiculo", True),
         }
-        for page, section in sections.items():
+        for page, (rota, pagina_atual) in sections.items():
             with self.subTest(page=page):
                 response = self.client.get(reverse(f"core:{page}"))
                 parser = NavigationParser()
@@ -129,12 +165,10 @@ class TemplatePagesTests(SimpleTestCase):
                         self.assertEqual(current, [])
                         continue
                     self.assertEqual(len(current), 1)
-                    self.assertEqual(
-                        current[0]["href"], reverse(f"core:{section}"),
-                    )
+                    self.assertEqual(current[0]["href"], reverse(rota))
                     self.assertEqual(
                         current[0]["aria-current"],
-                        "page" if page == section else "location",
+                        "page" if pagina_atual else "location",
                     )
 
     def test_shared_fonts_and_icons_loaded_once(self):
@@ -143,6 +177,7 @@ class TemplatePagesTests(SimpleTestCase):
                 response = self.client.get(reverse(f"core:{page}"))
                 self.assertContains(response, "family=Inter", count=1)
                 self.assertContains(response, "bootstrap-icons.min.css", count=1)
+                self.assertContains(response, "js/search-loading.js", count=1)
 
 
 class ResultadosTests(TestCase):
@@ -355,7 +390,33 @@ class ResultadosTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Não foi possível aplicar os filtros.")
+        self.assertContains(response, 'id="erro-filtros"')
+        self.assertContains(response, "Capacidade mínima (passageiros):")
+        self.assertContains(response, "Corrija os filtros destacados acima")
         self.assertContains(response, "Nenhum veículo encontrado")
+
+    def test_formulario_tem_estado_de_carregamento(self):
+        response = self.buscar()
+
+        for atributo in (
+            "data-search-form",
+            "data-search-submit",
+            "data-search-spinner",
+            "data-search-status",
+        ):
+            with self.subTest(atributo=atributo):
+                self.assertContains(response, atributo)
+
+    def test_pagina_fora_do_intervalo_exibe_404_amigavel(self):
+        response = self.buscar(page=99)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Página não encontrada", status_code=404)
+        self.assertContains(
+            response,
+            "Ver veículos disponíveis",
+            status_code=404,
+        )
 
     def test_nao_expoe_dados_do_proprietario(self):
         response = self.buscar()
@@ -458,3 +519,359 @@ class ResultadosTests(TestCase):
             f'href="{reverse("core:resultados")}" aria-current="page"',
             count=2,
         )
+
+
+class DetalhesVeiculoTests(TestCase):
+    """A página de detalhes deve exibir apenas o veículo público solicitado."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.proprietario = Usuario.objects.create_user(
+            username="proprietario-secreto",
+            email="proprietario.secreto@example.com",
+            password="senha-de-teste",
+            first_name="Nome",
+            last_name="Sensível",
+            proprietario=True,
+        )
+
+        def criar_veiculo(**dados):
+            padrao = {
+                "proprietario": cls.proprietario,
+                "caracteristicas": "Veículo de teste",
+                "cidade": "São Paulo",
+                "categoria": "Hatch",
+                "cambio": "Manual",
+                "combustivel": "Flex",
+                "passageiros": 5,
+                "preco_diaria": "150.00",
+                "ativo": True,
+                "bloqueado": False,
+                "aprovacao": Veiculo.Aprovacao.APROVADO,
+            }
+            padrao.update(dados)
+            return Veiculo.objects.create(**padrao)
+
+        cls.hatch = criar_veiculo()
+        cls.suv = criar_veiculo(
+            cidade="Campinas",
+            categoria="SUV",
+            cambio="Automático",
+            combustivel="Diesel",
+            passageiros=7,
+            preco_diaria="250.00",
+        )
+        cls.pendente = criar_veiculo(
+            categoria="Picape",
+            aprovacao=Veiculo.Aprovacao.PENDENTE,
+        )
+        cls.bloqueado = criar_veiculo(bloqueado=True)
+        cls.inativo = criar_veiculo(ativo=False)
+
+    def detalhe(self, pk):
+        return self.client.get(reverse("core:detalhes", args=[pk]))
+
+    def test_exibe_o_veiculo_publico_solicitado(self):
+        response = self.detalhe(self.hatch.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/detalhes.html")
+        self.assertEqual(response.context["veiculo"], self.hatch)
+        self.assertContains(response, "Hatch em São Paulo")
+        self.assertContains(response, "Manual")
+        self.assertContains(response, "Flex")
+        self.assertContains(response, "5 lugares")
+        self.assertContains(
+            response,
+            "Este anúncio está ativo, aprovado e visível publicamente.",
+        )
+
+    def test_exibe_caracteristicas_cadastradas(self):
+        response = self.detalhe(self.hatch.pk)
+
+        self.assertContains(response, "Sobre o carro")
+        self.assertContains(response, "Veículo de teste")
+
+    def test_exibe_diaria_cadastrada(self):
+        response = self.detalhe(self.hatch.pk)
+
+        self.assertContains(response, "R$ 150,00")
+        self.assertContains(response, "Valor por dia definido no anúncio.")
+
+    def test_sem_fotos_exibe_ilustracao(self):
+        response = self.detalhe(self.hatch.pk)
+
+        self.assertContains(response, "images/car.svg")
+        self.assertNotContains(response, 'aria-label="Fotos do veículo"')
+
+    def test_nao_expoe_dados_do_proprietario(self):
+        response = self.detalhe(self.hatch.pk)
+
+        self.assertNotContains(response, "proprietario-secreto")
+        self.assertNotContains(response, "proprietario.secreto@example.com")
+        self.assertNotContains(response, "Sensível")
+        self.assertNotContains(response, "Rafael Costa")
+
+    def test_veiculos_nao_publicos_retornam_404(self):
+        for nome, veiculo in (
+            ("pendente", self.pendente),
+            ("bloqueado", self.bloqueado),
+            ("inativo", self.inativo),
+        ):
+            with self.subTest(nome=nome):
+                response = self.detalhe(veiculo.pk)
+                self.assertEqual(response.status_code, 404)
+
+    def test_veiculo_inexistente_retorna_404(self):
+        response = self.detalhe(999999)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Página não encontrada", status_code=404)
+        self.assertContains(
+            response,
+            "Ver veículos disponíveis",
+            status_code=404,
+        )
+
+    def test_link_da_busca_aponta_para_os_veiculos_corretos(self):
+        response = self.client.get(reverse("core:resultados"))
+
+        self.assertContains(
+            response,
+            f'href="{reverse("core:detalhes", args=[self.hatch.pk])}"',
+        )
+        self.assertContains(
+            response,
+            f'href="{reverse("core:detalhes", args=[self.suv.pk])}"',
+        )
+        self.assertNotContains(
+            response,
+            reverse("core:detalhes", args=[self.pendente.pk]),
+        )
+        self.assertNotContains(
+            response,
+            reverse("core:detalhes", args=[self.bloqueado.pk]),
+        )
+        self.assertNotContains(
+            response,
+            reverse("core:detalhes", args=[self.inativo.pk]),
+        )
+
+    def test_navegacao_da_busca_abre_o_veiculo_correto(self):
+        href = reverse("core:detalhes", args=[self.hatch.pk])
+        response = self.client.get(href)
+
+        self.assertContains(response, "Hatch em São Paulo")
+        self.assertNotContains(response, "SUV em Campinas")
+
+    def test_indicacao_da_secao_resultados_na_navegacao(self):
+        response = self.detalhe(self.hatch.pk)
+        parser = NavigationParser()
+        parser.feed(response.content.decode())
+
+        for region in ("Navegação principal", "Navegação mobile"):
+            with self.subTest(region=region):
+                current = [
+                    link for link in parser.links[region]
+                    if "aria-current" in link
+                ]
+                self.assertEqual(len(current), 1)
+                self.assertEqual(
+                    current[0]["href"],
+                    reverse("core:resultados"),
+                )
+                self.assertEqual(current[0]["aria-current"], "location")
+
+    def test_volta_para_a_busca(self):
+        response = self.detalhe(self.hatch.pk)
+
+        self.assertContains(
+            response,
+            f'href="{reverse("core:resultados")}"',
+        )
+
+    def test_post_nao_e_permitido(self):
+        response = self.client.post(
+            reverse("core:detalhes", args=[self.hatch.pk]),
+        )
+
+        self.assertEqual(response.status_code, 405)
+
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
+class DetalhesVeiculoFotosTests(TestCase):
+    """As fotos cadastradas devem aparecer apenas no veículo correspondente."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.proprietario = Usuario.objects.create_user(
+            username="proprietario-fotos",
+            password="senha-de-teste",
+            proprietario=True,
+        )
+
+        def criar_veiculo(cidade: str) -> Veiculo:
+            return Veiculo.objects.create(
+                proprietario=cls.proprietario,
+                caracteristicas="Veículo com fotos",
+                cidade=cidade,
+                categoria="Hatch",
+                cambio="Manual",
+                combustivel="Flex",
+                passageiros=5,
+                preco_diaria="180.00",
+                ativo=True,
+                bloqueado=False,
+                aprovacao=Veiculo.Aprovacao.APROVADO,
+            )
+
+        cls.veiculo = criar_veiculo("São Paulo")
+        cls.outro_veiculo = criar_veiculo("Campinas")
+        cls.foto_frente = FotoVeiculo.objects.create(
+            veiculo=cls.veiculo,
+            foto=SimpleUploadedFile(
+                "frente.png", PNG_1X1, content_type="image/png",
+            ),
+        )
+        cls.foto_lateral = FotoVeiculo.objects.create(
+            veiculo=cls.veiculo,
+            foto=SimpleUploadedFile(
+                "lateral.png", PNG_1X1, content_type="image/png",
+            ),
+        )
+        cls.foto_outro_veiculo = FotoVeiculo.objects.create(
+            veiculo=cls.outro_veiculo,
+            foto=SimpleUploadedFile(
+                "outro.png", PNG_1X1, content_type="image/png",
+            ),
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+
+    def detalhe(self, veiculo):
+        return self.client.get(
+            reverse("core:detalhes", args=[veiculo.pk]),
+        )
+
+    def test_exibe_fotos_cadastradas_na_ordem(self):
+        response = self.detalhe(self.veiculo)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'aria-label="Fotos do veículo"')
+        self.assertContains(response, self.foto_frente.foto.url)
+        self.assertContains(response, self.foto_lateral.foto.url)
+        html = response.content.decode()
+        self.assertLess(
+            html.index(self.foto_frente.foto.url),
+            html.index(self.foto_lateral.foto.url),
+        )
+
+    def test_nao_exibe_fotos_de_outro_veiculo(self):
+        response = self.detalhe(self.veiculo)
+
+        self.assertNotContains(response, self.foto_outro_veiculo.foto.url)
+
+    def test_com_fotos_nao_usa_ilustracao(self):
+        response = self.detalhe(self.veiculo)
+
+        self.assertNotContains(response, "images/car.svg")
+
+
+class ResultadosSemVeiculosTests(TestCase):
+    """O estado vazio deve distinguir ausência de anúncios de filtros sem resultado."""
+
+    def buscar(self, **filtros):
+        return self.client.get(reverse("core:resultados"), filtros)
+
+    def test_sem_veiculos_e_sem_filtros(self):
+        response = self.buscar()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "0 veículos encontrados")
+        self.assertContains(response, "Ainda não há veículos publicados")
+        self.assertContains(response, "Voltar ao início")
+        self.assertNotContains(response, "Nenhum veículo encontrado")
+
+    def test_sem_veiculos_com_filtros(self):
+        response = self.buscar(cidade="Curitiba")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "0 veículos encontrados")
+        self.assertContains(response, "Nenhum veículo encontrado")
+        self.assertContains(response, "Limpar filtros")
+        self.assertNotContains(response, "Ainda não há veículos publicados")
+
+
+class AutenticacaoTests(TestCase):
+    """O fluxo real de reserva exige login com as credenciais do Django."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.usuario = Usuario.objects.create_user(
+            username="pessoa",
+            password="senha-de-teste",
+        )
+
+    def test_pagina_de_entrada_exibe_formulario_real(self):
+        response = self.client.get(reverse("core:entrar"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="username"')
+        self.assertContains(response, 'name="password"')
+        self.assertContains(response, "Entrar")
+        self.assertNotContains(response, "Dados fictícios.")
+
+    def test_login_valido_redireciona_para_minhas_reservas(self):
+        response = self.client.post(
+            reverse("core:entrar"),
+            {"username": "pessoa", "password": "senha-de-teste"},
+        )
+
+        self.assertRedirects(response, reverse("reservas:minhas"))
+        self.assertEqual(
+            self.client.session["_auth_user_id"],
+            str(self.usuario.pk),
+        )
+
+    def test_login_respeita_o_next(self):
+        destino = reverse("reservas:minhas")
+
+        response = self.client.post(
+            reverse("core:entrar"),
+            {
+                "username": "pessoa",
+                "password": "senha-de-teste",
+                "next": destino,
+            },
+        )
+
+        self.assertRedirects(response, destino)
+
+    def test_login_invalido_mostra_erro(self):
+        response = self.client.post(
+            reverse("core:entrar"),
+            {"username": "pessoa", "password": "senha-errada"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Por favor, entre com um usuário")
+
+    def test_navegacao_autenticada_oferece_sair(self):
+        self.client.force_login(self.usuario)
+
+        response = self.client.get(reverse("core:home"))
+
+        self.assertContains(response, "Sair")
+        self.assertContains(response, reverse("core:sair"))
+        self.assertNotContains(response, f'href="{reverse("core:entrar")}"')
+
+    def test_logout_encerra_a_sessao(self):
+        self.client.force_login(self.usuario)
+
+        response = self.client.post(reverse("core:sair"))
+
+        self.assertRedirects(response, reverse("core:home"))
+        self.assertNotIn("_auth_user_id", self.client.session)

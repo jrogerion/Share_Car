@@ -1,6 +1,13 @@
-{% with page=request.resolver_match.url_name %}
+{% with namespace=request.resolver_match.namespace page=request.resolver_match.url_name %}
   <a class="{{ link_class }}" href="{% url 'core:home' %}" {% if page == 'home' %}aria-current="page"{% endif %}><i class="bi bi-house" aria-hidden="true"></i>Início</a>
   <a class="{{ link_class }}" href="{% url 'core:resultados' %}" {% if page == 'resultados' or page == 'detalhes' or page == 'resumo' or page == 'pagamento' %}aria-current="{% if page == 'resultados' %}page{% else %}location{% endif %}"{% endif %}><i class="bi bi-search" aria-hidden="true"></i>Buscar</a>
-  <a class="{{ link_class }}" href="{% url 'core:reservas' %}" {% if page == 'reservas' or page == 'checkin' or page == 'avaliacao' %}aria-current="{% if page == 'reservas' %}page{% else %}location{% endif %}"{% endif %}><i class="bi bi-journal-text" aria-hidden="true"></i>Reservas</a>
-  <a class="{{ link_class }}" href="{% url 'core:entrar' %}" {% if page == 'entrar' %}aria-current="page"{% endif %}><i class="bi bi-person" aria-hidden="true"></i>Entrar</a>
+  <a class="{{ link_class }}" href="{% url 'reservas:minhas' %}" {% if namespace == 'reservas' %}aria-current="{% if page == 'minhas' %}page{% else %}location{% endif %}"{% elif page == 'reservas_exemplo' %}aria-current="page"{% elif page == 'checkin' or page == 'avaliacao' %}aria-current="location"{% endif %}><i class="bi bi-journal-text" aria-hidden="true"></i>Reservas</a>
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'core:sair' %}" class="nav-logout-form">
+      {% csrf_token %}
+      <button class="{{ link_class }} nav-logout-button" type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Sair</button>
+    </form>
+  {% else %}
+    <a class="{{ link_class }}" href="{% url 'core:entrar' %}" {% if page == 'entrar' %}aria-current="page"{% endif %}><i class="bi bi-person" aria-hidden="true"></i>Entrar</a>
+  {% endif %}
 {% endwith %}

@@ -1,0 +1,84 @@
+{% extends "core/page.html" %}
+{% block title %}Reserva #{{ reserva.pk }} — ShareCar{% endblock %}
+{% block back_url %}{% url 'reservas:minhas' %}{% endblock %}
+{% block back_label %}Minhas reservas{% endblock %}
+{% block page_kicker %}ShareCar · Reserva #{{ reserva.pk }}{% endblock %}
+{% block page_title %}{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}{% endblock %}
+{% block page_subtitle %}{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diária{{ reserva.dias|pluralize }}{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Status da reserva">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    Status atual: <strong>{{ reserva.get_status_display }}</strong>.
+  </aside>
+{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <div class="flow-stack">
+      <section class="flow-panel" aria-labelledby="veiculo-title">
+        <h2 id="veiculo-title">Veículo</h2>
+        <p><strong>{{ reserva.veiculo.categoria }}</strong> em {{ reserva.veiculo.cidade }}</p>
+        <p>{{ reserva.veiculo.cambio }} · {{ reserva.veiculo.combustivel }} · {{ reserva.veiculo.passageiros }} lugares</p>
+        <a class="btn btn-outline-secondary" href="{% url 'core:detalhes' reserva.veiculo.pk %}">Ver anúncio</a>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="periodo-title">
+        <h2 id="periodo-title">Período</h2>
+        <dl class="flow-prices">
+          <div><dt>Retirada</dt><dd>{{ reserva.inicio|date:"d/m/Y" }}</dd></div>
+          <div><dt>Devolução</dt><dd>{{ reserva.fim|date:"d/m/Y" }}</dd></div>
+          <div><dt>Duração</dt><dd>{{ reserva.dias }} diária{{ reserva.dias|pluralize }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="participantes-title">
+        <h2 id="participantes-title">Participantes</h2>
+        <p>Locatário: <strong>{{ reserva.locatario.username }}</strong></p>
+        <p>Proprietário: <strong>{{ reserva.veiculo.proprietario.username }}</strong></p>
+        <p class="flow-small">Documentos e dados pessoais não são exibidos nesta página.</p>
+      </section>
+    </div>
+
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="valores-title">
+        <h2 id="valores-title">Valores</h2>
+        <dl class="flow-prices">
+          <div><dt>{{ reserva.dias }} diária{{ reserva.dias|pluralize }} × R$ {{ reserva.preco_diaria|floatformat:2 }}</dt><dd>R$ {{ reserva.valor_diarias|floatformat:2 }}</dd></div>
+          <div><dt>Taxa de serviço</dt><dd>R$ {{ reserva.taxas|floatformat:2 }}</dd></div>
+          <div class="flow-total"><dt>Total</dt><dd>R$ {{ reserva.total|floatformat:2 }}</dd></div>
+        </dl>
+        {% if eh_proprietario %}
+          <p class="flow-small">Comissão de {{ reserva.percentual_comissao|floatformat:2 }}% (R$ {{ reserva.comissao|floatformat:2 }}). Repasse previsto: R$ {{ reserva.repasse_proprietario|floatformat:2 }}.</p>
+        {% endif %}
+      </section>
+
+      {% if pode_aceitar or pode_recusar or pode_cancelar %}
+        <section class="flow-panel" aria-labelledby="acoes-title">
+          <h2 id="acoes-title">Ações disponíveis</h2>
+          <div class="flow-actions">
+            {% if pode_aceitar %}
+              <form method="post" action="{% url 'reservas:aceitar' reserva.pk %}">
+                {% csrf_token %}
+                <button class="discovery-button" type="submit">Aceitar reserva</button>
+              </form>
+            {% endif %}
+            {% if pode_recusar %}
+              <form method="post" action="{% url 'reservas:recusar' reserva.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-secondary" type="submit">Recusar</button>
+              </form>
+            {% endif %}
+            {% if pode_cancelar %}
+              <form method="post" action="{% url 'reservas:cancelar' reserva.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-secondary" type="submit">Cancelar reserva</button>
+              </form>
+            {% endif %}
+          </div>
+          {% if pode_aceitar %}
+            <p class="flow-small">Ao aceitar, o período continua bloqueado para outras solicitações. O pagamento será tratado em uma próxima etapa.</p>
+          {% endif %}
+        </section>
+      {% endif %}
+    </aside>
+  </div>
+{% endblock %}

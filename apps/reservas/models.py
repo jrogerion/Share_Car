@@ -1,3 +1,5 @@
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.conf import settings
 from django.contrib.postgres.constraints import ExclusionConstraint
 from django.contrib.postgres.fields import DateRangeField, RangeOperators
@@ -25,6 +27,24 @@ class Reserva(models.Model):
     taxas = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2)
     percentual_comissao = models.DecimalField(max_digits=5, decimal_places=2)
+
+    @property
+    def dias(self) -> int:
+        """Quantidade de diárias contratadas no intervalo [início, fim)."""
+        return (self.fim - self.inicio).days
+
+    @property
+    def comissao(self) -> Decimal:
+        """Valor da comissão calculado sobre o total contratado."""
+        return (self.total * self.percentual_comissao / 100).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+    @property
+    def repasse_proprietario(self) -> Decimal:
+        """Valor previsto de repasse ao proprietário."""
+        return self.total - self.comissao
 
     class Meta:
         verbose_name = "reserva"

@@ -22,15 +22,17 @@
       role="search"
       aria-labelledby="busca-title"
       aria-describedby="demo-notice"
+      data-search-form
     >
       <h2 id="busca-title" class="visually-hidden">Buscar veículos</h2>
       <div class="discovery-fields">
         <div class="discovery-field discovery-location"><label for="cidade"><i class="bi bi-geo-alt" aria-hidden="true"></i> Localização</label><input id="cidade" name="cidade" type="text" placeholder="Qual é a sua cidade?" autocomplete="address-level2" maxlength="150" enterkeyhint="search" required></div>
         <div class="discovery-field"><label for="retirada"><i class="bi bi-calendar-event" aria-hidden="true"></i> Retirada</label><input id="retirada" name="retirada" type="date" min="{% now 'Y-m-d' %}"></div>
         <div class="discovery-field"><label for="devolucao"><i class="bi bi-calendar-check" aria-hidden="true"></i> Devolução</label><input id="devolucao" name="devolucao" type="date" min="{% now 'Y-m-d' %}"></div>
-        <button class="discovery-button" type="submit"><i class="bi bi-search" aria-hidden="true"></i> Buscar carros</button>
+        <button class="discovery-button" type="submit" data-search-submit><span class="spinner-border spinner-border-sm" aria-hidden="true" data-search-spinner hidden></span><i class="bi bi-search" aria-hidden="true" data-search-icon></i> <span data-search-label>Buscar carros</span></button>
       </div>
-      <p id="demo-notice" class="discovery-note">A busca considera a cidade. O período informado será usado para verificar disponibilidade em uma próxima etapa.</p>
+      <p class="visually-hidden" role="status" data-search-status></p>
+      <p id="demo-notice" class="discovery-note">A busca considera a cidade e, quando informado, o período de retirada e devolução.</p>
     </form>
     <section id="vantagens" class="discovery-categories" aria-label="Categorias ilustradas">
       <span><i class="bi bi-car-front" aria-hidden="true"></i> Hatch</span>

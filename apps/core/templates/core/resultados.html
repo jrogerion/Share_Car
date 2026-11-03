@@ -12,13 +12,23 @@
 {% endblock %}
 {% block page_content %}
   <section class="flow-panel flow-filter" aria-labelledby="filtros-title">
-    <form method="get" action="{% url 'core:resultados' %}" role="search" aria-labelledby="filtros-title">
+    <form method="get" action="{% url 'core:resultados' %}" role="search" aria-labelledby="filtros-title" data-search-form>
       <h2 id="filtros-title">Filtros da busca</h2>
       <div class="flow-filter-fields flow-fields">
         <div class="flow-filter-city">
           <label for="{{ filtro.cidade.id_for_label }}">{{ filtro.cidade.label }}</label>
           {{ filtro.cidade }}
           {{ filtro.cidade.errors }}
+        </div>
+        <div>
+          <label for="{{ filtro.retirada.id_for_label }}">{{ filtro.retirada.label }}</label>
+          {{ filtro.retirada }}
+          {{ filtro.retirada.errors }}
+        </div>
+        <div>
+          <label for="{{ filtro.devolucao.id_for_label }}">{{ filtro.devolucao.label }}</label>
+          {{ filtro.devolucao }}
+          {{ filtro.devolucao.errors }}
         </div>
         <div>
           <label for="{{ filtro.categoria.id_for_label }}">{{ filtro.categoria.label }}</label>
@@ -51,20 +61,33 @@
           {{ filtro.diaria_max.errors }}
         </div>
         <div class="flow-filter-actions">
-          <button class="discovery-button" type="submit">
-            <i class="bi bi-funnel" aria-hidden="true"></i> Aplicar filtros
+          <button class="discovery-button" type="submit" data-search-submit>
+            <span class="spinner-border spinner-border-sm" aria-hidden="true" data-search-spinner hidden></span>
+            <i class="bi bi-funnel" aria-hidden="true" data-search-icon></i>
+            <span data-search-label>Aplicar filtros</span>
           </button>
           <a class="btn btn-outline-secondary" href="{% url 'core:resultados' %}">Limpar filtros</a>
         </div>
       </div>
-      <p class="flow-small">Combine os filtros, inclusive a faixa de diária, para refinar a busca. Apenas veículos publicados são exibidos.</p>
+      <p class="flow-small">Combine os filtros, inclusive a faixa de diária e o período, para refinar a busca. Apenas veículos publicados e disponíveis no período são exibidos.</p>
+      <p class="visually-hidden" role="status" data-search-status></p>
     </form>
   </section>
 
   {% if filtro.errors %}
-    <aside class="flow-notice flow-error" role="alert">
-      <strong>Não foi possível aplicar os filtros.</strong>
-      <p>Revise os valores informados e tente novamente.</p>
+    <aside class="flow-notice flow-error" role="alert" aria-labelledby="erro-filtros">
+      <strong id="erro-filtros">Não foi possível aplicar os filtros.</strong>
+      <p>Revise os campos indicados e tente novamente:</p>
+      <ul class="flow-error-list">
+        {% for field in filtro %}
+          {% if field.errors %}
+            <li><a href="#{{ field.id_for_label }}">{{ field.label }}: {{ field.errors|striptags }}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if filtro.non_field_errors %}
+          <li>{{ filtro.non_field_errors|striptags }}</li>
+        {% endif %}
+      </ul>
     </aside>
   {% endif %}
 
@@ -75,7 +98,7 @@
 
   <div class="flow-cars">
     {% for veiculo in veiculos %}
-      <article class="flow-panel flow-car">
+      <a class="flow-panel flow-car" href="{% url 'core:detalhes' veiculo.pk %}{% if request.GET.retirada and request.GET.devolucao %}?retirada={{ request.GET.retirada|urlencode }}&amp;devolucao={{ request.GET.devolucao|urlencode }}{% endif %}" aria-label="Ver detalhes de {{ veiculo.categoria }} em {{ veiculo.cidade }}">
         <div class="flow-car-photo {% cycle 'photo-blue' 'photo-rose' 'photo-mint' 'photo-lilac' %}">
           <img src="{% static 'images/car.svg' %}" alt="" width="320" height="160">
         </div>
@@ -84,13 +107,24 @@
           <p>{{ veiculo.caracteristicas|truncatechars:90 }}</p>
           <p>{{ veiculo.cambio }} · {{ veiculo.combustivel }} · {{ veiculo.passageiros }} lugares</p>
           <strong>R$ {{ veiculo.preco_diaria|floatformat:2 }} <small>/dia</small></strong>
+          <span>Ver detalhes <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
         </div>
-      </article>
+      </a>
     {% empty %}
       <div class="flow-panel flow-empty" role="status">
-        <h2>Nenhum veículo encontrado</h2>
-        <p>Não há veículos publicados com esses filtros. Ajuste a busca ou veja todos os disponíveis.</p>
-        <a class="discovery-button" href="{% url 'core:resultados' %}">Limpar filtros</a>
+        {% if busca_ativa or filtro_invalido %}
+          <h2>Nenhum veículo encontrado</h2>
+          {% if filtro_invalido %}
+            <p>Corrija os filtros destacados acima para ver os veículos disponíveis.</p>
+          {% else %}
+            <p>Nenhum veículo publicado atende aos filtros informados. Ajuste a busca ou limpe os filtros.</p>
+          {% endif %}
+          <a class="discovery-button" href="{% url 'core:resultados' %}">Limpar filtros</a>
+        {% else %}
+          <h2>Ainda não há veículos publicados</h2>
+          <p>Quando um veículo for aprovado e publicado, ele aparecerá aqui.</p>
+          <a class="discovery-button" href="{% url 'core:home' %}">Voltar ao início</a>
+        {% endif %}
       </div>
     {% endfor %}
   </div>

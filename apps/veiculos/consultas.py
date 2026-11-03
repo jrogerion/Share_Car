@@ -1,8 +1,10 @@
+from datetime import date
 from decimal import Decimal
 
-from django.db.models import QuerySet
+from django.db.models import Prefetch, QuerySet
 
-from .models import Veiculo
+from .disponibilidade import filtrar_por_disponibilidade
+from .models import FotoVeiculo, Veiculo
 
 
 def veiculos_publicos() -> QuerySet[Veiculo]:
@@ -11,6 +13,13 @@ def veiculos_publicos() -> QuerySet[Veiculo]:
         ativo=True,
         aprovacao=Veiculo.Aprovacao.APROVADO,
         bloqueado=False,
+    )
+
+
+def com_fotos_ordenadas(veiculos: QuerySet[Veiculo]) -> QuerySet[Veiculo]:
+    """Carrega as fotos na ordem de cadastro para evitar consultas N+1."""
+    return veiculos.prefetch_related(
+        Prefetch("fotos", queryset=FotoVeiculo.objects.order_by("id"))
     )
 
 
@@ -23,6 +32,8 @@ def buscar_veiculos(
     passageiros_min: int | None = None,
     diaria_min: Decimal | None = None,
     diaria_max: Decimal | None = None,
+    inicio: date | None = None,
+    fim: date | None = None,
 ) -> QuerySet[Veiculo]:
     """Aplica os filtros de busca sobre o conjunto de veículos públicos."""
     veiculos = veiculos_publicos()
@@ -41,5 +52,7 @@ def buscar_veiculos(
         veiculos = veiculos.filter(preco_diaria__gte=diaria_min)
     if diaria_max is not None:
         veiculos = veiculos.filter(preco_diaria__lte=diaria_max)
+    if inicio is not None and fim is not None:
+        veiculos = filtrar_por_disponibilidade(veiculos, inicio, fim)
 
     return veiculos.order_by("-id")

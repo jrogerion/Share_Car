@@ -65,6 +65,9 @@ DATABASES = {
     }
 }
 AUTH_USER_MODEL = "contas.Usuario"
+LOGIN_URL = "core:entrar"
+LOGIN_REDIRECT_URL = "reservas:minhas"
+LOGOUT_REDIRECT_URL = "core:home"
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": f"django.contrib.auth.password_validation.{name}"}
     for name in [

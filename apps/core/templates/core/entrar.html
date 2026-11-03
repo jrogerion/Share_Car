@@ -1,18 +1,50 @@
 {% extends "core/page.html" %}
 {% block title %}Entrar — ShareCar{% endblock %}
-{% block page_title %}Seu próximo caminho começa aqui{% endblock %}
-{% block page_subtitle %}Alugue o carro de alguém. Ou alugue o seu.{% endblock %}
+{% block page_title %}{% if user.is_authenticated %}Você está conectado{% else %}Seu próximo caminho começa aqui{% endif %}{% endblock %}
+{% block page_subtitle %}{% if user.is_authenticated %}Acesse suas reservas ou continue explorando.{% else %}Entre para solicitar e acompanhar reservas.{% endif %}{% endblock %}
+{% block demo_notice %}{% endblock %}
 {% block page_content %}
   <div class="flow-columns">
     <section class="flow-panel flow-fields" aria-labelledby="entrar-title">
-      <h2 id="entrar-title">Entrar</h2>
-      <label for="email">E-mail de exemplo</label><input id="email" type="email" placeholder="voce@exemplo.com" autocomplete="off">
-      <label for="senha">Senha de exemplo</label><input id="senha" type="password" placeholder="Não use sua senha real" autocomplete="off">
-      <label class="flow-check"><input type="checkbox" disabled> Manter conectado (indisponível na prévia)</label>
-      <button class="btn btn-outline-secondary" type="button" disabled>Recuperar senha · em breve</button>
-      <a class="discovery-button" href="{% url 'core:home' %}">Explorar sem entrar <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
-      <button class="btn btn-outline-secondary" type="button" disabled>Criar conta · em breve</button>
+      {% if user.is_authenticated %}
+        <h2 id="entrar-title">Conta ativa</h2>
+        <p>Conectado como <strong>{{ user.username }}</strong>.</p>
+        <div class="flow-actions">
+          <a class="discovery-button" href="{% url 'reservas:minhas' %}">Minhas reservas</a>
+          <form method="post" action="{% url 'core:sair' %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-secondary" type="submit">Sair</button>
+          </form>
+        </div>
+      {% else %}
+        <h2 id="entrar-title">Entrar</h2>
+        {% if form.non_field_errors %}
+          <div class="flow-notice flow-error" role="alert">
+            {{ form.non_field_errors|striptags }}
+          </div>
+        {% endif %}
+        <form method="post" action="{% url 'core:entrar' %}" class="flow-fields">
+          {% csrf_token %}
+          <label for="{{ form.username.id_for_label }}">Usuário</label>
+          {{ form.username }}
+          {{ form.username.errors }}
+          <label for="{{ form.password.id_for_label }}">Senha</label>
+          {{ form.password }}
+          {{ form.password.errors }}
+          {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+          {% endif %}
+          <button class="discovery-button" type="submit">Entrar</button>
+        </form>
+      {% endif %}
     </section>
-    <aside class="flow-panel"><h2>Uma comunidade de confiança</h2><h3>Para anunciar</h3><p>O documento de identidade será enviado para análise do administrador quando o cadastro estiver disponível.</p><h3>Para reservar</h3><p>Será necessário informar uma CNH válida. Uma CNH vencida não permite reservar.</p><p class="flow-small">Autenticação, criação de conta e instalação como aplicativo ainda não estão disponíveis.</p></aside>
+    <aside class="flow-panel">
+      <h2>Uma comunidade de confiança</h2>
+      <h3>Para anunciar</h3>
+      <p>O documento de identidade passa por análise do administrador antes da publicação do anúncio.</p>
+      <h3>Para reservar</h3>
+      <p>É necessário ter uma conta ativa. A validação de CNH será exigida antes da confirmação da locação.</p>
+      <p class="flow-small">A criação de conta e a recuperação de senha ainda não estão disponíveis nesta etapa.</p>
+    </aside>
   </div>
 {% endblock %}
