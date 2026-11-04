@@ -2,9 +2,45 @@ from uuid import uuid4
 
 from django import forms
 from django.contrib.auth import authenticate
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AdminUserCreationForm,
+    AuthenticationForm,
+    UserChangeForm,
+    UserCreationForm,
+)
 
 from .models import Usuario
+
+
+class EmailUnicoAdminMixin:
+    """Valida e-mails no Admin, preservando contas antigas sem endereço."""
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email", "").lower()
+        if email and Usuario.objects.filter(email__iexact=email).exclude(
+            pk=self.instance.pk,
+        ).exists():
+            raise forms.ValidationError(
+                "Não é possível cadastrar este e-mail.",
+            )
+        return email
+
+
+class CriacaoUsuarioAdminForm(EmailUnicoAdminMixin, AdminUserCreationForm):
+    email = forms.EmailField(label="E-mail", max_length=254)
+
+    class Meta(AdminUserCreationForm.Meta):
+        model = Usuario
+        fields = (
+            "username", "email", "first_name", "last_name",
+            "proprietario", "locatario",
+        )
+
+
+class AlteracaoUsuarioAdminForm(EmailUnicoAdminMixin, UserChangeForm):
+    class Meta(UserChangeForm.Meta):
+        model = Usuario
+        fields = "__all__"
 
 
 class LoginEmailForm(AuthenticationForm):
