@@ -1,0 +1,13 @@
+{% with page=request.resolver_match.url_name %}
+  {% if user.is_authenticated %}
+    <div class="navigation-account">
+      <span class="navigation-user-name" title="{{ user.first_name|default:'Minha conta' }}">{{ user.first_name|default:"Minha conta" }}</span>
+      <form method="post" action="{% url 'contas:sair' %}">
+        {% csrf_token %}
+        <button class="{{ link_class }} navigation-logout" type="submit" aria-label="Sair da conta"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Sair</button>
+      </form>
+    </div>
+  {% else %}
+    <a class="{{ link_class }}" href="{% url 'core:entrar' %}" {% if page == 'entrar' %}aria-current="page"{% endif %}><i class="bi bi-person" aria-hidden="true"></i>Entrar</a>
+  {% endif %}
+{% endwith %}
