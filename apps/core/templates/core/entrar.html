@@ -10,7 +10,9 @@
         <h2 id="entrar-title">Conta ativa</h2>
         <p>Conectado como <strong>{{ user.username }}</strong>.</p>
         <div class="flow-actions">
-          <a class="discovery-button" href="{% url 'reservas:minhas' %}">Minhas reservas</a>
+          <a class="discovery-button" href="{% url 'contas:painel' %}">Ir para o painel</a>
+          <a class="btn btn-outline-secondary" href="{% url 'reservas:minhas' %}">Minhas reservas</a>
+          <a class="btn btn-outline-secondary" href="{% url 'contas:perfil' %}">Meu perfil</a>
           <form method="post" action="{% url 'core:sair' %}">
             {% csrf_token %}
             <button class="btn btn-outline-secondary" type="submit">Sair</button>
@@ -36,6 +38,10 @@
           {% endif %}
           <button class="discovery-button" type="submit">Entrar</button>
         </form>
+        <div class="flow-actions">
+          <a class="flow-small" href="{% url 'contas:recuperar_senha' %}">Esqueci minha senha</a>
+          <a class="flow-small" href="{% url 'contas:cadastro' %}">Criar uma conta</a>
+        </div>
       {% endif %}
     </section>
     <aside class="flow-panel">
@@ -44,7 +50,7 @@
       <p>O documento de identidade passa por análise do administrador antes da publicação do anúncio.</p>
       <h3>Para reservar</h3>
       <p>É necessário ter uma conta ativa. A validação de CNH será exigida antes da confirmação da locação.</p>
-      <p class="flow-small">A criação de conta e a recuperação de senha ainda não estão disponíveis nesta etapa.</p>
+      <p class="flow-small">Crie sua conta para acompanhar reservas, manter seus dados atualizados e recuperar a senha com segurança.</p>
     </aside>
   </div>
 {% endblock %}

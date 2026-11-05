@@ -54,6 +54,15 @@
         <h2 id="diaria-title">Diária</h2>
         <p><strong class="flow-price">R$ {{ veiculo.preco_diaria|floatformat:2 }}</strong> <span class="flow-small">/dia</span></p>
         <p class="flow-small">Valor por dia definido no anúncio.</p>
+        {% if avaliacoes.total %}
+          <p class="flow-small">
+            <i class="bi bi-star-fill" aria-hidden="true"></i>
+            Nota média: <strong>{{ avaliacoes.media|floatformat:1 }} de 5</strong>
+            ({{ avaliacoes.total }} avaliaç{{ avaliacoes.total|pluralize:"ão,ões" }} de locatários).
+          </p>
+        {% else %}
+          <p class="flow-small">Este veículo ainda não recebeu avaliações de locatários.</p>
+        {% endif %}
       </section>
 
       <section class="flow-panel" aria-labelledby="periodo-title">

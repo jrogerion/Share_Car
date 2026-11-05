@@ -9,6 +9,9 @@ from django.urls import reverse
 from django.views import View
 from django.views.generic import DetailView, ListView
 
+from apps.avaliacoes.services import avaliacoes_da_reserva, pode_avaliar
+from apps.locacoes.services import check_in_da_reserva, check_out_da_reserva
+from apps.pagamentos.models import Pagamento
 from apps.veiculos.consultas import veiculos_publicos
 from apps.veiculos.models import PeriodoAgenda, Veiculo
 
@@ -19,6 +22,7 @@ from .services import (
     aceitar_reserva,
     cancelar_reserva,
     criar_reserva,
+    pagamento_aprovado,
     recusar_reserva,
 )
 
@@ -90,6 +94,55 @@ class DetalheReservaView(LoginRequiredMixin, DetailView):
             and reserva.status
             in (Reserva.Status.SOLICITADA, Reserva.Status.ACEITA)
         )
+
+        try:
+            pagamento = reserva.pagamento
+        except Pagamento.DoesNotExist:
+            pagamento = None
+        aprovado = pagamento_aprovado(reserva)
+        check_in = check_in_da_reserva(reserva)
+        check_out = check_out_da_reserva(reserva)
+
+        context["pagamento"] = pagamento
+        context["pagamento_aprovado"] = aprovado
+        context["pode_pagar"] = (
+            context["eh_locatario"]
+            and reserva.status == Reserva.Status.ACEITA
+            and not aprovado
+        )
+        context["check_in"] = check_in
+        context["check_out"] = check_out
+        context["pode_checkin"] = (
+            context["eh_locatario"]
+            and reserva.status == Reserva.Status.ACEITA
+            and aprovado
+            and check_in is None
+        )
+        context["pode_checkout"] = (
+            context["eh_locatario"]
+            and reserva.status == Reserva.Status.EM_ANDAMENTO
+            and check_in is not None
+            and check_out is None
+        )
+
+        avaliacoes = list(avaliacoes_da_reserva(reserva))
+        minha_avaliacao = next(
+            (item for item in avaliacoes if item.autor_id == usuario.pk),
+            None,
+        )
+        outra_avaliacao = next(
+            (item for item in avaliacoes if item.autor_id != usuario.pk),
+            None,
+        )
+        context["minha_avaliacao"] = minha_avaliacao
+        context["outra_parte_avaliou"] = outra_avaliacao is not None
+        # A nota da outra parte só é liberada depois que ambas avaliarem.
+        context["avaliacao_outra_parte"] = (
+            outra_avaliacao
+            if minha_avaliacao is not None and outra_avaliacao is not None
+            else None
+        )
+        context["pode_avaliar"] = pode_avaliar(reserva, usuario)
         return context
 
 

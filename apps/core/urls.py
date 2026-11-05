@@ -2,6 +2,8 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.views.generic import TemplateView
 
+from apps.contas.forms import EntrarForm
+
 from .views import DetalhesVeiculoView, HomeView, ResultadosView
 
 app_name = "core"
@@ -12,6 +14,7 @@ urlpatterns = [
         "entrar/",
         auth_views.LoginView.as_view(
             template_name="core/entrar.html",
+            authentication_form=EntrarForm,
             redirect_authenticated_user=True,
         ),
         name="entrar",

@@ -51,6 +51,16 @@ def estimar_reserva(veiculo: Veiculo, inicio, fim) -> dict:
     }
 
 
+def pagamento_aprovado(reserva: Reserva) -> bool:
+    """Indica se a reserva possui pagamento simulado aprovado."""
+    from apps.pagamentos.models import Pagamento
+
+    return Pagamento.objects.filter(
+        reserva=reserva,
+        status=Pagamento.Status.APROVADO,
+    ).exists()
+
+
 @transaction.atomic
 def criar_reserva(
     *,
@@ -113,10 +123,19 @@ def recusar_reserva(reserva: Reserva) -> Reserva:
     )
 
 
+@transaction.atomic
 def cancelar_reserva(reserva: Reserva) -> Reserva:
-    """Cancela uma solicitação pendente ou uma reserva já aceita."""
-    return _transicionar(
-        reserva,
-        de=(Reserva.Status.SOLICITADA, Reserva.Status.ACEITA),
-        para=Reserva.Status.CANCELADA,
-    )
+    """Cancela uma solicitação/reserva e estorna o pagamento aprovado, se houver."""
+    from apps.pagamentos.models import Pagamento
+
+    atual = Reserva.objects.select_for_update().get(pk=reserva.pk)
+    if atual.status not in (Reserva.Status.SOLICITADA, Reserva.Status.ACEITA):
+        raise ReservaInvalida("Esta reserva não pode ser cancelada no status atual.")
+
+    atual.status = Reserva.Status.CANCELADA
+    atual.save(update_fields=["status"])
+    Pagamento.objects.filter(
+        reserva=atual,
+        status=Pagamento.Status.APROVADO,
+    ).update(status=Pagamento.Status.ESTORNADO)
+    return atual

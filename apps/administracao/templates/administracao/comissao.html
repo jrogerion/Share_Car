@@ -1,0 +1,33 @@
+{% extends "core/page.html" %}
+{% block title %}Configuração da comissão — ShareCar{% endblock %}
+{% block back_url %}{% url 'administracao:painel' %}{% endblock %}
+{% block back_label %}Painel administrativo{% endblock %}
+{% block page_kicker %}ShareCar · Administração{% endblock %}
+{% block page_title %}Configuração da comissão{% endblock %}
+{% block page_subtitle %}O percentual vale para novas reservas; reservas existentes mantêm o valor contratado.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="comissao-title">
+      <h2 id="comissao-title">Percentual global</h2>
+      {% if form.non_field_errors %}
+        <div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <form method="post" action="{% url 'administracao:comissao' %}" class="flow-fields" novalidate>
+        {% csrf_token %}
+        <label for="{{ form.percentual.id_for_label }}">{{ form.percentual.label }}</label>
+        {{ form.percentual }}
+        {{ form.percentual.errors }}
+        <button class="discovery-button" type="submit">Salvar comissão</button>
+      </form>
+    </section>
+
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="atual-title">
+        <h2 id="atual-title">Valor atual</h2>
+        <p><strong class="flow-price">{{ configuracao.percentual|floatformat:2 }}%</strong></p>
+        <p class="flow-small">A comissão é calculada sobre o total da reserva e o restante é o repasse previsto ao proprietário.</p>
+      </section>
+    </aside>
+  </div>
+{% endblock %}

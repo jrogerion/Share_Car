@@ -1,0 +1,201 @@
+{% extends "core/page.html" %}
+{% block title %}Administração — ShareCar{% endblock %}
+{% block back_url %}{% url 'contas:painel' %}{% endblock %}
+{% block back_label %}Painel{% endblock %}
+{% block page_kicker %}ShareCar · Administração{% endblock %}
+{% block page_title %}Painel administrativo{% endblock %}
+{% block page_subtitle %}Aprovações, bloqueios, pagamentos e configuração da comissão.{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Área restrita">
+    <i class="bi bi-shield-lock" aria-hidden="true"></i>
+    Área restrita à equipe. Documentos enviados não são exibidos nem disponibilizados publicamente.
+  </aside>
+{% endblock %}
+{% block page_content %}
+  <ul class="flow-metrics" aria-label="Indicadores">
+    <li><strong>{{ indicadores.usuarios }}</strong><span>usuários</span></li>
+    <li><strong>{{ indicadores.usuarios_pendentes }}</strong><span>análises pendentes</span></li>
+    <li><strong>{{ indicadores.veiculos_pendentes }}</strong><span>veículos pendentes</span></li>
+    <li><strong>{{ indicadores.veiculos_bloqueados }}</strong><span>veículos bloqueados</span></li>
+    <li><strong>{{ indicadores.reservas_ativas }}</strong><span>reservas ativas</span></li>
+    <li><strong>{{ indicadores.pagamentos_aprovados }}</strong><span>pagamentos aprovados</span></li>
+  </ul>
+
+  <div class="flow-actions flow-admin-actions">
+    <a class="btn btn-outline-secondary" href="{% url 'administracao:comissao' %}">Configurar comissão</a>
+    <a class="btn btn-outline-secondary" href="{% url 'admin:index' %}">Django admin</a>
+  </div>
+
+  <section aria-labelledby="documentos-title">
+    <div class="flow-section-heading"><h2 id="documentos-title">Documentos pendentes</h2></div>
+    {% if documentos_pendentes %}
+      <div class="flow-table-wrap">
+        <table class="flow-table">
+          <thead><tr><th scope="col">Usuário</th><th scope="col">Documento</th><th scope="col">Ações</th></tr></thead>
+          <tbody>
+            {% for usuario in documentos_pendentes %}
+              <tr>
+                <td>{{ usuario.username }}</td>
+                <td>Enviado</td>
+                <td class="flow-table-actions">
+                  <form method="post" action="{% url 'administracao:documento' usuario.pk 'aprovar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Aprovar</button></form>
+                  <form method="post" action="{% url 'administracao:documento' usuario.pk 'rejeitar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Rejeitar</button></form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="flow-small">Nenhum documento aguardando análise.</p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="cnhs-title">
+    <div class="flow-section-heading"><h2 id="cnhs-title">CNHs pendentes</h2></div>
+    {% if cnhs_pendentes %}
+      <div class="flow-table-wrap">
+        <table class="flow-table">
+          <thead><tr><th scope="col">Usuário</th><th scope="col">Validade</th><th scope="col">Ações</th></tr></thead>
+          <tbody>
+            {% for usuario in cnhs_pendentes %}
+              <tr>
+                <td>{{ usuario.username }}</td>
+                <td>{{ usuario.cnh_validade|date:"d/m/Y"|default:"não informada" }}</td>
+                <td class="flow-table-actions">
+                  <form method="post" action="{% url 'administracao:cnh' usuario.pk 'aprovar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Aprovar</button></form>
+                  <form method="post" action="{% url 'administracao:cnh' usuario.pk 'rejeitar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Rejeitar</button></form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="flow-small">Nenhuma CNH aguardando análise.</p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="veiculos-pendentes-title">
+    <div class="flow-section-heading"><h2 id="veiculos-pendentes-title">Veículos pendentes</h2></div>
+    {% if veiculos_pendentes %}
+      <div class="flow-table-wrap">
+        <table class="flow-table">
+          <thead><tr><th scope="col">Veículo</th><th scope="col">Proprietário</th><th scope="col">Ações</th></tr></thead>
+          <tbody>
+            {% for veiculo in veiculos_pendentes %}
+              <tr>
+                <td>{{ veiculo.categoria }} em {{ veiculo.cidade }}</td>
+                <td>{{ veiculo.proprietario.username }}</td>
+                <td class="flow-table-actions">
+                  <form method="post" action="{% url 'administracao:veiculo' veiculo.pk 'aprovar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Aprovar</button></form>
+                  <form method="post" action="{% url 'administracao:veiculo' veiculo.pk 'rejeitar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Rejeitar</button></form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="flow-small">Nenhum veículo aguardando análise.</p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="usuarios-title">
+    <div class="flow-section-heading"><h2 id="usuarios-title">Usuários recentes</h2></div>
+    <div class="flow-table-wrap">
+      <table class="flow-table">
+        <thead><tr><th scope="col">Usuário</th><th scope="col">Documento</th><th scope="col">CNH</th><th scope="col">Conta</th><th scope="col">Ação</th></tr></thead>
+        <tbody>
+          {% for usuario in usuarios_recentes %}
+            <tr>
+              <td>{{ usuario.username }}{% if usuario.is_staff %} <span class="flow-small">(staff)</span>{% endif %}</td>
+              <td>{{ usuario.get_aprovacao_documento_display }}</td>
+              <td>{{ usuario.get_aprovacao_cnh_display }}</td>
+              <td>{% if usuario.is_active %}Ativa{% else %}Bloqueada{% endif %}</td>
+              <td class="flow-table-actions">
+                <form method="post" action="{% url 'administracao:bloqueio_usuario' usuario.pk %}">
+                  {% csrf_token %}
+                  <button class="btn btn-outline-secondary" type="submit">{% if usuario.is_active %}Bloquear{% else %}Reativar{% endif %}</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">Nenhum usuário cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="veiculos-title">
+    <div class="flow-section-heading"><h2 id="veiculos-title">Veículos recentes</h2></div>
+    <div class="flow-table-wrap">
+      <table class="flow-table">
+        <thead><tr><th scope="col">Veículo</th><th scope="col">Proprietário</th><th scope="col">Aprovação</th><th scope="col">Publicação</th><th scope="col">Ação</th></tr></thead>
+        <tbody>
+          {% for veiculo in veiculos_recentes %}
+            <tr>
+              <td>{{ veiculo.categoria }} em {{ veiculo.cidade }}</td>
+              <td>{{ veiculo.proprietario.username }}</td>
+              <td>{{ veiculo.get_aprovacao_display }}</td>
+              <td>{% if veiculo.bloqueado %}Bloqueado{% elif veiculo.ativo %}Ativo{% else %}Inativo{% endif %}</td>
+              <td class="flow-table-actions">
+                <form method="post" action="{% url 'administracao:veiculo' veiculo.pk 'aprovar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Aprovar</button></form>
+                <form method="post" action="{% url 'administracao:veiculo' veiculo.pk 'rejeitar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Rejeitar</button></form>
+                <form method="post" action="{% url 'administracao:bloqueio_veiculo' veiculo.pk %}">
+                  {% csrf_token %}
+                  <button class="btn btn-outline-secondary" type="submit">{% if veiculo.bloqueado %}Desbloquear{% else %}Bloquear{% endif %}</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">Nenhum veículo cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="flow-columns">
+    <section aria-labelledby="reservas-title">
+      <div class="flow-section-heading"><h2 id="reservas-title">Reservas recentes</h2></div>
+      <div class="flow-table-wrap">
+        <table class="flow-table">
+          <thead><tr><th scope="col">Reserva</th><th scope="col">Status</th><th scope="col">Total</th></tr></thead>
+          <tbody>
+            {% for reserva in reservas_recentes %}
+              <tr>
+                <td><a href="{% url 'reservas:detalhe' reserva.pk %}">#{{ reserva.pk }} · {{ reserva.veiculo.categoria }}</a></td>
+                <td>{{ reserva.get_status_display }}</td>
+                <td>R$ {{ reserva.total|floatformat:2 }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3">Nenhuma reserva registrada.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="pagamentos-title">
+      <div class="flow-section-heading"><h2 id="pagamentos-title">Pagamentos recentes</h2></div>
+      <div class="flow-table-wrap">
+        <table class="flow-table">
+          <thead><tr><th scope="col">Reserva</th><th scope="col">Status</th><th scope="col">Valor</th></tr></thead>
+          <tbody>
+            {% for pagamento in pagamentos_recentes %}
+              <tr>
+                <td>#{{ pagamento.reserva.pk }} · {{ pagamento.reserva.veiculo.categoria }}</td>
+                <td>{{ pagamento.get_status_display }}</td>
+                <td>R$ {{ pagamento.valor_bruto|floatformat:2 }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3">Nenhum pagamento simulado.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "core/page.html" %}
+{% block title %}Senha redefinida — ShareCar{% endblock %}
+{% block back_url %}{% url 'core:entrar' %}{% endblock %}
+{% block back_label %}Entrar{% endblock %}
+{% block page_kicker %}ShareCar · Acesso à conta{% endblock %}
+{% block page_title %}Senha redefinida{% endblock %}
+{% block page_subtitle %}Sua nova senha já está ativa.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel" aria-labelledby="redefinido-title">
+      <h2 id="redefinido-title">Tudo pronto</h2>
+      <p>Você já pode entrar no ShareCar com a nova senha.</p>
+      <a class="discovery-button" href="{% url 'core:entrar' %}">Entrar na conta</a>
+    </section>
+  </div>
+{% endblock %}

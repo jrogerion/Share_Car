@@ -1,0 +1,38 @@
+{% extends "core/page.html" %}
+{% block title %}Redefinir senha — ShareCar{% endblock %}
+{% block back_url %}{% url 'core:entrar' %}{% endblock %}
+{% block back_label %}Entrar{% endblock %}
+{% block page_kicker %}ShareCar · Acesso à conta{% endblock %}
+{% block page_title %}{% if validlink %}Crie uma nova senha{% else %}Link inválido{% endif %}{% endblock %}
+{% block page_subtitle %}{% if validlink %}Escolha uma senha nova para acessar sua conta.{% else %}Este link não é mais válido ou já foi utilizado.{% endif %}{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="redefinir-title">
+      {% if validlink %}
+        <h2 id="redefinir-title">Nova senha</h2>
+        {% if form.non_field_errors %}
+          <div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <form method="post" class="flow-fields" novalidate>
+          {% csrf_token %}
+          <label for="{{ form.new_password1.id_for_label }}">Nova senha</label>
+          {{ form.new_password1 }}
+          {{ form.new_password1.errors }}
+          <label for="{{ form.new_password2.id_for_label }}">Confirmar nova senha</label>
+          {{ form.new_password2 }}
+          {{ form.new_password2.errors }}
+          <button class="discovery-button" type="submit">Salvar nova senha</button>
+        </form>
+      {% else %}
+        <h2 id="redefinir-title">Solicite um novo link</h2>
+        <p>O link de redefinição expirou ou já foi utilizado.</p>
+        <a class="discovery-button" href="{% url 'contas:recuperar_senha' %}">Recuperar senha novamente</a>
+      {% endif %}
+    </section>
+    <aside class="flow-panel" aria-labelledby="redefinir-ajuda-title">
+      <h2 id="redefinir-ajuda-title">Senha segura</h2>
+      <p>Use pelo menos 8 caracteres e evite senhas comuns, apenas números ou dados fáceis de descobrir.</p>
+    </aside>
+  </div>
+{% endblock %}

@@ -3,6 +3,10 @@
   <a class="{{ link_class }}" href="{% url 'core:resultados' %}" {% if page == 'resultados' or page == 'detalhes' or page == 'resumo' or page == 'pagamento' %}aria-current="{% if page == 'resultados' %}page{% else %}location{% endif %}"{% endif %}><i class="bi bi-search" aria-hidden="true"></i>Buscar</a>
   <a class="{{ link_class }}" href="{% url 'reservas:minhas' %}" {% if namespace == 'reservas' %}aria-current="{% if page == 'minhas' %}page{% else %}location{% endif %}"{% elif page == 'reservas_exemplo' %}aria-current="page"{% elif page == 'checkin' or page == 'avaliacao' %}aria-current="location"{% endif %}><i class="bi bi-journal-text" aria-hidden="true"></i>Reservas</a>
   {% if user.is_authenticated %}
+    <a class="{{ link_class }}" href="{% url 'contas:painel' %}" {% if namespace == 'contas' and page == 'painel' %}aria-current="page"{% elif namespace == 'contas' %}aria-current="location"{% endif %}><i class="bi bi-speedometer2" aria-hidden="true"></i>Painel</a>
+    {% if user.is_staff %}
+      <a class="{{ link_class }}" href="{% url 'administracao:painel' %}" {% if namespace == 'administracao' %}aria-current="page"{% endif %}><i class="bi bi-shield-lock" aria-hidden="true"></i>Administração</a>
+    {% endif %}
     <form method="post" action="{% url 'core:sair' %}" class="nav-logout-form">
       {% csrf_token %}
       <button class="{{ link_class }} nav-logout-button" type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Sair</button>

@@ -1,0 +1,91 @@
+{% extends "core/page.html" %}
+{% block title %}Meu perfil — ShareCar{% endblock %}
+{% block back_url %}{% url 'contas:painel' %}{% endblock %}
+{% block back_label %}Painel{% endblock %}
+{% block page_kicker %}ShareCar · Conta{% endblock %}
+{% block page_title %}Meu perfil{% endblock %}
+{% block page_subtitle %}Mantenha seus dados atualizados para usar o ShareCar com segurança.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="perfil-title">
+      <h2 id="perfil-title">Dados pessoais</h2>
+      {% if form.non_field_errors %}
+        <div class="flow-notice flow-error" role="alert">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+      <form method="post" action="{% url 'contas:perfil' %}" enctype="multipart/form-data" class="flow-fields" novalidate>
+        {% csrf_token %}
+        <p class="flow-small">Usuário: <strong>{{ user.username }}</strong></p>
+
+        <div class="flow-field-grid">
+          <div>
+            <label for="{{ form.first_name.id_for_label }}">Nome</label>
+            {{ form.first_name }}
+            {{ form.first_name.errors }}
+          </div>
+          <div>
+            <label for="{{ form.last_name.id_for_label }}">Sobrenome</label>
+            {{ form.last_name }}
+            {{ form.last_name.errors }}
+          </div>
+        </div>
+
+        <label for="{{ form.email.id_for_label }}">E-mail</label>
+        {{ form.email }}
+        {{ form.email.errors }}
+
+        <fieldset class="flow-fields">
+          <legend>{{ form.papeis.label }}</legend>
+          {{ form.papeis }}
+          {{ form.papeis.errors }}
+          <p class="flow-small">Marque ao menos uma opção. Se já houver veículos ou reservas, o papel correspondente deve ser mantido.</p>
+        </fieldset>
+
+        <h3>CNH</h3>
+        <div class="flow-field-grid">
+          <div>
+            <label for="{{ form.cnh_numero.id_for_label }}">Número</label>
+            {{ form.cnh_numero }}
+            {{ form.cnh_numero.errors }}
+          </div>
+          <div>
+            <label for="{{ form.cnh_validade.id_for_label }}">Validade</label>
+            {{ form.cnh_validade }}
+            {{ form.cnh_validade.errors }}
+          </div>
+        </div>
+        <p class="flow-small">Situação da CNH: <strong>{{ user.get_aprovacao_cnh_display }}</strong>.</p>
+
+        <h3>Documento de identidade</h3>
+        <label for="{{ form.documento_identidade.id_for_label }}">Arquivo</label>
+        {{ form.documento_identidade }}
+        {{ form.documento_identidade.errors }}
+        <p class="flow-small">{{ form.documento_identidade.help_text }}</p>
+        <p class="flow-small">
+          Situação do documento: <strong>{{ user.get_aprovacao_documento_display }}</strong>.
+          {% if user.documento_identidade %}Documento enviado e armazenado em área privada.{% else %}Nenhum documento enviado.{% endif %}
+        </p>
+
+        <button class="discovery-button" type="submit">Salvar alterações</button>
+      </form>
+    </section>
+
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="conta-title">
+        <h2 id="conta-title">Sua conta</h2>
+        <p>Perfis: {% if user.locatario %}locatário{% endif %}{% if user.locatario and user.proprietario %} e {% endif %}{% if user.proprietario %}proprietário{% endif %}.</p>
+        <div class="flow-actions">
+          <a class="btn btn-outline-secondary" href="{% url 'contas:alterar_senha' %}">Alterar senha</a>
+          <a class="btn btn-outline-secondary" href="{% url 'contas:painel' %}">Voltar ao painel</a>
+        </div>
+      </section>
+      <section class="flow-panel" aria-labelledby="privacidade-title">
+        <h2 id="privacidade-title">Privacidade</h2>
+        <p class="flow-small">O documento de identidade fica fora da área pública do site. Ele não é exibido em anúncios, buscas ou reservas.</p>
+        <p class="flow-small">Ao trocar o documento ou os dados da CNH, a análise volta para o status pendente.</p>
+      </section>
+    </aside>
+  </div>
+{% endblock %}

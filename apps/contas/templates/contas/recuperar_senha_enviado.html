@@ -1,0 +1,23 @@
+{% extends "core/page.html" %}
+{% block title %}Link enviado — ShareCar{% endblock %}
+{% block back_url %}{% url 'core:entrar' %}{% endblock %}
+{% block back_label %}Entrar{% endblock %}
+{% block page_kicker %}ShareCar · Acesso à conta{% endblock %}
+{% block page_title %}Verifique seu e-mail{% endblock %}
+{% block page_subtitle %}As instruções de recuperação foram encaminhadas.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel" aria-labelledby="enviado-title">
+      <h2 id="enviado-title">Link enviado</h2>
+      <p>Se existir uma conta ativa com o e-mail informado, você receberá uma mensagem com o link para redefinir a senha.</p>
+      <p class="flow-small">Confira também a pasta de spam. O link tem prazo de validade.</p>
+      <a class="discovery-button" href="{% url 'core:entrar' %}">Voltar para o login</a>
+    </section>
+    <aside class="flow-panel" aria-labelledby="enviado-ajuda-title">
+      <h2 id="enviado-ajuda-title">Não recebeu?</h2>
+      <p>Confirme se o e-mail digitado está correto e aguarde alguns minutos antes de solicitar um novo link.</p>
+      <p class="flow-small"><a href="{% url 'contas:recuperar_senha' %}">Solicitar novamente</a></p>
+    </aside>
+  </div>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.views.generic import DetailView, ListView, TemplateView
 
+from apps.avaliacoes.services import resumo_avaliacoes_veiculo
 from apps.reservas.forms import ReservaForm
 from apps.reservas.services import estimar_reserva
 from apps.veiculos.consultas import (
@@ -30,6 +31,7 @@ class DetalhesVeiculoView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["fotos"] = self.object.fotos.all()
+        context["avaliacoes"] = resumo_avaliacoes_veiculo(self.object)
         context["eh_proprietario"] = (
             self.request.user.is_authenticated
             and self.object.proprietario_id == self.request.user.pk
