@@ -43,6 +43,60 @@ class AlteracaoUsuarioAdminForm(EmailUnicoAdminMixin, UserChangeForm):
         fields = "__all__"
 
 
+class PerfilUsuarioForm(forms.ModelForm):
+    first_name = forms.CharField(
+        label="Nome", max_length=150,
+        widget=forms.TextInput(attrs={"autocomplete": "given-name"}),
+    )
+    last_name = forms.CharField(
+        label="Sobrenome", max_length=150,
+        widget=forms.TextInput(attrs={"autocomplete": "family-name"}),
+    )
+
+    class Meta:
+        model = Usuario
+        fields = (
+            "first_name", "last_name", "locatario", "proprietario",
+            "cnh_numero", "cnh_validade",
+        )
+        labels = {
+            "locatario": "Quero alugar carros",
+            "proprietario": "Quero anunciar meu carro",
+            "cnh_numero": "Número da CNH",
+            "cnh_validade": "Validade da CNH",
+        }
+        widgets = {
+            "cnh_numero": forms.TextInput(attrs={"autocomplete": "off"}),
+            "cnh_validade": forms.DateInput(
+                format="%Y-%m-%d", attrs={"type": "date"},
+            ),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not (cleaned_data.get("locatario") or
+                cleaned_data.get("proprietario")):
+            raise forms.ValidationError("Selecione pelo menos um perfil de uso.")
+        numero = cleaned_data.get("cnh_numero")
+        validade = cleaned_data.get("cnh_validade")
+        if numero and not validade and "cnh_validade" not in self.errors:
+            self.add_error("cnh_validade", "Informe a validade da CNH.")
+        if validade and not numero:
+            self.add_error("cnh_numero", "Informe o número da CNH.")
+        return cleaned_data
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        campos = list(self.Meta.fields)
+        if {"cnh_numero", "cnh_validade"}.intersection(self.changed_data):
+            usuario.aprovacao_cnh = Usuario.Aprovacao.PENDENTE
+            campos.append("aprovacao_cnh")
+        if commit:
+            # Não sobrescreve senha, e-mail ou privilégios fora deste formulário.
+            usuario.save(update_fields=campos)
+        return usuario
+
+
 class LoginEmailForm(AuthenticationForm):
     # Mantém o nome esperado pela AuthenticationForm, mas valida como e-mail.
     username = forms.EmailField(

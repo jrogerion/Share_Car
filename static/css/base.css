@@ -139,6 +139,21 @@ a {
   font-weight: 600;
 }
 
+.navigation-profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 44px;
+  border-radius: var(--sc-radius-control);
+  text-decoration: none;
+}
+
+.navigation-profile:hover,
+.navigation-profile:focus-visible {
+  background: var(--sc-teal-light);
+}
+
 .navigation-account form {
   margin: 0;
 }

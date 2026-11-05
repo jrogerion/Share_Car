@@ -58,6 +58,7 @@
 }
 @media (max-width: 575.98px) {
   .home-page { padding-bottom: calc(84px + env(safe-area-inset-bottom,0px)); }
+  .home-page.is-authenticated { padding-bottom: calc(112px + env(safe-area-inset-bottom,0px)); }
   .home-page #conteudo { scroll-margin-bottom: 100px; }
   .home-page .site-navbar { padding: .6rem 0; }
   .discovery-hero { padding: 28px 0 88px; border-radius: 0 0 28px 28px; }
@@ -72,6 +73,7 @@
   .discovery-tabbar { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); position: fixed; inset: auto 0 0; z-index: 1040; padding: 10px 8px calc(8px + env(safe-area-inset-bottom,0px)); background: #fff; border-top: 1px solid var(--home-line); }
   .discovery-tabbar > a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: var(--sc-radius-control); color: var(--home-muted); font-size: .7rem; font-weight: 600; text-decoration: none; }
   .discovery-tabbar > .navigation-account { flex-direction: column; justify-content: center; gap: 0; }
+  .discovery-tabbar .navigation-profile { width: 100%; }
   .discovery-tabbar .navigation-user-name { max-width: 100%; font-size: .7rem; }
   .discovery-tabbar .navigation-logout { padding: 4px 8px; border-radius: var(--sc-radius-control); color: var(--home-muted); font-size: .7rem; font-weight: 600; }
   .discovery-tabbar .navigation-logout:hover, .discovery-tabbar .navigation-logout:focus-visible { color: var(--home-brand); background: var(--sc-teal-light); }

@@ -175,7 +175,10 @@ class AuthenticatedNavigationTests(TestCase):
     def test_usuario_identificado_com_logout_em_todas_as_paginas(self):
         self.client.force_login(self.usuario)
         pages = [reverse(f"core:{page}") for page in TemplatePagesTests.pages]
-        pages += [reverse("contas:cadastro"), reverse("contas:cadastro_concluido")]
+        pages += [
+            reverse("contas:cadastro"), reverse("contas:cadastro_concluido"),
+            reverse("contas:perfil"),
+        ]
         for url in pages:
             with self.subTest(url=url):
                 response = self.client.get(url)
@@ -184,10 +187,11 @@ class AuthenticatedNavigationTests(TestCase):
                 for region in self.regions:
                     links = [link["href"] for link in parser.links[region]]
                     self.assertNotIn(reverse("core:entrar"), links)
+                    self.assertIn(reverse("contas:perfil"), links)
                     for page in ("home", "resultados", "reservas"):
                         self.assertIn(reverse(f"core:{page}"), links)
                     if region == "Navegação mobile":
-                        self.assertEqual(len(links), 3)
+                        self.assertEqual(len(links), 4)
                     self.assertEqual(len(parser.forms[region]), 1)
                     form = parser.forms[region][0]
                     self.assertEqual(form["attrs"]["method"], "post")
