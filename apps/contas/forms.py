@@ -9,6 +9,7 @@ from django.contrib.auth.forms import (
     UserChangeForm,
     UserCreationForm,
 )
+from django.utils import timezone
 from PIL import Image
 
 from .models import Usuario
@@ -43,6 +44,27 @@ class AlteracaoUsuarioAdminForm(EmailUnicoAdminMixin, UserChangeForm):
     class Meta(UserChangeForm.Meta):
         model = Usuario
         fields = "__all__"
+
+    def clean(self):
+        dados = super().clean()
+        if dados.get("aprovacao_documento") == Usuario.Aprovacao.APROVADO:
+            documento = self.instance.documento_identidade
+            if not documento or not documento.storage.exists(documento.name):
+                self.add_error(
+                    "aprovacao_documento",
+                    "Não é possível aprovar sem um documento disponível.",
+                )
+        if dados.get("aprovacao_cnh") == Usuario.Aprovacao.APROVADO:
+            if (not self.instance.cnh_numero.strip() or
+                    not self.instance.cnh_validade):
+                self.add_error(
+                    "aprovacao_cnh", "Informe número e validade da CNH no perfil.",
+                )
+            elif self.instance.cnh_validade < timezone.localdate():
+                self.add_error(
+                    "aprovacao_cnh", "Não é possível aprovar uma CNH vencida.",
+                )
+        return dados
 
 
 class ImagemDocumentoField(forms.ImageField):

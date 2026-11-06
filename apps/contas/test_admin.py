@@ -1,6 +1,15 @@
+from datetime import timedelta
+from io import BytesIO
+from unittest.mock import patch
+
+from django.contrib.admin.models import CHANGE, LogEntry
 from django.contrib.auth.models import Group, Permission
+from django.core.files.base import ContentFile
+from django.core.files.storage import InMemoryStorage
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.utils import timezone
+from PIL import Image
 
 from .models import Usuario
 
@@ -25,6 +34,12 @@ class UsuarioAdminTests(TestCase):
         cls.grupo = Group.objects.create(name="Equipe de teste")
 
     def setUp(self):
+        storage_patch = patch.object(
+            Usuario._meta.get_field("documento_identidade"),
+            "storage", InMemoryStorage(),
+        )
+        storage_patch.start()
+        self.addCleanup(storage_patch.stop)
         self.lista_url = reverse("admin:contas_usuario_changelist")
         self.adicionar_url = reverse("admin:contas_usuario_add")
         self.editar_url = reverse(
@@ -36,7 +51,9 @@ class UsuarioAdminTests(TestCase):
         return {
             "username": usuario.username, "email": usuario.email,
             "first_name": usuario.first_name, "last_name": usuario.last_name,
-            "is_active": "on", "locatario": "on", **alteracoes,
+            "is_active": "on", "locatario": "on",
+            "aprovacao_documento": usuario.aprovacao_documento,
+            "aprovacao_cnh": usuario.aprovacao_cnh, **alteracoes,
         }
 
     def dados_criacao(self, **alteracoes):
@@ -103,7 +120,7 @@ class UsuarioAdminTests(TestCase):
         self.assertEqual(list(response.context["cl"].queryset), [self.usuario])
 
     def test_formulario_nao_expoe_documentos_ou_cnh(self):
-        self.client.force_login(self.superusuario)
+        self.client.force_login(self.funcionario)
         response = self.client.get(self.editar_url)
         self.assertEqual(response.status_code, 200)
         fields = response.context["adminform"].form.fields
@@ -259,7 +276,7 @@ class UsuarioAdminTests(TestCase):
         self.assertEqual(list(self.usuario.groups.all()), [self.grupo])
 
     def test_aprovacoes_nao_sao_alteradas_por_post(self):
-        self.client.force_login(self.superusuario)
+        self.client.force_login(self.funcionario)
         response = self.client.post(self.editar_url, self.dados_edicao(
             aprovacao_documento="aprovado", aprovacao_cnh="aprovado",
         ))
@@ -321,3 +338,139 @@ class UsuarioAdminTests(TestCase):
         client.force_login(self.superusuario)
         response = client.post(self.editar_url, self.dados_edicao())
         self.assertEqual(response.status_code, 403)
+
+    def preparar_documento_e_cnh(self):
+        buffer = BytesIO()
+        Image.new("RGB", (8, 8), "white").save(buffer, format="PNG")
+        self.usuario.documento_identidade.save(
+            "documento-ficticio.png", ContentFile(buffer.getvalue()),
+        )
+        self.usuario.cnh_numero = "CNH-TESTE-001"
+        self.usuario.cnh_validade = timezone.localdate() + timedelta(days=365)
+        self.usuario.save(update_fields=["cnh_numero", "cnh_validade"])
+
+    def test_superusuario_consulta_cnh_e_link_protegido(self):
+        self.preparar_documento_e_cnh()
+        self.client.force_login(self.superusuario)
+        response = self.client.get(self.editar_url)
+        self.assertContains(response, "Análise de documentos")
+        self.assertContains(response, self.usuario.cnh_numero)
+        documento_url = reverse(
+            "contas:documento_identidade", args=[self.usuario.pk],
+        )
+        self.assertContains(response, f'href="{documento_url}"')
+        self.assertNotContains(response, self.usuario.documento_identidade.name)
+        fields = response.context["adminform"].form.fields
+        for campo in ("aprovacao_documento", "aprovacao_cnh"):
+            self.assertIn(campo, fields)
+        for campo in ("cnh_numero", "cnh_validade", "documento_identidade"):
+            self.assertNotIn(campo, fields)
+        response = self.client.get(documento_url)
+        self.assertEqual(response.status_code, 200)
+        response.close()
+
+    def test_aprovacoes_independentes_com_historico_e_resultado_no_perfil(self):
+        self.preparar_documento_e_cnh()
+        self.client.force_login(self.superusuario)
+        response = self.client.post(self.editar_url, self.dados_edicao(
+            aprovacao_documento="aprovado", aprovacao_cnh="rejeitado",
+        ))
+        self.assertEqual(response.status_code, 302)
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.aprovacao_documento, "aprovado")
+        self.assertEqual(self.usuario.aprovacao_cnh, "rejeitado")
+        registro = LogEntry.objects.get(
+            user_id=self.superusuario.pk, object_id=str(self.usuario.pk),
+            action_flag=CHANGE,
+        )
+        self.assertIn("aprovacao documento", registro.change_message.lower())
+        self.assertIn("aprovacao cnh", registro.change_message.lower())
+        self.client.force_login(self.usuario)
+        response = self.client.get(reverse("contas:perfil"))
+        self.assertContains(response, "<dd>Aprovado</dd>", html=True)
+        self.assertContains(response, "<dd>Rejeitado</dd>", html=True)
+
+    def test_nao_aprova_documento_ausente_ou_arquivo_inexistente(self):
+        self.client.force_login(self.superusuario)
+        for nome in ("", "identidades/inexistente.png"):
+            with self.subTest(nome=nome):
+                Usuario.objects.filter(pk=self.usuario.pk).update(
+                    documento_identidade=nome,
+                )
+                response = self.client.post(self.editar_url, self.dados_edicao(
+                    aprovacao_documento="aprovado",
+                ))
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(
+                    "aprovacao_documento",
+                    response.context["adminform"].form.errors,
+                )
+                self.usuario.refresh_from_db()
+                self.assertEqual(self.usuario.aprovacao_documento, "pendente")
+        self.assertFalse(LogEntry.objects.filter(action_flag=CHANGE).exists())
+
+    def test_nao_aprova_cnh_incompleta_ou_vencida(self):
+        self.client.force_login(self.superusuario)
+        hoje = timezone.localdate()
+        for numero, validade in (
+            ("", hoje), ("   ", hoje), ("CNH-TESTE", None),
+            ("CNH-TESTE", hoje - timedelta(days=1)),
+        ):
+            with self.subTest(numero=numero, validade=validade):
+                Usuario.objects.filter(pk=self.usuario.pk).update(
+                    cnh_numero=numero, cnh_validade=validade,
+                )
+                response = self.client.post(self.editar_url, self.dados_edicao(
+                    aprovacao_cnh="aprovado",
+                ))
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(
+                    "aprovacao_cnh", response.context["adminform"].form.errors,
+                )
+                self.usuario.refresh_from_db()
+                self.assertEqual(self.usuario.aprovacao_cnh, "pendente")
+
+    def test_cnh_com_validade_hoje_pode_ser_aprovada_sem_identidade(self):
+        Usuario.objects.filter(pk=self.usuario.pk).update(
+            cnh_numero="CNH-TESTE-001", cnh_validade=timezone.localdate(),
+        )
+        self.client.force_login(self.superusuario)
+        response = self.client.post(self.editar_url, self.dados_edicao(
+            aprovacao_cnh="aprovado",
+        ))
+        self.assertEqual(response.status_code, 302)
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.aprovacao_cnh, "aprovado")
+        self.assertEqual(self.usuario.aprovacao_documento, "pendente")
+
+    def test_rejeicao_e_retorno_a_pendente_sem_documentos(self):
+        self.client.force_login(self.superusuario)
+        for status in ("rejeitado", "pendente"):
+            with self.subTest(status=status):
+                response = self.client.post(self.editar_url, self.dados_edicao(
+                    aprovacao_documento=status, aprovacao_cnh=status,
+                ))
+                self.assertEqual(response.status_code, 302)
+                self.usuario.refresh_from_db()
+                self.assertEqual(self.usuario.aprovacao_documento, status)
+                self.assertEqual(self.usuario.aprovacao_cnh, status)
+
+    def test_post_forjado_nao_preenche_cnh_pelo_admin(self):
+        self.client.force_login(self.superusuario)
+        response = self.client.post(self.editar_url, self.dados_edicao(
+            cnh_numero="CNH-TESTE", cnh_validade="2099-01-01",
+            aprovacao_cnh="aprovado",
+        ))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("aprovacao_cnh", response.context["adminform"].form.errors)
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.cnh_numero, "")
+        self.assertIsNone(self.usuario.cnh_validade)
+
+    def test_funcionario_nao_ve_link_ou_dados_da_cnh(self):
+        self.preparar_documento_e_cnh()
+        self.client.force_login(self.funcionario)
+        response = self.client.get(self.editar_url)
+        self.assertNotContains(response, "Baixar documento para análise")
+        self.assertNotContains(response, self.usuario.cnh_numero)
+        self.assertNotContains(response, self.usuario.documento_identidade.name)
