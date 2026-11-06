@@ -1,3 +1,4 @@
+import warnings
 from uuid import uuid4
 
 from django import forms
@@ -8,6 +9,7 @@ from django.contrib.auth.forms import (
     UserChangeForm,
     UserCreationForm,
 )
+from PIL import Image
 
 from .models import Usuario
 
@@ -41,6 +43,53 @@ class AlteracaoUsuarioAdminForm(EmailUnicoAdminMixin, UserChangeForm):
     class Meta(UserChangeForm.Meta):
         model = Usuario
         fields = "__all__"
+
+
+class ImagemDocumentoField(forms.ImageField):
+    def to_python(self, data):
+        if data and data.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("O arquivo deve ter no máximo 5 MB.")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            arquivo = super().to_python(data)
+        if arquivo and arquivo.image.format not in ("JPEG", "PNG"):
+            raise forms.ValidationError("Envie uma imagem JPEG ou PNG válida.")
+        return arquivo
+
+
+class DocumentoIdentidadeForm(forms.ModelForm):
+    documento_identidade = ImagemDocumentoField(
+        label="Documento de identidade",
+        help_text=(
+            "JPEG ou PNG, até 5 MB. "
+            "Use somente documentos fictícios nos testes."
+        ),
+        widget=forms.FileInput(attrs={"accept": "image/jpeg,image/png"}),
+    )
+
+    class Meta:
+        model = Usuario
+        fields = ("documento_identidade",)
+
+    def clean_documento_identidade(self):
+        if not self.files.get("documento_identidade"):
+            raise forms.ValidationError(
+                "Selecione uma nova imagem para enviar.",
+            )
+        arquivo = self.cleaned_data["documento_identidade"]
+        extensao = "jpg" if arquivo.image.format == "JPEG" else "png"
+        # Não inclui nomes pessoais nem caminhos fornecidos pelo cliente.
+        arquivo.name = f"{uuid4().hex}.{extensao}"
+        return arquivo
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        usuario.aprovacao_documento = Usuario.Aprovacao.PENDENTE
+        if commit:
+            usuario.save(update_fields=[
+                "documento_identidade", "aprovacao_documento",
+            ])
+        return usuario
 
 
 class PerfilUsuarioForm(forms.ModelForm):

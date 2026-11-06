@@ -2,14 +2,18 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.db import IntegrityError, transaction
-from django.http import HttpResponseRedirect
+from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.cache import never_cache
 from django.views.generic import FormView, TemplateView, UpdateView
 
-from .forms import CadastroUsuarioForm, LoginEmailForm, PerfilUsuarioForm
+from .forms import (
+    CadastroUsuarioForm, DocumentoIdentidadeForm, LoginEmailForm,
+    PerfilUsuarioForm,
+)
 from .models import Usuario
 
 
@@ -20,6 +24,51 @@ class LoginEmailView(LoginView):
 
 class SairView(LogoutView):
     next_page = reverse_lazy("core:entrar")
+
+
+@method_decorator(never_cache, name="dispatch")
+class EnviarDocumentoView(LoginRequiredMixin, FormView):
+    template_name = "contas/documento.html"
+    form_class = DocumentoIdentidadeForm
+    success_url = reverse_lazy("contas:perfil")
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["instance"] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        messages.success(
+            self.request, "Documento enviado. Aprovação pendente.",
+        )
+        return super().form_valid(form)
+
+
+@method_decorator(never_cache, name="dispatch")
+class DocumentoIdentidadeView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        queryset = Usuario.objects.all()
+        if not request.user.is_superuser:
+            queryset = queryset.filter(pk=request.user.pk)
+        usuario = queryset.filter(pk=pk).first()
+        if not usuario or not usuario.documento_identidade:
+            raise Http404("Documento não encontrado.")
+        try:
+            arquivo = usuario.documento_identidade.open("rb")
+        except FileNotFoundError:
+            raise Http404("Documento não encontrado.") from None
+        # O download não executa conteúdo enviado pelo usuário no navegador.
+        extensao = usuario.documento_identidade.name.rsplit(".", 1)[-1].lower()
+        if extensao not in ("jpg", "jpeg", "png"):
+            extensao = "bin"
+        response = FileResponse(
+            arquivo, as_attachment=True,
+            filename=f"documento-identidade.{extensao}",
+            content_type="application/octet-stream",
+        )
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
 
 
 @method_decorator(never_cache, name="dispatch")

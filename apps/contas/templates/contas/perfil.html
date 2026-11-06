@@ -43,7 +43,14 @@
         <p class="flow-notice" role="status">Sua CNH está vencida. Atualize a validade antes de solicitar uma futura reserva.</p>
       {% endif %}
       <p>Alterar ou remover os dados da CNH coloca sua aprovação novamente como pendente.</p>
-      <p>O envio de documentos e a análise administrativa serão disponibilizados em uma próxima entrega. Informar os dados não aprova sua conta automaticamente.</p>
+      <h3>Documento de identidade</h3>
+      {% if object.documento_identidade %}
+        <p><a href="{% url 'contas:documento_identidade' object.pk %}">Baixar documento enviado</a></p>
+      {% else %}
+        <p>Nenhum documento enviado.</p>
+      {% endif %}
+      <p><a class="btn btn-outline-secondary" href="{% url 'contas:enviar_documento' %}">Enviar ou substituir documento</a></p>
+      <p>A análise administrativa será disponibilizada em uma próxima entrega. Informar dados ou enviar o documento não aprova sua conta automaticamente.</p>
       <p>Anúncios e reservas continuam demonstrativos.</p>
     </aside>
   </div>
