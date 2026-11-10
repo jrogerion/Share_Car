@@ -100,6 +100,8 @@ class PerfilForm(forms.ModelForm):
     class Meta:
         model = Usuario
         fields = (
+        
+         filtro_de_busca
             "first_name",
             "last_name",
             "email",
@@ -218,6 +220,118 @@ class PerfilForm(forms.ModelForm):
         if {"cnh_numero", "cnh_validade"} & alteracoes:
             usuario.aprovacao_cnh = Usuario.Aprovacao.PENDENTE
 
+
+            "first_name", "last_name", "locatario", "proprietario",
+            "cnh_numero", "cnh_validade",
+        )
+        labels = {
+            "locatario": "Quero alugar carros",
+            "proprietario": "Quero anunciar meu carro",
+            "cnh_numero": "Número da CNH",
+            "cnh_validade": "Validade da CNH",
+        }
+        widgets = {
+            "cnh_numero": forms.TextInput(attrs={"autocomplete": "off"}),
+            "cnh_validade": forms.DateInput(
+                format="%Y-%m-%d", attrs={"type": "date"},
+            ),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not (cleaned_data.get("locatario") or
+                cleaned_data.get("proprietario")):
+            raise forms.ValidationError("Selecione pelo menos um perfil de uso.")
+        numero = cleaned_data.get("cnh_numero")
+        validade = cleaned_data.get("cnh_validade")
+        if numero and not validade and "cnh_validade" not in self.errors:
+            self.add_error("cnh_validade", "Informe a validade da CNH.")
+        if validade and not numero:
+            self.add_error("cnh_numero", "Informe o número da CNH.")
+        return cleaned_data
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        campos = list(self.Meta.fields)
+        if {"cnh_numero", "cnh_validade"}.intersection(self.changed_data):
+            usuario.aprovacao_cnh = Usuario.Aprovacao.PENDENTE
+            campos.append("aprovacao_cnh")
+        if commit:
+            # Não sobrescreve senha, e-mail ou privilégios fora deste formulário.
+            usuario.save(update_fields=campos)
+        return usuario
+
+
+class LoginEmailForm(AuthenticationForm):
+    # Mantém o nome esperado pela AuthenticationForm, mas valida como e-mail.
+    username = forms.EmailField(
+        label="E-mail", max_length=254,
+        widget=forms.EmailInput(attrs={
+            "autofocus": True, "autocomplete": "username",
+        }),
+    )
+    error_messages = {
+        "invalid_login": "E-mail ou senha inválidos.",
+        "inactive": "E-mail ou senha inválidos.",
+    }
+
+    def clean(self):
+        email = self.cleaned_data.get("username")
+        password = self.cleaned_data.get("password")
+        if email and password:
+            self.user_cache = authenticate(
+                self.request, email=email, password=password,
+            )
+            if self.user_cache is None:
+                raise self.get_invalid_login_error()
+            self.confirm_login_allowed(self.user_cache)
+        return self.cleaned_data
+
+
+class CadastroUsuarioForm(UserCreationForm):
+    email = forms.EmailField(
+        label="E-mail", max_length=254,
+        widget=forms.EmailInput(attrs={"autocomplete": "email"}),
+    )
+    first_name = forms.CharField(
+        label="Nome", max_length=150,
+        widget=forms.TextInput(attrs={"autocomplete": "given-name"}),
+    )
+    last_name = forms.CharField(
+        label="Sobrenome", max_length=150,
+        widget=forms.TextInput(attrs={"autocomplete": "family-name"}),
+    )
+    locatario = forms.BooleanField(
+        label="Quero alugar carros", required=False, initial=True,
+    )
+    proprietario = forms.BooleanField(
+        label="Quero anunciar meu carro", required=False,
+    )
+
+    class Meta:
+        model = Usuario
+        fields = (
+            "first_name", "last_name", "email", "locatario", "proprietario",
+            "password1", "password2",
+        )
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        if Usuario.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Não é possível cadastrar este e-mail.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not (cleaned_data.get("locatario") or cleaned_data.get("proprietario")):
+            raise forms.ValidationError("Selecione pelo menos um perfil de uso.")
+        return cleaned_data
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        # Mantém compatibilidade com contas existentes sem pedir username no site.
+        usuario.username = uuid4().hex
+ main
         if commit:
             usuario.save()
             self.save_m2m()

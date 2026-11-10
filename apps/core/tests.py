@@ -25,18 +25,28 @@ class NavigationParser(HTMLParser):
         super().__init__()
         self.region = None
         self.links = {}
+        self.forms = {}
+        self.form = None
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
         if tag == "nav":
             self.region = attributes.get("aria-label")
             self.links.setdefault(self.region, [])
+            self.forms.setdefault(self.region, [])
         elif tag == "a" and self.region:
             self.links[self.region].append(attributes)
+        elif tag == "form" and self.region:
+            self.form = {"attrs": attributes, "inputs": [], "buttons": []}
+            self.forms[self.region].append(self.form)
+        elif tag in ("input", "button") and self.form is not None:
+            self.form[f"{tag}s"].append(attributes)
 
     def handle_endtag(self, tag):
         if tag == "nav":
             self.region = None
+        elif tag == "form":
+            self.form = None
 
 
 class TemplatePagesTests(SimpleTestCase):

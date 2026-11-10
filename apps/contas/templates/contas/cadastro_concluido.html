@@ -1,0 +1,13 @@
+{% extends "core/page.html" %}
+{% block title %}Cadastro concluído — ShareCar{% endblock %}
+{% block page_kicker %}ShareCar · Sua conta{% endblock %}
+{% block page_title %}Cadastro concluído{% endblock %}
+{% block page_subtitle %}Sua conta foi criada com sucesso.{% endblock %}
+{% block page_notice %}{% endblock %}
+{% block page_content %}
+  <section class="flow-panel">
+    <h2>Próximos passos</h2>
+    <p>Você ainda não está conectado. Entre com o e-mail e a senha cadastrados.</p>
+    <a class="discovery-button" href="{% url 'core:entrar' %}">Entrar na minha conta</a>
+  </section>
+{% endblock %}
