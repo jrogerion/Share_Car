@@ -24,6 +24,10 @@
           <dt>Anúncio</dt><dd>{% if veiculo.ativo %}Ativo{% else %}Inativo{% endif %}</dd>
           <dt>Bloqueio administrativo</dt><dd>{% if veiculo.bloqueado %}Bloqueado{% else %}Não bloqueado{% endif %}</dd>
         </dl>
+        <div class="flow-actions">
+          <a class="btn btn-outline-secondary" href="{% url 'veiculos:editar' veiculo.pk %}">Editar veículo</a>
+          <a class="btn btn-outline-secondary" href="{% url 'veiculos:fotos' veiculo.pk %}">Fotos</a>
+        </div>
         {% if veiculo.aprovacao == 'aprovado' and veiculo.ativo and not veiculo.bloqueado %}
           <a href="{% url 'core:detalhes' veiculo.pk %}">Ver anúncio público</a>
         {% endif %}

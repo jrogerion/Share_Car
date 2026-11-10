@@ -1,0 +1,29 @@
+{% extends "core/page.html" %}
+{% block title %}Editar veículo — ShareCar{% endblock %}
+{% block back_url %}{% url 'veiculos:meus' %}{% endblock %}
+{% block back_label %}Meus veículos{% endblock %}
+{% block page_kicker %}ShareCar · Proprietário{% endblock %}
+{% block page_title %}Editar veículo{% endblock %}
+{% block page_subtitle %}Atualize os dados do seu veículo.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <section class="flow-panel" aria-labelledby="editar-title">
+    <h2 id="editar-title">{{ object.categoria }} · {{ object.cidade }}</h2>
+    <p>Alterações nos dados do carro retornam a aprovação para pendente. Ativar/desativar não altera a aprovação nem remove bloqueios administrativos.</p>
+    <form method="post" class="flow-fields">
+      {% csrf_token %}
+      {% if form.errors %}<div class="flow-notice flow-error" role="alert"><p>Não foi possível salvar. Confira os campos abaixo.</p>{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}
+        <div>
+          {% if field.field.widget.input_type == 'checkbox' %}
+            <label class="flow-check" for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
+          {% else %}{{ field.label_tag }}{{ field }}{% endif %}
+          {% if field.help_text %}<p class="flow-small" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <button class="discovery-button" type="submit">Salvar alterações</button>
+    </form>
+    <p><a href="{% url 'veiculos:fotos' object.pk %}">Adicionar e consultar fotos</a></p>
+  </section>
+{% endblock %}

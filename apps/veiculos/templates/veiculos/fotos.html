@@ -1,0 +1,31 @@
+{% extends "core/page.html" %}
+{% block title %}Fotos do veículo — ShareCar{% endblock %}
+{% block back_url %}{% url 'veiculos:meus' %}{% endblock %}
+{% block back_label %}Meus veículos{% endblock %}
+{% block page_kicker %}ShareCar · Proprietário{% endblock %}
+{% block page_title %}Fotos do veículo{% endblock %}
+{% block page_subtitle %}{{ veiculo.categoria }} · {{ veiculo.cidade }}{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <section class="flow-panel" aria-labelledby="enviar-foto-title">
+    <h2 id="enviar-foto-title">Adicionar foto</h2>
+    <p>Use apenas fotos do carro, sem documentos ou dados pessoais: os arquivos das fotos são públicos. Cada envio retorna o anúncio para análise, e ele só reaparece na busca após aprovação.</p>
+    <form method="post" enctype="multipart/form-data" class="flow-fields">
+      {% csrf_token %}
+      {% if form.errors %}<div class="flow-notice flow-error" role="alert"><p>Não foi possível enviar a foto.</p>{{ form.non_field_errors }}</div>{% endif %}
+      {{ form.foto.label_tag }}{{ form.foto }}
+      <p class="flow-small" id="id_foto_helptext">{{ form.foto.help_text }}</p>
+      {{ form.foto.errors }}
+      <button class="discovery-button" type="submit">Adicionar foto</button>
+    </form>
+  </section>
+  <section class="flow-section" aria-labelledby="galeria-title">
+    <h2 id="galeria-title">Fotos cadastradas</h2>
+    <div class="flow-gallery">
+      {% for foto in fotos %}
+        <figure class="flow-gallery-item"><img src="{{ foto.foto.url }}" alt="Foto {{ forloop.counter }} do veículo {{ veiculo.categoria }}" loading="lazy"></figure>
+      {% empty %}<p>Nenhuma foto cadastrada.</p>{% endfor %}
+    </div>
+    <p><a href="{% url 'veiculos:editar' veiculo.pk %}">Editar dados do veículo</a></p>
+  </section>
+{% endblock %}

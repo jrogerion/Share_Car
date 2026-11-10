@@ -1,10 +1,15 @@
+import warnings
 from decimal import Decimal
+from io import BytesIO
+from uuid import uuid4
 
 from django import forms
+from django.core.files.base import ContentFile
 from django.utils import timezone
+from PIL import Image, ImageOps
 
 from .consultas import veiculos_publicos
-from .models import Veiculo
+from .models import FotoVeiculo, Veiculo
 
 
 class CadastroVeiculoForm(forms.ModelForm):
@@ -42,6 +47,83 @@ class CadastroVeiculoForm(forms.ModelForm):
                 "autocomplete": "address-level2",
             }),
         }
+
+
+class EdicaoVeiculoForm(CadastroVeiculoForm):
+    ativo = forms.BooleanField(
+        label="Manter anúncio ativo", required=False,
+        help_text="Um anúncio inativo não aparece na busca pública.",
+    )
+
+    class Meta(CadastroVeiculoForm.Meta):
+        fields = CadastroVeiculoForm.Meta.fields + ("ativo",)
+
+    def save(self, commit=True):
+        veiculo = super().save(commit=False)
+        campos = list(self.Meta.fields)
+        if set(CadastroVeiculoForm.Meta.fields).intersection(
+            self.changed_data,
+        ):
+            veiculo.aprovacao = Veiculo.Aprovacao.PENDENTE
+            campos.append("aprovacao")
+        if commit:
+            # Não sobrescreve o dono, bloqueios ou decisões não afetadas.
+            veiculo.save(update_fields=campos)
+        return veiculo
+
+
+class ImagemVeiculoField(forms.ImageField):
+    def to_python(self, data):
+        if data and data.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("A foto deve ter no máximo 5 MB.")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            arquivo = super().to_python(data)
+        if arquivo:
+            if arquivo.image.format not in ("JPEG", "PNG"):
+                raise forms.ValidationError(
+                    "Envie uma imagem JPEG ou PNG válida.",
+                )
+            if arquivo.image.width * arquivo.image.height > 20_000_000:
+                raise forms.ValidationError(
+                    "A foto deve ter até 20 megapixels.",
+                )
+        return arquivo
+
+
+class FotoVeiculoForm(forms.ModelForm):
+    foto = ImagemVeiculoField(
+        label="Foto do veículo",
+        help_text="Uma foto por envio, JPEG ou PNG, até 5 MB e 20 megapixels.",
+        widget=forms.FileInput(attrs={"accept": "image/jpeg,image/png"}),
+    )
+
+    class Meta:
+        model = FotoVeiculo
+        fields = ("foto",)
+
+    def clean_foto(self):
+        arquivo = self.cleaned_data["foto"]
+        if hasattr(self.files, "getlist") and len(self.files.getlist("foto")) > 1:
+            raise forms.ValidationError("Envie uma foto por vez.")
+        formato = arquivo.image.format
+        buffer = BytesIO()
+        arquivo.seek(0)
+        try:
+            with Image.open(arquivo) as imagem:
+                # Corrige a orientação e não publica metadados pessoais/EXIF.
+                imagem = ImageOps.exif_transpose(imagem)
+                imagem = imagem.convert(
+                    "RGB" if formato == "JPEG" else "RGBA",
+                )
+                imagem.info.clear()
+                imagem.save(buffer, format=formato)
+        except (OSError, ValueError):
+            raise forms.ValidationError("Não foi possível processar a imagem.")
+        if buffer.tell() > 5 * 1024 * 1024:
+            raise forms.ValidationError("Reduza a foto para até 5 MB.")
+        extensao = "jpg" if formato == "JPEG" else "png"
+        return ContentFile(buffer.getvalue(), name=f"{uuid4().hex}.{extensao}")
 
 
 class PeriodoReservaMixin:
