@@ -1,70 +1,171 @@
+from decimal import Decimal
+
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LoginView, LogoutView
-from django.db import IntegrityError, transaction
-from django.http import HttpResponseRedirect
+from django.db.models import Count, Q, Sum
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
-from django.views.generic import FormView, TemplateView, UpdateView
+from django.views.generic import CreateView, TemplateView, UpdateView
 
-from .forms import CadastroUsuarioForm, LoginEmailForm, PerfilUsuarioForm
+from apps.reservas.models import Reserva
+from apps.veiculos.models import Veiculo
+
+from .forms import CadastroForm, PerfilForm
 from .models import Usuario
 
 
-class LoginEmailView(LoginView):
-    template_name = "core/entrar.html"
-    authentication_form = LoginEmailForm
+class CadastroView(CreateView):
+    """Cria a conta, autentica o usuário e abre o painel."""
+
+    model = Usuario
+    form_class = CadastroForm
+    template_name = "contas/cadastro.html"
+    success_url = reverse_lazy("contas:painel")
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("contas:painel")
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        resposta = super().form_valid(form)
+        login(self.request, self.object)
+        messages.success(
+            self.request,
+            "Conta criada com sucesso. Complete seu perfil para começar.",
+        )
+        return resposta
 
 
-class SairView(LogoutView):
-    next_page = reverse_lazy("core:entrar")
+class PerfilView(LoginRequiredMixin, UpdateView):
+    """Permite que o usuário atualize os próprios dados e documentos."""
 
-
-@method_decorator(never_cache, name="dispatch")
-class PerfilUsuarioView(LoginRequiredMixin, UpdateView):
+    model = Usuario
+    form_class = PerfilForm
     template_name = "contas/perfil.html"
-    form_class = PerfilUsuarioForm
     success_url = reverse_lazy("contas:perfil")
 
     def get_object(self, queryset=None):
-        # A identidade vem da sessão, nunca de um ID enviado pelo cliente.
-        return Usuario.objects.get(pk=self.request.user.pk)
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(self.request, "Perfil atualizado.")
+        return super().form_valid(form)
+
+
+class PainelView(LoginRequiredMixin, TemplateView):
+    """Resume a atividade do usuário como locatário e/ou proprietário."""
+
+    template_name = "contas/painel.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        validade = self.object.cnh_validade
-        context["cnh_vencida"] = bool(
-            validade and validade < timezone.localdate(),
+        usuario = self.request.user
+        hoje = timezone.localdate()
+
+        reservas_locatario = Reserva.objects.filter(locatario=usuario)
+        context["resumo_locatario"] = reservas_locatario.aggregate(
+            total=Count("pk"),
+            solicitadas=Count(
+                "pk", filter=Q(status=Reserva.Status.SOLICITADA)
+            ),
+            ativas=Count(
+                "pk",
+                filter=Q(
+                    status__in=[
+                        Reserva.Status.ACEITA,
+                        Reserva.Status.EM_ANDAMENTO,
+                    ]
+                ),
+            ),
+            concluidas=Count(
+                "pk", filter=Q(status=Reserva.Status.CONCLUIDA)
+            ),
+        )
+        context["proximas_locatario"] = list(
+            reservas_locatario.filter(
+                status__in=[
+                    Reserva.Status.ACEITA,
+                    Reserva.Status.EM_ANDAMENTO,
+                ],
+                fim__gte=hoje,
+            )
+            .select_related("veiculo")
+            .order_by("inicio", "pk")[:3]
+        )
+
+        reservas_recebidas = Reserva.objects.filter(
+            veiculo__proprietario=usuario
+        )
+        context["resumo_proprietario"] = reservas_recebidas.aggregate(
+            quantidade=Count("pk"),
+            pendentes=Count(
+                "pk", filter=Q(status=Reserva.Status.SOLICITADA)
+            ),
+            ativas=Count(
+                "pk",
+                filter=Q(
+                    status__in=[
+                        Reserva.Status.ACEITA,
+                        Reserva.Status.EM_ANDAMENTO,
+                    ]
+                ),
+            ),
+            concluidas=Count(
+                "pk", filter=Q(status=Reserva.Status.CONCLUIDA)
+            ),
+            valor_contratado=Sum(
+                "total",
+                filter=Q(
+                    status__in=[
+                        Reserva.Status.ACEITA,
+                        Reserva.Status.EM_ANDAMENTO,
+                        Reserva.Status.CONCLUIDA,
+                    ]
+                ),
+                default=Decimal("0.00"),
+            ),
+        )
+        context["proximas_proprietario"] = list(
+            reservas_recebidas.filter(
+                status__in=[
+                    Reserva.Status.ACEITA,
+                    Reserva.Status.EM_ANDAMENTO,
+                ],
+                fim__gte=hoje,
+            )
+            .select_related("veiculo", "locatario")
+            .order_by("inicio", "pk")[:3]
+        )
+        context["solicitacoes_pendentes"] = list(
+            reservas_recebidas.filter(status=Reserva.Status.SOLICITADA)
+            .select_related("veiculo", "locatario")
+            .order_by("inicio", "pk")[:5]
+        )
+
+        meus_veiculos = Veiculo.objects.filter(proprietario=usuario)
+        context["resumo_veiculos"] = meus_veiculos.aggregate(
+            total=Count("pk"),
+            publicados=Count(
+                "pk",
+                filter=Q(
+                    ativo=True,
+                    aprovacao=Veiculo.Aprovacao.APROVADO,
+                    bloqueado=False,
+                ),
+            ),
+            pendentes=Count(
+                "pk",
+                filter=Q(aprovacao=Veiculo.Aprovacao.PENDENTE),
+            ),
+            bloqueados=Count("pk", filter=Q(bloqueado=True)),
+        )
+
+        context["perfil_completo"] = bool(
+            usuario.cnh_numero
+            and usuario.cnh_validade
+            and usuario.documento_identidade
         )
         return context
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, "Perfil atualizado com sucesso.")
-        return response
-
-
-class CadastroUsuarioView(FormView):
-    template_name = "contas/cadastro.html"
-    form_class = CadastroUsuarioForm
-    success_url = reverse_lazy("contas:cadastro_concluido")
-
-    def form_valid(self, form):
-        try:
-            with transaction.atomic():
-                form.save()
-        except IntegrityError:
-            # Duas requisições podem validar o mesmo e-mail simultaneamente.
-            if not Usuario.objects.filter(
-                email__iexact=form.cleaned_data["email"],
-            ).exists():
-                raise
-            form.add_error("email", "Não é possível cadastrar este e-mail.")
-            return self.form_invalid(form)
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class CadastroConcluidoView(TemplateView):
-    template_name = "contas/cadastro_concluido.html"

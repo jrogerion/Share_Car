@@ -1,39 +1,74 @@
 {% extends "core/page.html" %}
 {% block title %}Criar conta — ShareCar{% endblock %}
-{% block page_kicker %}ShareCar · Sua conta{% endblock %}
+{% block back_url %}{% url 'core:entrar' %}{% endblock %}
+{% block back_label %}Entrar{% endblock %}
+{% block page_kicker %}ShareCar · Cadastro{% endblock %}
 {% block page_title %}Crie sua conta{% endblock %}
-{% block page_subtitle %}Informe seus dados e escolha como deseja participar.{% endblock %}
-{% block page_notice %}{% endblock %}
+{% block page_subtitle %}Escolha como quer usar o ShareCar e comece a reservar ou anunciar.{% endblock %}
+{% block demo_notice %}{% endblock %}
 {% block page_content %}
   <div class="flow-columns">
-    <section class="flow-panel" aria-labelledby="cadastro-title">
-      <h2 id="cadastro-title">Dados de cadastro</h2>
-      <form method="post" class="flow-fields">
+    <section class="flow-panel flow-fields" aria-labelledby="cadastro-title">
+      <h2 id="cadastro-title">Dados da conta</h2>
+      {% if form.non_field_errors %}
+        <div class="flow-notice flow-error" role="alert">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+      <form method="post" action="{% url 'contas:cadastro' %}" class="flow-fields" novalidate>
         {% csrf_token %}
-        {% if form.errors %}
-          <div role="alert"><p>Não foi possível criar a conta. Confira os campos abaixo.</p>{{ form.non_field_errors }}</div>
-        {% endif %}
-        {% for field in form %}
+        <label for="{{ form.username.id_for_label }}">Usuário</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+        <p class="flow-small">{{ form.username.help_text }}</p>
+
+        <div class="flow-field-grid">
           <div>
-            {% if field.field.widget.input_type == 'checkbox' %}
-              <label class="flow-check" for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
-            {% else %}
-              {{ field.label_tag }}
-              {{ field }}
-            {% endif %}
-            {% if field.help_text %}<div id="{{ field.auto_id }}_helptext" class="flow-small">{{ field.help_text }}</div>{% endif %}
-            {{ field.errors }}
+            <label for="{{ form.first_name.id_for_label }}">Nome</label>
+            {{ form.first_name }}
+            {{ form.first_name.errors }}
           </div>
-        {% endfor %}
-        <button type="submit" class="discovery-button">Criar conta</button>
+          <div>
+            <label for="{{ form.last_name.id_for_label }}">Sobrenome</label>
+            {{ form.last_name }}
+            {{ form.last_name.errors }}
+          </div>
+        </div>
+
+        <label for="{{ form.email.id_for_label }}">E-mail</label>
+        {{ form.email }}
+        {{ form.email.errors }}
+        <p class="flow-small">Usado apenas para contato e recuperação de senha.</p>
+
+        <fieldset class="flow-fields">
+          <legend>{{ form.papeis.label }}</legend>
+          {{ form.papeis }}
+          {{ form.papeis.errors }}
+          <p class="flow-small">Você pode marcar as duas opções. Os papéis podem ser ajustados no perfil.</p>
+        </fieldset>
+
+        <label for="{{ form.password1.id_for_label }}">Senha</label>
+        {{ form.password1 }}
+        {{ form.password1.errors }}
+        <p class="flow-small">{{ form.password1.help_text }}</p>
+
+        <label for="{{ form.password2.id_for_label }}">Confirmar senha</label>
+        {{ form.password2 }}
+        {{ form.password2.errors }}
+        <p class="flow-small">{{ form.password2.help_text }}</p>
+
+        <button class="discovery-button" type="submit">Criar conta</button>
       </form>
+      <p class="flow-small">Já tem uma conta? <a href="{% url 'core:entrar' %}">Entrar</a>.</p>
     </section>
-    <aside class="flow-panel">
-      <h2>Uma conta, dois perfis</h2>
-      <p>Você pode alugar carros, anunciar o seu ou escolher as duas opções.</p>
-      <p>O cadastro não aprova automaticamente documentos nem autoriza anúncios ou reservas. Essas funcionalidades serão disponibilizadas em etapas futuras.</p>
-      <p>Após criar sua conta, entre com e-mail e senha. Em ambiente de desenvolvimento, use dados fictícios e uma senha exclusiva para testes.</p>
-      <a href="{% url 'core:entrar' %}">Já tenho conta · Entrar</a>
+
+    <aside class="flow-panel" aria-labelledby="cadastro-ajuda-title">
+      <h2 id="cadastro-ajuda-title">Conta segura</h2>
+      <h3>Para alugar</h3>
+      <p>Você poderá buscar veículos, informar o período e acompanhar cada solicitação.</p>
+      <h3>Para anunciar</h3>
+      <p>O documento de identidade e a CNH passam por análise antes da publicação e das locações.</p>
+      <p class="flow-small">Documentos são armazenados em área privada e não aparecem nos anúncios.</p>
     </aside>
   </div>
 {% endblock %}

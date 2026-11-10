@@ -1,0 +1,50 @@
+{% extends "core/page.html" %}
+{% block title %}Avaliar locação — Reserva #{{ reserva.pk }} — ShareCar{% endblock %}
+{% block back_url %}{% url 'reservas:detalhe' reserva.pk %}{% endblock %}
+{% block back_label %}Voltar à reserva{% endblock %}
+{% block page_kicker %}ShareCar · Avaliação{% endblock %}
+{% block page_title %}Como foi a locação?{% endblock %}
+{% block page_subtitle %}Reserva #{{ reserva.pk }} · {{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Avaliação cega">
+    <i class="bi bi-eye-slash" aria-hidden="true"></i>
+    A avaliação da outra parte só é exibida depois que as duas partes avaliarem.
+  </aside>
+{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="avaliar-title">
+      <h2 id="avaliar-title">Avaliar {{ avaliado.username }}</h2>
+      {% if form.non_field_errors %}
+        <div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <form method="post" action="{% url 'avaliacoes:avaliar' reserva.pk %}" class="flow-fields" novalidate>
+        {% csrf_token %}
+        <fieldset class="flow-stars">
+          <legend>{{ form.nota.label }}</legend>
+          {{ form.nota }}
+          {{ form.nota.errors }}
+        </fieldset>
+        <button class="discovery-button" type="submit">Enviar avaliação</button>
+      </form>
+      <p class="flow-small">A nota é única por parte e por reserva. Não é possível alterar depois do envio.</p>
+    </section>
+
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="situacao-title">
+        <h2 id="situacao-title">Situação das avaliações</h2>
+        {% if minha_avaliacao %}
+          <p class="flow-small">Sua nota: <strong>{{ minha_avaliacao.nota }}/5</strong>.</p>
+        {% else %}
+          <p class="flow-small">Você ainda não avaliou esta locação.</p>
+        {% endif %}
+
+        {% if outra_parte_avaliou %}
+          <p class="flow-small">A outra parte já avaliou. A nota será exibida na reserva após o seu envio.</p>
+        {% else %}
+          <p class="flow-small">A outra parte ainda não avaliou. As notas ficam ocultas até que ambas sejam enviadas.</p>
+        {% endif %}
+      </section>
+    </aside>
+  </div>
+{% endblock %}

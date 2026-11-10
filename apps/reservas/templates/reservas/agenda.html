@@ -1,0 +1,55 @@
+{% extends "core/page.html" %}
+{% block title %}Disponibilidade de {{ veiculo.categoria }} — ShareCar{% endblock %}
+{% block back_url %}{% url 'reservas:minhas' %}{% endblock %}
+{% block back_label %}Minhas reservas{% endblock %}
+{% block page_kicker %}ShareCar · Agenda do veículo{% endblock %}
+{% block page_title %}Disponibilidade de {{ veiculo.categoria }} em {{ veiculo.cidade }}{% endblock %}
+{% block page_subtitle %}Defina quando o veículo pode ser reservado e bloqueie períodos indisponíveis.{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Como funciona a agenda">
+    <i class="bi bi-calendar-range" aria-hidden="true"></i>
+    Se houver períodos disponíveis cadastrados, o veículo só aceita reservas dentro deles. Períodos bloqueados sempre impedem novas reservas. Sem nenhum período cadastrado, o veículo fica disponível por padrão.
+  </aside>
+{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="novo-periodo-title">
+      <h2 id="novo-periodo-title">Adicionar período</h2>
+      <form method="post" action="{% url 'reservas:agenda' veiculo.pk %}">
+        {% csrf_token %}
+        <label for="{{ form.inicio.id_for_label }}">Início</label>
+        {{ form.inicio }}
+        {{ form.inicio.errors }}
+        <label for="{{ form.fim.id_for_label }}">Fim</label>
+        {{ form.fim }}
+        {{ form.fim.errors }}
+        <label for="{{ form.tipo.id_for_label }}">Tipo</label>
+        {{ form.tipo }}
+        {{ form.tipo.errors }}
+        <button class="discovery-button" type="submit">Adicionar período</button>
+      </form>
+      <p class="flow-small">As diárias usam o intervalo [início, fim): a devolução no dia final não ocupa uma diária adicional.</p>
+      <a class="btn btn-outline-secondary" href="{% url 'core:detalhes' veiculo.pk %}">Ver anúncio</a>
+    </section>
+
+    <section class="flow-panel" aria-labelledby="periodos-title">
+      <h2 id="periodos-title">Períodos cadastrados</h2>
+      {% if periodos %}
+        <div class="flow-reservations">
+          {% for periodo in periodos %}
+            <article class="flow-panel">
+              <span class="flow-status {% if periodo.tipo == 'bloqueado' %}flow-status-pending{% else %}flow-status-info{% endif %}">{{ periodo.get_tipo_display }}</span>
+              <p>{{ periodo.inicio|date:"d/m/Y" }} a {{ periodo.fim|date:"d/m/Y" }}</p>
+              <form method="post" action="{% url 'reservas:remover_periodo' periodo.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-secondary" type="submit">Remover</button>
+              </form>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="flow-small">Nenhum período cadastrado. O veículo está disponível por padrão para qualquer data futura.</p>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}

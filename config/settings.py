@@ -65,9 +65,26 @@ DATABASES = {
     }
 }
 AUTH_USER_MODEL = "contas.Usuario"
-AUTHENTICATION_BACKENDS = ["apps.contas.backends.EmailBackend"]
 LOGIN_URL = "core:entrar"
-LOGIN_REDIRECT_URL = "core:home"
+LOGIN_REDIRECT_URL = "reservas:minhas"
+LOGOUT_REDIRECT_URL = "core:home"
+# Em desenvolvimento, o link de recuperação é exibido no console.
+# Em produção, defina DJANGO_EMAIL_BACKEND e as configurações de SMTP no ambiente.
+EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default="") or (
+    "django.core.mail.backends.console.EmailBackend"
+    if DEBUG
+    else "django.core.mail.backends.smtp.EmailBackend"
+)
+DEFAULT_FROM_EMAIL = env(
+    "DJANGO_DEFAULT_FROM_EMAIL", default=""
+) or "ShareCar <nao-responda@sharecar.local>"
+EMAIL_HOST = env("DJANGO_EMAIL_HOST", default="") or "localhost"
+EMAIL_PORT = env.int("DJANGO_EMAIL_PORT", default=25)
+EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("DJANGO_EMAIL_USE_TLS", default=False)
+EMAIL_USE_SSL = env.bool("DJANGO_EMAIL_USE_SSL", default=False)
+EMAIL_TIMEOUT = env.int("DJANGO_EMAIL_TIMEOUT", default=10)
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": f"django.contrib.auth.password_validation.{name}"}
     for name in [

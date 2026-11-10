@@ -5,3 +5,4 @@ __pycache__/
 media/
 private_media/
 staticfiles/
+opencode
