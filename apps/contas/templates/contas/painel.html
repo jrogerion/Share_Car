@@ -102,7 +102,7 @@
 
           <div class="flow-actions">
             {% if resumo_veiculos.total %}
-              <a class="btn btn-outline-secondary" href="{% url 'reservas:minhas' %}">Gerenciar veículos e agenda</a>
+              <a class="btn btn-outline-secondary" href="{% url 'veiculos:meus' %}">Meus veículos</a>
             {% else %}
               <a class="discovery-button" href="{% url 'core:veiculo' %}">Anunciar meu primeiro veículo</a>
             {% endif %}

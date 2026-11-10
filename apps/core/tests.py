@@ -54,7 +54,7 @@ class TemplatePagesTests(SimpleTestCase):
 
     pages = (
         "home", "entrar", "resumo",
-        "pagamento", "reservas_exemplo", "checkin", "veiculo", "avaliacao",
+        "pagamento", "reservas_exemplo", "checkin", "avaliacao",
     )
 
     def test_pages_render_without_database(self):
@@ -159,7 +159,6 @@ class TemplatePagesTests(SimpleTestCase):
             "reservas_exemplo": ("reservas:minhas", True),
             "checkin": ("reservas:minhas", False),
             "avaliacao": ("reservas:minhas", False),
-            "veiculo": ("core:veiculo", True),
         }
         for page, (rota, pagina_atual) in sections.items():
             with self.subTest(page=page):
@@ -171,9 +170,6 @@ class TemplatePagesTests(SimpleTestCase):
                         link for link in parser.links[region]
                         if "aria-current" in link
                     ]
-                    if page == "veiculo" and region == "Navegação mobile":
-                        self.assertEqual(current, [])
-                        continue
                     self.assertEqual(len(current), 1)
                     self.assertEqual(current[0]["href"], reverse(rota))
                     self.assertEqual(

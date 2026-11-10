@@ -3,6 +3,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 
 from apps.contas.forms import LoginEmailForm
+from apps.veiculos.views import CadastroVeiculoView
 
 from .views import DetalhesVeiculoView, HomeView, ResultadosView
 
@@ -34,6 +35,6 @@ urlpatterns = [
         name="reservas_exemplo",
     ),
     path("reserva/vistoria/", TemplateView.as_view(template_name="core/checkin.html"), name="checkin"),
-    path("anunciar/", TemplateView.as_view(template_name="core/veiculo.html"), name="veiculo"),
+    path("anunciar/", CadastroVeiculoView.as_view(), name="veiculo"),
     path("reserva/avaliacao/", TemplateView.as_view(template_name="core/avaliacao.html"), name="avaliacao"),
 ]

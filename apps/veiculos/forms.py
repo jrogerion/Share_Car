@@ -4,6 +4,44 @@ from django import forms
 from django.utils import timezone
 
 from .consultas import veiculos_publicos
+from .models import Veiculo
+
+
+class CadastroVeiculoForm(forms.ModelForm):
+    passageiros = forms.IntegerField(
+        label="Passageiros", min_value=1, max_value=32767,
+    )
+    preco_diaria = forms.DecimalField(
+        label="Diária (R$)", max_digits=10, decimal_places=2,
+        min_value=Decimal("0.01"),
+        widget=forms.NumberInput(attrs={"min": "0.01", "step": "0.01"}),
+    )
+
+    class Meta:
+        model = Veiculo
+        fields = (
+            "caracteristicas", "cidade", "categoria", "cambio",
+            "combustivel", "passageiros", "preco_diaria",
+        )
+        labels = {
+            "caracteristicas": "Características e descrição do veículo",
+            "cidade": "Cidade", "categoria": "Categoria",
+            "cambio": "Câmbio", "combustivel": "Combustível",
+        }
+        help_texts = {
+            "caracteristicas": (
+                "Informe marca, modelo, estado de conservação e equipamentos."
+            ),
+            "categoria": "Ex.: Hatch, Sedã ou SUV.",
+            "cambio": "Ex.: Manual ou Automático.",
+            "combustivel": "Ex.: Flex, Gasolina, Diesel ou Elétrico.",
+        }
+        widgets = {
+            "caracteristicas": forms.Textarea(attrs={"rows": 4}),
+            "cidade": forms.TextInput(attrs={
+                "autocomplete": "address-level2",
+            }),
+        }
 
 
 class PeriodoReservaMixin:

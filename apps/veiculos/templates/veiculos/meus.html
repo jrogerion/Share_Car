@@ -1,0 +1,44 @@
+{% extends "core/page.html" %}
+{% block title %}Meus veículos — ShareCar{% endblock %}
+{% block back_url %}{% url 'contas:painel' %}{% endblock %}
+{% block back_label %}Painel{% endblock %}
+{% block page_kicker %}ShareCar · Proprietário{% endblock %}
+{% block page_title %}Meus veículos{% endblock %}
+{% block page_subtitle %}Acompanhe os veículos cadastrados na sua conta.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  {% if pode_anunciar %}
+    <p><a class="discovery-button" href="{% url 'core:veiculo' %}">Cadastrar veículo</a></p>
+  {% else %}
+    <aside class="flow-notice">Para cadastrar veículos, selecione o perfil de proprietário e aguarde a aprovação do documento de identidade. <a href="{% url 'contas:perfil' %}">Consultar meu perfil</a></aside>
+  {% endif %}
+  <div class="flow-cars">
+    {% for veiculo in veiculos %}
+      <article class="flow-panel" aria-labelledby="veiculo-{{ veiculo.pk }}-title">
+        <h2 id="veiculo-{{ veiculo.pk }}-title">{{ veiculo.categoria }} · {{ veiculo.cidade }}</h2>
+        <p>{{ veiculo.caracteristicas|truncatechars:250 }}</p>
+        <p>{{ veiculo.cambio }} · {{ veiculo.combustivel }} · {{ veiculo.passageiros }} passageiros</p>
+        <p><strong>R$ {{ veiculo.preco_diaria|floatformat:2 }} por diária</strong></p>
+        <dl>
+          <dt>Aprovação</dt><dd>{{ veiculo.get_aprovacao_display }}</dd>
+          <dt>Anúncio</dt><dd>{% if veiculo.ativo %}Ativo{% else %}Inativo{% endif %}</dd>
+          <dt>Bloqueio administrativo</dt><dd>{% if veiculo.bloqueado %}Bloqueado{% else %}Não bloqueado{% endif %}</dd>
+        </dl>
+        {% if veiculo.aprovacao == 'aprovado' and veiculo.ativo and not veiculo.bloqueado %}
+          <a href="{% url 'core:detalhes' veiculo.pk %}">Ver anúncio público</a>
+        {% endif %}
+      </article>
+    {% empty %}
+      <section class="flow-panel flow-empty"><h2>Nenhum veículo cadastrado</h2><p>Os veículos que você cadastrar aparecerão aqui.</p></section>
+    {% endfor %}
+  </div>
+  {% if is_paginated %}
+    <nav class="flow-pagination" aria-label="Paginação dos meus veículos">
+      <p class="flow-small">Página {{ page_obj.number }} de {{ paginator.num_pages }}</p>
+      <div class="flow-pagination-links">
+        {% if page_obj.has_previous %}<a class="btn btn-outline-secondary" href="{% querystring page=page_obj.previous_page_number %}">Anterior</a>{% endif %}
+        {% if page_obj.has_next %}<a class="btn btn-outline-secondary" href="{% querystring page=page_obj.next_page_number %}">Próxima</a>{% endif %}
+      </div>
+    </nav>
+  {% endif %}
+{% endblock %}
