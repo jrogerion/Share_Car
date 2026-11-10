@@ -1,18 +1,129 @@
 {% extends "core/page.html" %}
 {% load static %}
-{% block title %}Fiat Argo — ShareCar{% endblock %}
+{% block title %}{{ veiculo.categoria }} em {{ veiculo.cidade }} — ShareCar{% endblock %}
+{% block meta_description %}Detalhes do veículo {{ veiculo.categoria }} em {{ veiculo.cidade }} no ShareCar.{% endblock %}
 {% block back_url %}{% url 'core:resultados' %}{% endblock %}
-{% block back_label %}Resultados{% endblock %}
-{% block page_title %}Fiat Argo Drive{% endblock %}
-{% block page_subtitle %}Hatch · 2021 · Vila Madalena, São Paulo · ★ 4,8{% endblock %}
+{% block back_label %}Resultados da busca{% endblock %}
+{% block page_kicker %}ShareCar · Detalhes do veículo{% endblock %}
+{% block page_title %}{{ veiculo.categoria }} em {{ veiculo.cidade }}{% endblock %}
+{% block page_subtitle %}{{ veiculo.cambio }} · {{ veiculo.combustivel }} · {{ veiculo.passageiros }} lugares{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Status do anúncio">
+    <i class="bi bi-shield-check" aria-hidden="true"></i>
+    Este anúncio está ativo, aprovado e visível publicamente.
+  </aside>
+{% endblock %}
 {% block page_content %}
   <div class="flow-columns">
     <div class="flow-stack">
-      <div class="flow-hero-photo photo-blue"><img src="{% static 'images/car.svg' %}" alt="Ilustração do veículo de exemplo" width="640" height="320"></div>
-      <section class="flow-panel"><h2>Características</h2><ul class="flow-specs"><li>Manual</li><li>Flex</li><li>5 lugares</li><li>Ar-condicionado</li><li>4 portas</li><li>Bluetooth</li></ul></section>
-      <section class="flow-panel"><h2>Sobre o carro</h2><p>Argo em ótimo estado, revisado e com pneus novos. Ideal para a cidade e viagens curtas. Entregue limpo e com tanque cheio.</p><h3>Proprietário de exemplo</h3><p>Rafael Costa · ★ 4,8</p></section>
-      <section class="flow-panel"><h2>Avaliações ilustrativas</h2><blockquote><p>“Carro impecável e retirada rápida.”</p><footer>Camila M. · ★ 5,0 · outubro de 2026</footer></blockquote><blockquote><p>“Tudo certo com o carro.”</p><footer>Bruno T. · ★ 4,5 · setembro de 2026</footer></blockquote></section>
+      {% if fotos %}
+        <section class="flow-gallery" aria-label="Fotos do veículo">
+          {% for foto in fotos %}
+            <figure class="flow-gallery-item">
+              <img
+                src="{{ foto.foto.url }}"
+                alt="Foto {{ forloop.counter }} do veículo {{ veiculo.categoria }} em {{ veiculo.cidade }}"
+                loading="lazy"
+              >
+            </figure>
+          {% endfor %}
+        </section>
+      {% else %}
+        <div class="flow-hero-photo photo-blue">
+          <img src="{% static 'images/car.svg' %}" alt="Ilustração do veículo {{ veiculo.categoria }} em {{ veiculo.cidade }}" width="640" height="320">
+        </div>
+      {% endif %}
+
+      <section class="flow-panel" aria-labelledby="sobre-title">
+        <h2 id="sobre-title">Sobre o carro</h2>
+        <div class="flow-description">{{ veiculo.caracteristicas|linebreaks }}</div>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="dados-title">
+        <h2 id="dados-title">Dados do anúncio</h2>
+        <dl class="flow-prices">
+          <div><dt>Categoria</dt><dd>{{ veiculo.categoria }}</dd></div>
+          <div><dt>Câmbio</dt><dd>{{ veiculo.cambio }}</dd></div>
+          <div><dt>Combustível</dt><dd>{{ veiculo.combustivel }}</dd></div>
+          <div><dt>Passageiros</dt><dd>{{ veiculo.passageiros }}</dd></div>
+        </dl>
+      </section>
     </div>
-    <aside class="flow-stack"><section class="flow-panel flow-fields"><h2>Disponibilidade ilustrativa</h2><label for="retirada">Retirada</label><input id="retirada" type="date" value="2026-11-12" readonly><label for="devolucao">Devolução</label><input id="devolucao" type="date" value="2026-11-16" readonly><p>4 diárias × R$ 150</p><strong class="flow-price">R$ 600,00</strong><p class="flow-small">Período fixo de demonstração, sem consulta à agenda.</p><a class="discovery-button" href="{% url 'core:resumo' %}">Ver resumo da reserva</a></section></aside>
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="diaria-title">
+        <h2 id="diaria-title">Diária</h2>
+        <p><strong class="flow-price">R$ {{ veiculo.preco_diaria|floatformat:2 }}</strong> <span class="flow-small">/dia</span></p>
+        <p class="flow-small">Valor por dia definido no anúncio.</p>
+        {% if avaliacoes.total %}
+          <p class="flow-small">
+            <i class="bi bi-star-fill" aria-hidden="true"></i>
+            Nota média: <strong>{{ avaliacoes.media|floatformat:1 }} de 5</strong>
+            ({{ avaliacoes.total }} avaliaç{{ avaliacoes.total|pluralize:"ão,ões" }} de locatários).
+          </p>
+        {% else %}
+          <p class="flow-small">Este veículo ainda não recebeu avaliações de locatários.</p>
+        {% endif %}
+      </section>
+
+      <section class="flow-panel" aria-labelledby="periodo-title">
+        <h2 id="periodo-title">Período da locação</h2>
+        <form method="get" action="{% url 'core:detalhes' veiculo.pk %}" class="flow-fields">
+          <label for="{{ periodo_form.retirada.id_for_label }}">{{ periodo_form.retirada.label }}</label>
+          {{ periodo_form.retirada }}
+          {{ periodo_form.retirada.errors }}
+          <label for="{{ periodo_form.devolucao.id_for_label }}">{{ periodo_form.devolucao.label }}</label>
+          {{ periodo_form.devolucao }}
+          {{ periodo_form.devolucao.errors }}
+          <button class="btn btn-outline-secondary" type="submit">Verificar disponibilidade</button>
+        </form>
+
+        {% if periodo_consultado %}
+          {% if periodo_form.errors %}
+            <p class="flow-small">Corrija as datas para verificar a disponibilidade.</p>
+          {% elif periodo_disponivel %}
+            <p class="flow-notice flow-success" role="status">
+              <i class="bi bi-check-circle" aria-hidden="true"></i>
+              Disponível no período informado.
+            </p>
+            <dl class="flow-prices">
+              <div><dt>{{ estimativa.dias }} diária{{ estimativa.dias|pluralize }}</dt><dd>R$ {{ estimativa.valor_diarias|floatformat:2 }}</dd></div>
+              <div><dt>Taxa de serviço</dt><dd>R$ 0,00</dd></div>
+              <div class="flow-total"><dt>Total</dt><dd>R$ {{ estimativa.total|floatformat:2 }}</dd></div>
+            </dl>
+            <p class="flow-small">Comissão de {{ estimativa.percentual|floatformat:2 }}% (R$ {{ estimativa.comissao|floatformat:2 }}) incluída. Repasse ao proprietário: R$ {{ estimativa.repasse|floatformat:2 }}.</p>
+            {% if eh_proprietario %}
+              <p class="flow-small">Este é o seu anúncio; não é possível reservá-lo.</p>
+            {% elif user.is_authenticated %}
+              <form method="post" action="{% url 'reservas:criar' veiculo.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="retirada" value="{{ periodo_inicio|date:'Y-m-d' }}">
+                <input type="hidden" name="devolucao" value="{{ periodo_fim|date:'Y-m-d' }}">
+                <button class="discovery-button" type="submit">Solicitar reserva</button>
+              </form>
+            {% else %}
+              <a class="discovery-button" href="{% url 'core:entrar' %}?next={{ request.get_full_path|urlencode }}">Entrar para solicitar</a>
+            {% endif %}
+          {% else %}
+            <p class="flow-notice flow-error" role="alert">
+              <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+              {{ motivo_indisponibilidade }}
+            </p>
+          {% endif %}
+        {% else %}
+          <p class="flow-small">Informe as datas para verificar a disponibilidade e estimar o total.</p>
+        {% endif %}
+
+        {% if eh_proprietario %}
+          <p class="flow-small">Defina os períodos disponíveis e os bloqueios deste veículo.</p>
+          <a class="btn btn-outline-secondary" href="{% url 'reservas:agenda' veiculo.pk %}">Gerenciar disponibilidade</a>
+        {% endif %}
+      </section>
+
+      <section class="flow-panel" aria-labelledby="local-title">
+        <h2 id="local-title">Localização</h2>
+        <p><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ veiculo.cidade }}</p>
+        <a class="discovery-button" href="{% url 'core:resultados' %}">Voltar à busca</a>
+      </section>
+    </aside>
   </div>
 {% endblock %}

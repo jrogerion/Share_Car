@@ -1,0 +1,159 @@
+{% extends "core/page.html" %}
+{% block title %}Reserva #{{ reserva.pk }} — ShareCar{% endblock %}
+{% block back_url %}{% url 'reservas:minhas' %}{% endblock %}
+{% block back_label %}Minhas reservas{% endblock %}
+{% block page_kicker %}ShareCar · Reserva #{{ reserva.pk }}{% endblock %}
+{% block page_title %}{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}{% endblock %}
+{% block page_subtitle %}{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diária{{ reserva.dias|pluralize }}{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Status da reserva">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    Status atual: <strong>{{ reserva.get_status_display }}</strong>.
+  </aside>
+{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <div class="flow-stack">
+      <section class="flow-panel" aria-labelledby="veiculo-title">
+        <h2 id="veiculo-title">Veículo</h2>
+        <p><strong>{{ reserva.veiculo.categoria }}</strong> em {{ reserva.veiculo.cidade }}</p>
+        <p>{{ reserva.veiculo.cambio }} · {{ reserva.veiculo.combustivel }} · {{ reserva.veiculo.passageiros }} lugares</p>
+        <a class="btn btn-outline-secondary" href="{% url 'core:detalhes' reserva.veiculo.pk %}">Ver anúncio</a>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="periodo-title">
+        <h2 id="periodo-title">Período</h2>
+        <dl class="flow-prices">
+          <div><dt>Retirada</dt><dd>{{ reserva.inicio|date:"d/m/Y" }}</dd></div>
+          <div><dt>Devolução</dt><dd>{{ reserva.fim|date:"d/m/Y" }}</dd></div>
+          <div><dt>Duração</dt><dd>{{ reserva.dias }} diária{{ reserva.dias|pluralize }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="participantes-title">
+        <h2 id="participantes-title">Participantes</h2>
+        <p>Locatário: <strong>{{ reserva.locatario.username }}</strong></p>
+        <p>Proprietário: <strong>{{ reserva.veiculo.proprietario.username }}</strong></p>
+        <p class="flow-small">Documentos e dados pessoais não são exibidos nesta página.</p>
+      </section>
+
+      {% if check_in or check_out %}
+        <section class="flow-panel" aria-labelledby="vistoria-title">
+          <h2 id="vistoria-title">Vistoria</h2>
+          {% if check_in %}
+            <h3>Check-in</h3>
+            <dl class="flow-prices">
+              <div><dt>Quilometragem</dt><dd>{{ check_in.quilometragem }} km</dd></div>
+              <div><dt>Combustível</dt><dd>{{ check_in.nivel_combustivel }}%</dd></div>
+              <div><dt>Fotos</dt><dd>{{ check_in.fotos.all|length }}</dd></div>
+            </dl>
+          {% endif %}
+          {% if check_out %}
+            <h3>Check-out</h3>
+            <dl class="flow-prices">
+              <div><dt>Quilometragem</dt><dd>{{ check_out.quilometragem }} km</dd></div>
+              <div><dt>Combustível</dt><dd>{{ check_out.nivel_combustivel }}%</dd></div>
+              <div><dt>Fotos</dt><dd>{{ check_out.fotos.all|length }}</dd></div>
+            </dl>
+          {% endif %}
+        </section>
+      {% endif %}
+
+      {% if minha_avaliacao or avaliacao_outra_parte or pode_avaliar %}
+        <section class="flow-panel" aria-labelledby="avaliacoes-title">
+          <h2 id="avaliacoes-title">Avaliações</h2>
+          {% if minha_avaliacao %}
+            <p class="flow-small">Sua nota: <strong>{{ minha_avaliacao.nota }}/5</strong>.</p>
+          {% endif %}
+          {% if avaliacao_outra_parte %}
+            <p class="flow-small">Nota da outra parte: <strong>{{ avaliacao_outra_parte.nota }}/5</strong>.</p>
+          {% elif outra_parte_avaliou %}
+            <p class="flow-small">A outra parte já avaliou. A nota será exibida após você também avaliar.</p>
+          {% elif minha_avaliacao %}
+            <p class="flow-small">A outra parte ainda não avaliou. A nota dela ficará oculta até o envio.</p>
+          {% endif %}
+          {% if pode_avaliar %}
+            <a class="discovery-button" href="{% url 'avaliacoes:avaliar' reserva.pk %}">Avaliar locação</a>
+          {% endif %}
+        </section>
+      {% endif %}
+    </div>
+
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="valores-title">
+        <h2 id="valores-title">Valores</h2>
+        <dl class="flow-prices">
+          <div><dt>{{ reserva.dias }} diária{{ reserva.dias|pluralize }} × R$ {{ reserva.preco_diaria|floatformat:2 }}</dt><dd>R$ {{ reserva.valor_diarias|floatformat:2 }}</dd></div>
+          <div><dt>Taxa de serviço</dt><dd>R$ {{ reserva.taxas|floatformat:2 }}</dd></div>
+          <div class="flow-total"><dt>Total</dt><dd>R$ {{ reserva.total|floatformat:2 }}</dd></div>
+        </dl>
+        {% if eh_proprietario %}
+          <p class="flow-small">Comissão de {{ reserva.percentual_comissao|floatformat:2 }}% (R$ {{ reserva.comissao|floatformat:2 }}). Repasse previsto: R$ {{ reserva.repasse_proprietario|floatformat:2 }}.</p>
+        {% endif %}
+      </section>
+
+      <section class="flow-panel" aria-labelledby="pagamento-title">
+        <h2 id="pagamento-title">Pagamento</h2>
+        {% if pagamento %}
+          <span class="flow-status {% if pagamento.status == 'aprovado' %}flow-status-info{% elif pagamento.status == 'recusado' or pagamento.status == 'estornado' %}flow-status-danger{% else %}flow-status-pending{% endif %}">{{ pagamento.get_status_display }}</span>
+          <p class="flow-small">Meio: {{ pagamento.get_meio_display }}. Valor: R$ {{ pagamento.valor_bruto|floatformat:2 }}.</p>
+          {% if pagamento.status == 'estornado' %}
+            <p class="flow-small">O valor foi estornado na simulação por causa do cancelamento.</p>
+          {% endif %}
+        {% else %}
+          <p class="flow-small">Nenhuma simulação de pagamento registrada.</p>
+        {% endif %}
+        {% if pode_pagar %}
+          <a class="discovery-button" href="{% url 'pagamentos:pagar' reserva.pk %}">Simular pagamento</a>
+        {% elif eh_locatario and reserva.status == 'aceita' and not pagamento_aprovado %}
+          <p class="flow-small">O pagamento precisa ser aprovado para liberar o check-in.</p>
+        {% endif %}
+      </section>
+
+      {% if pode_checkin or pode_checkout %}
+        <section class="flow-panel" aria-labelledby="vistoria-acao-title">
+          <h2 id="vistoria-acao-title">Próxima etapa</h2>
+          {% if pode_checkin %}
+            <p class="flow-small">Registre quilometragem, combustível e fotos na retirada do veículo.</p>
+            <a class="discovery-button" href="{% url 'locacoes:check_in' reserva.pk %}">Fazer check-in</a>
+          {% elif pode_checkout %}
+            <p class="flow-small">Registre a devolução para concluir a locação e liberar as avaliações.</p>
+            <a class="discovery-button" href="{% url 'locacoes:check_out' reserva.pk %}">Fazer check-out</a>
+          {% endif %}
+        </section>
+      {% endif %}
+
+      {% if pode_aceitar or pode_recusar or pode_cancelar %}
+        <section class="flow-panel" aria-labelledby="acoes-title">
+          <h2 id="acoes-title">Ações disponíveis</h2>
+          <div class="flow-actions">
+            {% if pode_aceitar %}
+              <form method="post" action="{% url 'reservas:aceitar' reserva.pk %}">
+                {% csrf_token %}
+                <button class="discovery-button" type="submit">Aceitar reserva</button>
+              </form>
+            {% endif %}
+            {% if pode_recusar %}
+              <form method="post" action="{% url 'reservas:recusar' reserva.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-secondary" type="submit">Recusar</button>
+              </form>
+            {% endif %}
+            {% if pode_cancelar %}
+              <form method="post" action="{% url 'reservas:cancelar' reserva.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-secondary" type="submit">Cancelar reserva</button>
+              </form>
+            {% endif %}
+          </div>
+          {% if pode_aceitar %}
+            <p class="flow-small">Ao aceitar, o período continua bloqueado para outras solicitações. O locatário poderá simular o pagamento.</p>
+          {% endif %}
+          {% if pode_cancelar and pagamento_aprovado %}
+            <p class="flow-small">O pagamento aprovado será estornado na simulação ao cancelar.</p>
+          {% endif %}
+        </section>
+      {% endif %}
+    </aside>
+  </div>
+{% endblock %}

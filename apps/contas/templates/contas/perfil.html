@@ -1,23 +1,20 @@
 {% extends "core/page.html" %}
 {% block title %}Minha conta — ShareCar{% endblock %}
+{% block back_url %}{% url 'contas:painel' %}{% endblock %}
+{% block back_label %}Painel{% endblock %}
 {% block page_kicker %}ShareCar · Sua conta{% endblock %}
 {% block page_title %}Minha conta{% endblock %}
 {% block page_subtitle %}Atualize seu perfil e os dados da sua habilitação.{% endblock %}
-{% block page_notice %}{% endblock %}
+{% block demo_notice %}{% endblock %}
 {% block page_content %}
-  {% for message in messages %}
-    <p class="flow-notice" role="status">{{ message }}</p>
-  {% endfor %}
   <div class="flow-columns">
     <section class="flow-panel" aria-labelledby="perfil-title">
       <h2 id="perfil-title">Dados do perfil</h2>
       <p><strong>E-mail de acesso:</strong> {{ object.email|default:"Não informado" }}</p>
-      <p class="flow-small">E-mail e senha não podem ser alterados nesta página.</p>
+      <p class="flow-small">E-mail e senha não podem ser alterados neste formulário.</p>
       <form method="post" action="{% url 'contas:perfil' %}" class="flow-fields">
         {% csrf_token %}
-        {% if form.errors %}
-          <div role="alert"><p>Não foi possível salvar. Confira os campos abaixo.</p>{{ form.non_field_errors }}</div>
-        {% endif %}
+        {% if form.errors %}<div role="alert"><p>Não foi possível salvar. Confira os campos abaixo.</p>{{ form.non_field_errors }}</div>{% endif %}
         {% for field in form %}
           <div>
             {% if field.field.widget.input_type == 'checkbox' %}
@@ -25,33 +22,38 @@
             {% else %}
               {{ field.label_tag }}{{ field }}
             {% endif %}
-            {% if field.help_text %}<div id="{{ field.auto_id }}_helptext" class="flow-small">{{ field.help_text }}</div>{% endif %}
             {{ field.errors }}
           </div>
         {% endfor %}
-        <p class="flow-small">A CNH é opcional nesta etapa. Para informá-la, preencha número e validade. Não envie documentos ou dados reais no ambiente de testes.</p>
+        <p class="flow-small">A CNH é opcional nesta etapa. Para informá-la, preencha número e validade. Não envie dados reais no ambiente de testes.</p>
         <button class="discovery-button" type="submit">Salvar alterações</button>
       </form>
     </section>
-    <aside class="flow-panel" aria-labelledby="aprovacoes-title">
-      <h2 id="aprovacoes-title">Situação das aprovações</h2>
-      <dl>
-        <dt>Documento de identidade</dt><dd>{{ object.get_aprovacao_documento_display }}</dd>
-        <dt>CNH</dt><dd>{{ object.get_aprovacao_cnh_display }}</dd>
-      </dl>
-      {% if cnh_vencida %}
-        <p class="flow-notice" role="status">Sua CNH está vencida. Atualize a validade antes de solicitar uma futura reserva.</p>
-      {% endif %}
-      <p>Alterar ou remover os dados da CNH coloca sua aprovação novamente como pendente.</p>
-      <h3>Documento de identidade</h3>
-      {% if object.documento_identidade %}
-        <p><a href="{% url 'contas:documento_identidade' object.pk %}">Baixar documento enviado</a></p>
-      {% else %}
-        <p>Nenhum documento enviado.</p>
-      {% endif %}
-      <p><a class="btn btn-outline-secondary" href="{% url 'contas:enviar_documento' %}">Enviar ou substituir documento</a></p>
-      <p>A análise é manual e realizada por superusuários. Informar dados ou enviar o documento não aprova sua conta automaticamente.</p>
-      <p>Anúncios e reservas continuam demonstrativos.</p>
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="aprovacoes-title">
+        <h2 id="aprovacoes-title">Situação das aprovações</h2>
+        <dl>
+          <dt>Documento de identidade</dt><dd>{{ object.get_aprovacao_documento_display }}</dd>
+          <dt>CNH</dt><dd>{{ object.get_aprovacao_cnh_display }}</dd>
+        </dl>
+        {% if cnh_vencida %}<p class="flow-notice" role="status">Sua CNH está vencida. Atualize a validade antes de solicitar uma reserva.</p>{% endif %}
+        <p>Alterar ou remover os dados da CNH coloca sua aprovação novamente como pendente.</p>
+        {% if object.documento_identidade %}
+          <p>Documento armazenado em área privada. <a href="{% url 'contas:documento_identidade' object.pk %}">Baixar documento enviado</a></p>
+        {% else %}
+          <p>Nenhum documento enviado.</p>
+        {% endif %}
+        <p><a class="btn btn-outline-secondary" href="{% url 'contas:enviar_documento' %}">Enviar ou substituir documento</a></p>
+        <p>A análise é manual e realizada por superusuários. Informar dados ou enviar o documento não aprova sua conta automaticamente.</p>
+      </section>
+      <section class="flow-panel" aria-labelledby="conta-title">
+        <h2 id="conta-title">Sua conta</h2>
+        <div class="flow-actions">
+          <a class="btn btn-outline-secondary" href="{% url 'contas:alterar_senha' %}">Alterar senha</a>
+          <a class="btn btn-outline-secondary" href="{% url 'contas:painel' %}">Voltar ao painel</a>
+        </div>
+        <p class="flow-small">Seu documento não é exibido em anúncios, buscas ou reservas.</p>
+      </section>
     </aside>
   </div>
 {% endblock %}

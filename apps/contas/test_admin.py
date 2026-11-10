@@ -367,7 +367,7 @@ class UsuarioAdminTests(TestCase):
             self.assertNotIn(campo, fields)
         response = self.client.get(documento_url)
         self.assertEqual(response.status_code, 200)
-        response.close()
+        self.assertTrue(b"".join(response.streaming_content))
 
     def test_aprovacoes_independentes_com_historico_e_resultado_no_perfil(self):
         self.preparar_documento_e_cnh()

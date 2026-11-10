@@ -23,9 +23,7 @@ class EmailUnicoAdminMixin:
         if email and Usuario.objects.filter(email__iexact=email).exclude(
             pk=self.instance.pk,
         ).exists():
-            raise forms.ValidationError(
-                "Não é possível cadastrar este e-mail.",
-            )
+            raise forms.ValidationError("Não é possível cadastrar este e-mail.")
         return email
 
 
@@ -143,6 +141,24 @@ class PerfilUsuarioForm(forms.ModelForm):
             ),
         }
 
+    def clean_proprietario(self):
+        proprietario = self.cleaned_data["proprietario"]
+        if (not proprietario and self.instance.pk and
+                self.instance.veiculos.exists()):
+            raise forms.ValidationError(
+                "Você possui veículos cadastrados; mantenha o perfil de proprietário.",
+            )
+        return proprietario
+
+    def clean_locatario(self):
+        locatario = self.cleaned_data["locatario"]
+        if (not locatario and self.instance.pk and
+                self.instance.reservas.exists()):
+            raise forms.ValidationError(
+                "Você possui reservas como locatário; mantenha esse perfil.",
+            )
+        return locatario
+
     def clean(self):
         cleaned_data = super().clean()
         if not (cleaned_data.get("locatario") or
@@ -163,13 +179,11 @@ class PerfilUsuarioForm(forms.ModelForm):
             usuario.aprovacao_cnh = Usuario.Aprovacao.PENDENTE
             campos.append("aprovacao_cnh")
         if commit:
-            # Não sobrescreve senha, e-mail ou privilégios fora deste formulário.
             usuario.save(update_fields=campos)
         return usuario
 
 
 class LoginEmailForm(AuthenticationForm):
-    # Mantém o nome esperado pela AuthenticationForm, mas valida como e-mail.
     username = forms.EmailField(
         label="E-mail", max_length=254,
         widget=forms.EmailInput(attrs={
@@ -229,13 +243,13 @@ class CadastroUsuarioForm(UserCreationForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if not (cleaned_data.get("locatario") or cleaned_data.get("proprietario")):
+        if not (cleaned_data.get("locatario") or
+                cleaned_data.get("proprietario")):
             raise forms.ValidationError("Selecione pelo menos um perfil de uso.")
         return cleaned_data
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
-        # Mantém compatibilidade com contas existentes sem pedir username no site.
         usuario.username = uuid4().hex
         if commit:
             usuario.save()

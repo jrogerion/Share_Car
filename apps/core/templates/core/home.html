@@ -14,15 +14,26 @@
     </div>
   </section>
   <div class="container discovery-content">
-    <section id="busca" class="discovery-search" aria-label="Prévia da busca" aria-describedby="demo-notice">
+    <form
+      id="busca"
+      class="discovery-search"
+      method="get"
+      action="{% url 'core:resultados' %}"
+      role="search"
+      aria-labelledby="busca-title"
+      aria-describedby="demo-notice"
+      data-search-form
+    >
+      <h2 id="busca-title" class="visually-hidden">Buscar veículos</h2>
       <div class="discovery-fields">
-        <div class="discovery-location"><label for="cidade"><i class="bi bi-geo-alt" aria-hidden="true"></i> Localização</label><input id="cidade" type="text" placeholder="Qual é a sua cidade?" autocomplete="address-level2"></div>
-        <div><label for="retirada">Retirada</label><input id="retirada" type="date"></div>
-        <div><label for="devolucao">Devolução</label><input id="devolucao" type="date"></div>
-        <a class="discovery-button" href="{% url 'core:resultados' %}"><i class="bi bi-search" aria-hidden="true"></i> Explorar exemplos</a>
+        <div class="discovery-field discovery-location"><label for="cidade"><i class="bi bi-geo-alt" aria-hidden="true"></i> Localização</label><input id="cidade" name="cidade" type="text" placeholder="Qual é a sua cidade?" autocomplete="address-level2" maxlength="150" enterkeyhint="search" required></div>
+        <div class="discovery-field"><label for="retirada"><i class="bi bi-calendar-event" aria-hidden="true"></i> Retirada</label><input id="retirada" name="retirada" type="date" min="{% now 'Y-m-d' %}"></div>
+        <div class="discovery-field"><label for="devolucao"><i class="bi bi-calendar-check" aria-hidden="true"></i> Devolução</label><input id="devolucao" name="devolucao" type="date" min="{% now 'Y-m-d' %}"></div>
+        <button class="discovery-button" type="submit" data-search-submit><span class="spinner-border spinner-border-sm" aria-hidden="true" data-search-spinner hidden></span><i class="bi bi-search" aria-hidden="true" data-search-icon></i> <span data-search-label>Buscar carros</span></button>
       </div>
-      <p id="demo-notice" class="discovery-note">Prévia visual: os campos ainda não filtram carros nem geram reservas.</p>
-    </section>
+      <p class="visually-hidden" role="status" data-search-status></p>
+      <p id="demo-notice" class="discovery-note">A busca considera a cidade e, quando informado, o período de retirada e devolução.</p>
+    </form>
     <section id="vantagens" class="discovery-categories" aria-label="Categorias ilustradas">
       <span><i class="bi bi-car-front" aria-hidden="true"></i> Hatch</span>
       <span><i class="bi bi-car-front-fill" aria-hidden="true"></i> Sedã</span>
@@ -51,4 +62,35 @@
       <i class="bi bi-car-front" aria-hidden="true"></i><div><h2 id="owner-title">Tem um carro parado?</h2><p>Anuncie e ganhe uma renda extra, com preço e agenda sob seu controle.</p></div><a class="discovery-button" href="{% url 'core:veiculo' %}">Conhecer cadastro</a>
     </section>
   </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+    (() => {
+      const retirada = document.getElementById("retirada");
+      const devolucao = document.getElementById("devolucao");
+
+      if (!retirada || !devolucao) {
+        return;
+      }
+
+      const hoje = "{% now 'Y-m-d' %}";
+      retirada.min = hoje;
+      devolucao.min = hoje;
+
+      const validarPeriodo = () => {
+        if (retirada.value) {
+          devolucao.min = retirada.value;
+        }
+
+        if (retirada.value && devolucao.value && devolucao.value <= retirada.value) {
+          devolucao.setCustomValidity("A devolução deve ser posterior à retirada.");
+        } else {
+          devolucao.setCustomValidity("");
+        }
+      };
+
+      retirada.addEventListener("change", validarPeriodo);
+      devolucao.addEventListener("input", validarPeriodo);
+    })();
+  </script>
 {% endblock %}

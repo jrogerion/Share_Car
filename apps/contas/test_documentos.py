@@ -164,14 +164,13 @@ class DocumentoIdentidadeTests(TestCase):
         self.assertIn("attachment", response["Content-Disposition"])
         self.assertIn("no-store", response["Cache-Control"])
         self.assertEqual(response["X-Content-Type-Options"], "nosniff")
-        response.close()
 
     def test_superusuario_pode_baixar_documento(self):
         self.enviar()
         self.client.force_login(self.superusuario)
         response = self.client.get(self.baixar_url)
         self.assertEqual(response.status_code, 200)
-        response.close()
+        self.assertTrue(b"".join(response.streaming_content))
 
     def test_outro_usuario_e_funcionario_nao_podem_baixar(self):
         self.enviar()
