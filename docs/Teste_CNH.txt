@@ -1,0 +1,5 @@
+DOCUMENTO FICTÍCIO — SEM VALIDADE
+
+Nome: Pessoa Exemplo
+Identificador: TESTE-001
+Finalidade: Teste acadêmico do ShareCar
