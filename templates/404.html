@@ -1,0 +1,20 @@
+{% extends "core/page.html" %}
+{% block title %}Página não encontrada — ShareCar{% endblock %}
+{% block page_kicker %}ShareCar · Erro 404{% endblock %}
+{% block page_title %}Página não encontrada{% endblock %}
+{% block page_subtitle %}O endereço acessado não existe ou o anúncio não está disponível publicamente.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <section class="flow-panel flow-empty" aria-labelledby="erro-title">
+    <h2 id="erro-title">O que pode ter acontecido?</h2>
+    <ul>
+      <li>O endereço foi digitado incorretamente.</li>
+      <li>O veículo não está mais ativo, aprovado ou disponível.</li>
+      <li>A página foi movida para outro endereço.</li>
+    </ul>
+    <div class="flow-actions">
+      <a class="discovery-button" href="{% url 'core:resultados' %}">Ver veículos disponíveis</a>
+      <a class="btn btn-outline-secondary" href="{% url 'core:home' %}">Ir para o início</a>
+    </div>
+  </section>
+{% endblock %}

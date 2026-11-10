@@ -1,0 +1,36 @@
+{% extends "core/page.html" %}
+{% block title %}Alterar senha — ShareCar{% endblock %}
+{% block back_url %}{% url 'contas:perfil' %}{% endblock %}
+{% block back_label %}Meu perfil{% endblock %}
+{% block page_kicker %}ShareCar · Conta{% endblock %}
+{% block page_title %}Alterar senha{% endblock %}
+{% block page_subtitle %}Informe a senha atual e escolha uma nova.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="alterar-title">
+      <h2 id="alterar-title">Senha</h2>
+      {% if form.non_field_errors %}
+        <div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <form method="post" action="{% url 'contas:alterar_senha' %}" class="flow-fields" novalidate>
+        {% csrf_token %}
+        <label for="{{ form.old_password.id_for_label }}">Senha atual</label>
+        {{ form.old_password }}
+        {{ form.old_password.errors }}
+        <label for="{{ form.new_password1.id_for_label }}">Nova senha</label>
+        {{ form.new_password1 }}
+        {{ form.new_password1.errors }}
+        <label for="{{ form.new_password2.id_for_label }}">Confirmar nova senha</label>
+        {{ form.new_password2 }}
+        {{ form.new_password2.errors }}
+        <button class="discovery-button" type="submit">Alterar senha</button>
+      </form>
+    </section>
+    <aside class="flow-panel" aria-labelledby="alterar-ajuda-title">
+      <h2 id="alterar-ajuda-title">Proteção da conta</h2>
+      <p>Ao alterar a senha, sua sessão atual continua ativa. Use uma senha diferente das utilizadas em outros sites.</p>
+      <p class="flow-small"><a href="{% url 'contas:perfil' %}">Voltar ao perfil</a></p>
+    </aside>
+  </div>
+{% endblock %}

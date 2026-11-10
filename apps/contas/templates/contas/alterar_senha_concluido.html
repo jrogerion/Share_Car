@@ -1,0 +1,20 @@
+{% extends "core/page.html" %}
+{% block title %}Senha alterada — ShareCar{% endblock %}
+{% block back_url %}{% url 'contas:perfil' %}{% endblock %}
+{% block back_label %}Meu perfil{% endblock %}
+{% block page_kicker %}ShareCar · Conta{% endblock %}
+{% block page_title %}Senha alterada{% endblock %}
+{% block page_subtitle %}A nova senha já está em uso.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel" aria-labelledby="alterada-title">
+      <h2 id="alterada-title">Tudo certo</h2>
+      <p>Sua senha foi atualizada com sucesso.</p>
+      <div class="flow-actions">
+        <a class="discovery-button" href="{% url 'contas:painel' %}">Ir para o painel</a>
+        <a class="btn btn-outline-secondary" href="{% url 'contas:perfil' %}">Meu perfil</a>
+      </div>
+    </section>
+  </div>
+{% endblock %}

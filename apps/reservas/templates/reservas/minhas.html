@@ -1,0 +1,88 @@
+{% extends "core/page.html" %}
+{% block title %}Minhas reservas — ShareCar{% endblock %}
+{% block back_label %}Início{% endblock %}
+{% block page_kicker %}ShareCar · Reservas{% endblock %}
+{% block page_title %}Minhas reservas{% endblock %}
+{% block page_subtitle %}Solicitações como locatário e pedidos recebidos como proprietário.{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Sobre as reservas">
+    <i class="bi bi-calendar-check" aria-hidden="true"></i>
+    O período fica reservado assim que a solicitação é enviada. O proprietário pode aceitar ou recusar.
+  </aside>
+{% endblock %}
+{% block page_content %}
+  <section aria-labelledby="locatario-title">
+    <div class="flow-section-heading">
+      <h2 id="locatario-title">Como locatário</h2>
+      <span>{{ como_locatario|length }} reserva{{ como_locatario|length|pluralize }}</span>
+    </div>
+    <div class="flow-reservations">
+      {% for reserva in como_locatario %}
+        <article class="flow-panel">
+          <span class="flow-status {% if reserva.status == 'solicitada' %}flow-status-pending{% elif reserva.status == 'aceita' or reserva.status == 'em_andamento' %}flow-status-info{% elif reserva.status == 'recusada' or reserva.status == 'cancelada' %}flow-status-danger{% endif %}">{{ reserva.get_status_display }}</span>
+          <h2>{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}</h2>
+          <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diária{{ reserva.dias|pluralize }}</p>
+          <p><strong>R$ {{ reserva.total|floatformat:2 }}</strong></p>
+          <a class="discovery-button" href="{% url 'reservas:detalhe' reserva.pk %}">Ver reserva</a>
+        </article>
+      {% empty %}
+        <div class="flow-panel flow-empty" role="status">
+          <h2>Nenhuma reserva como locatário</h2>
+          <p>Encontre um veículo e informe o período para enviar uma solicitação.</p>
+          <a class="discovery-button" href="{% url 'core:resultados' %}">Buscar veículos</a>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section aria-labelledby="proprietario-title">
+    <div class="flow-section-heading">
+      <h2 id="proprietario-title">Como proprietário</h2>
+      <span>{{ como_proprietario|length }} solicitaç{{ como_proprietario|length|pluralize:"ão,ões" }}</span>
+    </div>
+    <div class="flow-reservations">
+      {% for reserva in como_proprietario %}
+        <article class="flow-panel">
+          <span class="flow-status {% if reserva.status == 'solicitada' %}flow-status-pending{% elif reserva.status == 'aceita' or reserva.status == 'em_andamento' %}flow-status-info{% elif reserva.status == 'recusada' or reserva.status == 'cancelada' %}flow-status-danger{% endif %}">{{ reserva.get_status_display }}</span>
+          <h2>{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}</h2>
+          <p>Locatário: {{ reserva.locatario.username }}</p>
+          <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diária{{ reserva.dias|pluralize }}</p>
+          <p><strong>R$ {{ reserva.total|floatformat:2 }}</strong></p>
+          <a class="discovery-button" href="{% url 'reservas:detalhe' reserva.pk %}">Analisar reserva</a>
+        </article>
+      {% empty %}
+        <div class="flow-panel flow-empty" role="status">
+          <h2>Nenhuma solicitação recebida</h2>
+          <p>Quando alguém solicitar um período para o seu veículo, a reserva aparecerá aqui.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section aria-labelledby="veiculos-title">
+    <div class="flow-section-heading">
+      <h2 id="veiculos-title">Meus veículos</h2>
+      <span>{{ meus_veiculos|length }} veículo{{ meus_veiculos|length|pluralize }}</span>
+    </div>
+    <div class="flow-reservations">
+      {% for veiculo in meus_veiculos %}
+        <article class="flow-panel">
+          <h2>{{ veiculo.categoria }} em {{ veiculo.cidade }}</h2>
+          <p>{{ veiculo.cambio }} · {{ veiculo.combustivel }} · {{ veiculo.passageiros }} lugares</p>
+          <p class="flow-small">Aprovação: {{ veiculo.get_aprovacao_display }}{% if not veiculo.ativo %} · inativo{% endif %}{% if veiculo.bloqueado %} · bloqueado{% endif %}</p>
+          <div class="flow-actions">
+            <a class="btn btn-outline-secondary" href="{% url 'reservas:agenda' veiculo.pk %}">Gerenciar disponibilidade</a>
+            {% if veiculo.ativo and veiculo.aprovacao == 'aprovado' and not veiculo.bloqueado %}
+              <a class="btn btn-outline-secondary" href="{% url 'core:detalhes' veiculo.pk %}">Ver anúncio</a>
+            {% endif %}
+          </div>
+        </article>
+      {% empty %}
+        <div class="flow-panel flow-empty" role="status">
+          <h2>Nenhum veículo cadastrado</h2>
+          <p>Os veículos do seu perfil aparecerão aqui para gerenciar a disponibilidade.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

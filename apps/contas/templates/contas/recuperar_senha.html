@@ -1,0 +1,28 @@
+{% extends "core/page.html" %}
+{% block title %}Recuperar senha — ShareCar{% endblock %}
+{% block back_url %}{% url 'core:entrar' %}{% endblock %}
+{% block back_label %}Entrar{% endblock %}
+{% block page_kicker %}ShareCar · Acesso à conta{% endblock %}
+{% block page_title %}Recuperar senha{% endblock %}
+{% block page_subtitle %}Informe o e-mail cadastrado para receber um link de redefinição.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="recuperar-title">
+      <h2 id="recuperar-title">Enviar link</h2>
+      <form method="post" action="{% url 'contas:recuperar_senha' %}" class="flow-fields" novalidate>
+        {% csrf_token %}
+        <label for="{{ form.email.id_for_label }}">E-mail</label>
+        {{ form.email }}
+        {{ form.email.errors }}
+        <button class="discovery-button" type="submit">Enviar link de recuperação</button>
+      </form>
+      <p class="flow-small"><a href="{% url 'core:entrar' %}">Voltar para o login</a></p>
+    </section>
+    <aside class="flow-panel" aria-labelledby="recuperar-ajuda-title">
+      <h2 id="recuperar-ajuda-title">Como funciona</h2>
+      <p>Se existir uma conta ativa com o e-mail informado, enviaremos um link com prazo limitado para criar uma nova senha.</p>
+      <p class="flow-small">Por segurança, não informamos se o e-mail está ou não cadastrado.</p>
+    </aside>
+  </div>
+{% endblock %}

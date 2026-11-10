@@ -1,0 +1,151 @@
+{% extends "core/page.html" %}
+{% block title %}Painel — ShareCar{% endblock %}
+{% block back_label %}Início{% endblock %}
+{% block page_kicker %}ShareCar · Painel{% endblock %}
+{% block page_title %}Olá, {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}{% endblock %}
+{% block page_subtitle %}Acompanhe suas reservas, anúncios e pendências em um só lugar.{% endblock %}
+{% block demo_notice %}
+  {% if not perfil_completo %}
+    <aside class="flow-notice" aria-label="Complete seu perfil">
+      <i class="bi bi-person-check" aria-hidden="true"></i>
+      Complete seu perfil com CNH e documento de identidade para agilizar análises.
+      <a href="{% url 'contas:perfil' %}">Completar perfil</a>.
+    </aside>
+  {% else %}
+    <aside class="flow-notice" aria-label="Sobre seus dados">
+      <i class="bi bi-shield-lock" aria-hidden="true"></i>
+      Seus documentos ficam em área privada e não são exibidos publicamente.
+    </aside>
+  {% endif %}
+{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <div class="flow-stack">
+      {% if user.locatario %}
+        <section aria-labelledby="painel-locatario-title">
+          <div class="flow-section-heading">
+            <h2 id="painel-locatario-title">Como locatário</h2>
+            <a class="flow-small" href="{% url 'reservas:minhas' %}">Ver minhas reservas</a>
+          </div>
+          <ul class="flow-metrics">
+            <li><strong>{{ resumo_locatario.total }}</strong><span>reservas registradas</span></li>
+            <li><strong>{{ resumo_locatario.solicitadas }}</strong><span>aguardando análise</span></li>
+            <li><strong>{{ resumo_locatario.ativas }}</strong><span>locações ativas</span></li>
+            <li><strong>{{ resumo_locatario.concluidas }}</strong><span>concluídas</span></li>
+          </ul>
+          <h3>Próximas locações</h3>
+          {% if proximas_locatario %}
+            <div class="flow-reservations">
+              {% for reserva in proximas_locatario %}
+                <article class="flow-panel">
+                  <span class="flow-status flow-status-info">{{ reserva.get_status_display }}</span>
+                  <h3>{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}</h3>
+                  <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diária{{ reserva.dias|pluralize }}</p>
+                  <a class="btn btn-outline-secondary" href="{% url 'reservas:detalhe' reserva.pk %}">Ver reserva</a>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="flow-panel flow-empty" role="status">
+              <h2>Nenhuma locação ativa</h2>
+              <p>Encontre um veículo e envie uma solicitação para o período desejado.</p>
+              <a class="discovery-button" href="{% url 'core:resultados' %}">Buscar veículos</a>
+            </div>
+          {% endif %}
+        </section>
+      {% endif %}
+
+      {% if user.proprietario %}
+        <section aria-labelledby="painel-proprietario-title">
+          <div class="flow-section-heading">
+            <h2 id="painel-proprietario-title">Como proprietário</h2>
+            <a class="flow-small" href="{% url 'reservas:minhas' %}">Ver solicitações recebidas</a>
+          </div>
+          <ul class="flow-metrics">
+            <li><strong>{{ resumo_veiculos.total }}</strong><span>veículos cadastrados</span></li>
+            <li><strong>{{ resumo_veiculos.publicados }}</strong><span>publicados</span></li>
+            <li><strong>{{ resumo_proprietario.quantidade }}</strong><span>reservas recebidas</span></li>
+            <li><strong>{{ resumo_proprietario.pendentes }}</strong><span>aguardando análise</span></li>
+            <li><strong>{{ resumo_proprietario.ativas }}</strong><span>locações ativas</span></li>
+          </ul>
+          <p class="flow-small">Valor contratado em locações aceitas, em andamento ou concluídas: <strong>R$ {{ resumo_proprietario.valor_contratado|floatformat:2 }}</strong>.</p>
+
+          {% if solicitacoes_pendentes %}
+            <section class="flow-panel" aria-labelledby="pendentes-title">
+              <h2 id="pendentes-title">Solicitações aguardando análise</h2>
+              <div class="flow-reservations">
+                {% for reserva in solicitacoes_pendentes %}
+                  <article class="flow-panel">
+                    <span class="flow-status flow-status-pending">{{ reserva.get_status_display }}</span>
+                    <h3>{{ reserva.veiculo.categoria }} · {{ reserva.locatario.username }}</h3>
+                    <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }}</p>
+                    <a class="discovery-button" href="{% url 'reservas:detalhe' reserva.pk %}">Analisar solicitação</a>
+                  </article>
+                {% endfor %}
+              </div>
+            </section>
+          {% endif %}
+
+          <h3>Próximas locações</h3>
+          {% if proximas_proprietario %}
+            <div class="flow-reservations">
+              {% for reserva in proximas_proprietario %}
+                <article class="flow-panel">
+                  <span class="flow-status flow-status-info">{{ reserva.get_status_display }}</span>
+                  <h3>{{ reserva.veiculo.categoria }} para {{ reserva.locatario.username }}</h3>
+                  <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }}</p>
+                  <a class="btn btn-outline-secondary" href="{% url 'reservas:detalhe' reserva.pk %}">Ver reserva</a>
+                </article>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="flow-actions">
+            {% if resumo_veiculos.total %}
+              <a class="btn btn-outline-secondary" href="{% url 'veiculos:meus' %}">Meus veículos</a>
+            {% else %}
+              <a class="discovery-button" href="{% url 'core:veiculo' %}">Anunciar meu primeiro veículo</a>
+            {% endif %}
+          </div>
+        </section>
+      {% endif %}
+
+      {% if not user.locatario and not user.proprietario %}
+        <section class="flow-panel flow-empty" aria-labelledby="sem-papel-title">
+          <h2 id="sem-papel-title">Defina como você usa o ShareCar</h2>
+          <p>Escolha no perfil se quer alugar veículos, anunciar o seu ou as duas opções.</p>
+          <a class="discovery-button" href="{% url 'contas:perfil' %}">Configurar perfil</a>
+        </section>
+      {% endif %}
+    </div>
+
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="conta-painel-title">
+        <h2 id="conta-painel-title">Sua conta</h2>
+        <p class="flow-small">Usuário: <strong>{{ user.username }}</strong></p>
+        <p class="flow-small">E-mail: <strong>{{ user.email|default:"não informado" }}</strong></p>
+        <p class="flow-small">Documento: <strong>{{ user.get_aprovacao_documento_display }}</strong>{% if not user.documento_identidade %} · não enviado{% endif %}</p>
+        <p class="flow-small">CNH: <strong>{{ user.get_aprovacao_cnh_display }}</strong>{% if not user.cnh_numero %} · não informada{% endif %}</p>
+        <div class="flow-actions">
+          <a class="btn btn-outline-secondary" href="{% url 'contas:perfil' %}">Editar perfil</a>
+          <a class="btn btn-outline-secondary" href="{% url 'contas:alterar_senha' %}">Alterar senha</a>
+        </div>
+      </section>
+      {% if user.is_staff %}
+        <section class="flow-panel" aria-labelledby="admin-painel-title">
+          <h2 id="admin-painel-title">Administração</h2>
+          <p class="flow-small">Aprove documentos, CNHs e veículos, controle bloqueios e configure a comissão.</p>
+          <a class="discovery-button" href="{% url 'administracao:painel' %}">Abrir painel administrativo</a>
+        </section>
+      {% endif %}
+      <section class="flow-panel" aria-labelledby="painel-dicas-title">
+        <h2 id="painel-dicas-title">Próximos passos</h2>
+        <ul class="flow-timeline">
+          <li>Mantenha a disponibilidade do veículo atualizada na agenda.</li>
+          <li>Acompanhe as solicitações pendentes para responder com agilidade.</li>
+          <li>Mantenha CNH e documento atualizados para evitar bloqueios na análise.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+{% endblock %}

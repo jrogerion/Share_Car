@@ -139,6 +139,21 @@ a {
   font-weight: 600;
 }
 
+.navigation-profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 44px;
+  border-radius: var(--sc-radius-control);
+  text-decoration: none;
+}
+
+.navigation-profile:hover,
+.navigation-profile:focus-visible {
+  background: var(--sc-teal-light);
+}
+
 .navigation-account form {
   margin: 0;
 }
@@ -178,6 +193,8 @@ a {
   font-size: .9rem;
   font-weight: 700;
   line-height: 1.4;
+  font-family: inherit;
+  cursor: pointer;
   text-decoration: none;
   transition: background-color var(--sc-transition), box-shadow var(--sc-transition);
 }
@@ -198,8 +215,26 @@ a {
   box-shadow: none;
 }
 
+.discovery-button:disabled {
+  opacity: .75;
+  cursor: progress;
+}
+
+.discovery-button [hidden] {
+  display: none;
+}
+
 .site-navbar .btn-brand {
   min-height: 44px;
+}
+
+.nav-logout-form { display: contents; }
+
+.nav-logout-button {
+  background: none;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .btn-outline-secondary {

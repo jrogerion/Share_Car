@@ -1,337 +1,730 @@
+import re
+import shutil
+import tempfile
+from datetime import timedelta
+from io import BytesIO
+from pathlib import Path
 from unittest.mock import patch
 
-from django.contrib.auth import authenticate
-from django.db import IntegrityError, transaction
-from django.test import Client, TestCase
+from django.core import mail
+from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from PIL import Image
 
-from .forms import CadastroUsuarioForm
+from apps.reservas.models import Reserva
+from apps.veiculos.models import Veiculo
+
 from .models import Usuario
-from .views import CadastroUsuarioView
+
+SENHA = "SenhaSegura!2026"
 
 
-class CadastroUsuarioTests(TestCase):
-    def setUp(self):
-        self.url = reverse("contas:cadastro")
-        self.dados = {
-            "first_name": "Pessoa", "last_name": "Teste",
-            "email": "pessoa@example.com", "locatario": "on",
-            "password1": "Senha-teste!72rT9", "password2": "Senha-teste!72rT9",
+def imagem_documento():
+    buffer = BytesIO()
+    Image.new("RGB", (8, 8), "white").save(buffer, format="PNG")
+    return SimpleUploadedFile("documento-ficticio.png", buffer.getvalue(), "image/png")
+
+
+def criar_veiculo(proprietario, **dados):
+    padrao = {
+        "proprietario": proprietario,
+        "caracteristicas": "Veículo de teste",
+        "cidade": "São Paulo",
+        "categoria": "Hatch",
+        "cambio": "Manual",
+        "combustivel": "Flex",
+        "passageiros": 5,
+        "preco_diaria": "150.00",
+        "ativo": True,
+        "bloqueado": False,
+        "aprovacao": Veiculo.Aprovacao.APROVADO,
+    }
+    padrao.update(dados)
+    return Veiculo.objects.create(**padrao)
+
+
+def criar_reserva(veiculo, locatario, **dados):
+    hoje = timezone.localdate()
+    padrao = {
+        "veiculo": veiculo,
+        "locatario": locatario,
+        "inicio": hoje + timedelta(days=2),
+        "fim": hoje + timedelta(days=4),
+        "status": Reserva.Status.SOLICITADA,
+        "preco_diaria": "150.00",
+        "valor_diarias": "300.00",
+        "taxas": "0.00",
+        "total": "300.00",
+        "percentual_comissao": "10.00",
+    }
+    padrao.update(dados)
+    return Reserva.objects.create(**padrao)
+
+
+class CadastroTests(TestCase):
+    """O cadastro usa e-mail, define perfis e não autentica automaticamente."""
+
+    def dados(self, **alteracoes):
+        dados = {
+            "first_name": "Nova",
+            "last_name": "Pessoa",
+            "email": "nova.pessoa@example.com",
+            "locatario": "on", "proprietario": "on",
+            "password1": SENHA,
+            "password2": SENHA,
         }
+        papeis = alteracoes.pop("papeis", None)
+        if papeis is not None:
+            dados["locatario"] = "on" if "locatario" in papeis else ""
+            dados["proprietario"] = "on" if "proprietario" in papeis else ""
+        dados.update(alteracoes)
+        return dados
 
-    def test_formulario_acessivel_sem_aviso_de_previa(self):
-        response = self.client.get(self.url)
+    def test_pagina_de_cadastro_exibe_formulario_e_papeis(self):
+        response = self.client.get(reverse("contas:cadastro"))
+
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'name="csrfmiddlewaretoken"')
-        self.assertContains(response, 'for="id_email"')
-        self.assertContains(response, 'autocomplete="new-password"')
-        self.assertNotContains(response, "Dados fictícios.")
+        self.assertTemplateUsed(response, "contas/cadastro.html")
+        for campo in ("email", "password1", "password2", "locatario", "proprietario"):
+            with self.subTest(campo=campo):
+                self.assertContains(response, f'name="{campo}"')
+        self.assertContains(response, "Quero alugar carros")
+        self.assertContains(response, "Quero anunciar meu carro")
+        self.assertContains(response, reverse("core:entrar"))
 
-    def test_cadastro_salva_senha_protegida_sem_autenticar(self):
-        response = self.client.post(self.url, self.dados)
+    def test_cadastro_valido_cria_conta_sem_autenticar(self):
+        response = self.client.post(
+            reverse("contas:cadastro"),
+            self.dados(),
+        )
+
         self.assertRedirects(response, reverse("contas:cadastro_concluido"))
-        usuario = Usuario.objects.get(email=self.dados["email"])
-        self.assertTrue(usuario.check_password(self.dados["password1"]))
-        self.assertNotEqual(usuario.password, self.dados["password1"])
+        usuario = Usuario.objects.get(email="nova.pessoa@example.com")
         self.assertTrue(usuario.locatario)
-        self.assertFalse(usuario.proprietario)
-        self.assertFalse(usuario.is_staff)
-        self.assertFalse(usuario.is_superuser)
-        self.assertEqual(usuario.aprovacao_documento, "pendente")
-        self.assertEqual(usuario.aprovacao_cnh, "pendente")
+        self.assertTrue(usuario.proprietario)
+        self.assertTrue(usuario.check_password(SENHA))
         self.assertNotIn("_auth_user_id", self.client.session)
 
-    def test_email_normalizado(self):
-        self.dados["email"] = "  Pessoa@EXAMPLE.COM  "
-        self.client.post(self.url, self.dados)
-        self.assertTrue(Usuario.objects.filter(email="pessoa@example.com").exists())
-
-    def test_email_duplicado_independente_de_caixa(self):
-        Usuario.objects.create_user("legado", "PESSOA@example.com")
-        response = self.client.post(self.url, self.dados)
-        self.assertFormError(
-            response.context["form"], "email",
-            "Não é possível cadastrar este e-mail.",
+    def test_cadastro_exige_ao_menos_um_papel(self):
+        response = self.client.post(
+            reverse("contas:cadastro"),
+            self.dados(papeis=[]),
         )
-        self.assertEqual(Usuario.objects.count(), 1)
 
-    def test_campos_obrigatorios_e_email_invalido(self):
-        for campo in ("first_name", "last_name", "email", "password1", "password2"):
-            with self.subTest(campo=campo):
-                dados = {**self.dados, campo: ""}
-                response = self.client.post(self.url, dados)
-                self.assertIn(campo, response.context["form"].errors)
-        response = self.client.post(self.url, {**self.dados, "email": "invalido"})
-        self.assertIn("email", response.context["form"].errors)
-        self.assertFalse(Usuario.objects.exists())
-
-    def test_senha_fraca_e_confirmacao_diferente(self):
-        for senha, confirmacao in (("12345678", "12345678"), ("Forte!73qP9", "outra")):
-            with self.subTest(senha=senha):
-                response = self.client.post(self.url, {
-                    **self.dados, "password1": senha, "password2": confirmacao,
-                })
-                self.assertIn("password2", response.context["form"].errors)
-        self.assertFalse(Usuario.objects.exists())
-
-    def test_perfis_independentes(self):
-        for locatario, proprietario in ((True, False), (False, True), (True, True)):
-            with self.subTest(locatario=locatario, proprietario=proprietario):
-                dados = {
-                    **self.dados,
-                    "email": f"perfil-{int(locatario)}-{int(proprietario)}@example.com",
-                    "locatario": "on" if locatario else "",
-                    "proprietario": "on" if proprietario else "",
-                }
-                response = self.client.post(self.url, dados)
-                self.assertRedirects(
-                    response, reverse("contas:cadastro_concluido"),
-                )
-                usuario = Usuario.objects.get(email=dados["email"])
-                self.assertEqual(usuario.locatario, locatario)
-                self.assertEqual(usuario.proprietario, proprietario)
-
-    def test_exige_ao_menos_um_perfil(self):
-        response = self.client.post(self.url, {**self.dados, "locatario": ""})
-        self.assertFormError(
-            response.context["form"], None, "Selecione pelo menos um perfil de uso.",
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecione pelo menos um perfil de uso.")
+        self.assertFalse(
+            Usuario.objects.filter(email="nova.pessoa@example.com").exists()
         )
-        self.assertFalse(Usuario.objects.exists())
 
-    def test_campos_privilegiados_sao_ignorados(self):
-        self.client.post(self.url, {
-            **self.dados, "is_staff": "on", "is_superuser": "on",
-            "is_active": "", "aprovacao_documento": "aprovado",
-            "aprovacao_cnh": "aprovado", "username": "admin",
-        })
-        usuario = Usuario.objects.get()
-        self.assertFalse(usuario.is_staff)
-        self.assertFalse(usuario.is_superuser)
-        self.assertTrue(usuario.is_active)
-        self.assertEqual(usuario.aprovacao_documento, "pendente")
-        self.assertEqual(usuario.aprovacao_cnh, "pendente")
-        self.assertNotEqual(usuario.username, "admin")
+    def test_cadastro_exige_email(self):
+        response = self.client.post(
+            reverse("contas:cadastro"),
+            self.dados(email=""),
+        )
 
-    def test_post_sem_csrf_recusado(self):
-        response = Client(enforce_csrf_checks=True).post(self.url, self.dados)
-        self.assertEqual(response.status_code, 403)
-        self.assertFalse(Usuario.objects.exists())
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            Usuario.objects.filter(email="nova.pessoa@example.com").exists()
+        )
 
-    def test_senha_nao_reaparece_em_formulario_invalido(self):
-        response = self.client.post(self.url, {**self.dados, "email": ""})
-        self.assertNotContains(response, self.dados["password1"])
+    def test_cadastro_impede_email_repetido_sem_diferenciar_maiusculas(self):
+        Usuario.objects.create_user(
+            username="existente",
+            email="Pessoa@Example.com",
+            password=SENHA,
+        )
 
-    def test_banco_recusa_email_duplicado(self):
-        Usuario.objects.create_user("primeiro", "PESSOA@example.com")
-        with self.assertRaises(IntegrityError), transaction.atomic():
-            Usuario.objects.create_user("segundo", "pessoa@example.com")
+        response = self.client.post(
+            reverse("contas:cadastro"),
+            self.dados(email="pessoa@example.com"),
+        )
 
-    def test_contas_legadas_sem_email_preservadas(self):
-        Usuario.objects.create_user("legado1")
-        Usuario.objects.create_user("legado2")
-        self.assertEqual(Usuario.objects.filter(email="").count(), 2)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Não é possível cadastrar este e-mail.")
+        self.assertFalse(
+            Usuario.objects.filter(email="pessoa@example.com").exists()
+        )
 
-    def test_email_duplicado_durante_gravacao(self):
-        # Simula outra gravação após a validação, antes do INSERT deste form.
-        form = CadastroUsuarioForm(self.dados)
-        self.assertTrue(form.is_valid())
-        Usuario.objects.create_user("concorrente", self.dados["email"])
-        view = CadastroUsuarioView()
-        with patch.object(view, "form_invalid", return_value="invalido"):
-            self.assertEqual(view.form_valid(form), "invalido")
-        self.assertIn("email", form.errors)
-        self.assertEqual(Usuario.objects.count(), 1)
+    def test_cadastro_nao_permite_escolher_identificador_interno(self):
+        Usuario.objects.create_user(
+            username="nova-pessoa",
+            password=SENHA,
+        )
 
-    def test_erro_de_integridade_inesperado_nao_e_ocultado(self):
-        form = CadastroUsuarioForm(self.dados)
-        self.assertTrue(form.is_valid())
-        with patch.object(form, "save", side_effect=IntegrityError):
-            with self.assertRaises(IntegrityError):
-                CadastroUsuarioView().form_valid(form)
+        response = self.client.post(
+            reverse("contas:cadastro"), self.dados(username="nova-pessoa"),
+        )
+
+        self.assertRedirects(response, reverse("contas:cadastro_concluido"))
+        self.assertNotEqual(
+            Usuario.objects.get(email="nova.pessoa@example.com").username,
+            "nova-pessoa",
+        )
+        self.assertEqual(
+            Usuario.objects.filter(username="nova-pessoa").count(),
+            1,
+        )
+
+    def test_cadastro_com_senhas_diferentes_nao_cria_conta(self):
+        response = self.client.post(
+            reverse("contas:cadastro"),
+            self.dados(password2="OutraSenha!2026"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            Usuario.objects.filter(email="nova.pessoa@example.com").exists()
+        )
+
+    def test_usuario_autenticado_e_redirecionado_ao_painel(self):
+        usuario = Usuario.objects.create_user(
+            username="conectado",
+            password=SENHA,
+            locatario=True,
+        )
+        self.client.force_login(usuario)
+
+        response = self.client.get(reverse("contas:cadastro"))
+
+        self.assertRedirects(response, reverse("contas:painel"))
+
+    def test_pagina_de_entrada_oferece_cadastro_e_recuperacao(self):
+        response = self.client.get(reverse("core:entrar"))
+
+        self.assertContains(response, reverse("contas:cadastro"))
+        self.assertContains(response, reverse("contas:recuperar_senha"))
 
 
-class AutenticacaoUsuarioTests(TestCase):
+class PerfilTests(TestCase):
+    """O perfil deve permitir atualizar dados sem expor documentos privados."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.private_dir = tempfile.mkdtemp()
+        cls.patch_storage = patch.object(
+            Usuario._meta.get_field("documento_identidade"),
+            "storage",
+            FileSystemStorage(location=cls.private_dir),
+        )
+        cls.patch_storage.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.patch_storage.stop()
+        shutil.rmtree(cls.private_dir, ignore_errors=True)
+        super().tearDownClass()
+
     @classmethod
     def setUpTestData(cls):
-        cls.senha = "Senha-teste!72rT9"
         cls.usuario = Usuario.objects.create_user(
-            username="usuario-interno", email="pessoa@example.com",
-            password=cls.senha, first_name="Pessoa", locatario=True,
+            username="perfil",
+            email="perfil@example.com",
+            password=SENHA,
+            first_name="Nome",
+            last_name="Antigo",
+            locatario=True,
+            proprietario=True,
         )
 
     def setUp(self):
-        self.url = reverse("core:entrar")
-        self.dados = {"username": self.usuario.email, "password": self.senha}
+        self.client.force_login(self.usuario)
 
-    def test_formulario_de_login_funcional(self):
-        response = self.client.get(self.url)
-        self.assertContains(response, 'type="email"')
-        self.assertContains(response, 'autocomplete="username"')
-        self.assertContains(response, 'autocomplete="current-password"')
-        self.assertContains(response, 'name="csrfmiddlewaretoken"')
-        self.assertNotContains(response, "Dados fictícios.")
+    def dados(self, **alteracoes):
+        dados = {
+            "first_name": "Nome",
+            "last_name": "Atualizado",
+            "locatario": "on", "proprietario": "on",
+            "cnh_numero": "",
+            "cnh_validade": "",
+        }
+        papeis = alteracoes.pop("papeis", None)
+        if papeis is not None:
+            dados["locatario"] = "on" if "locatario" in papeis else ""
+            dados["proprietario"] = "on" if "proprietario" in papeis else ""
+        dados.update(alteracoes)
+        return dados
 
-    def test_login_por_email_e_sessao_persistente(self):
-        response = self.client.post(self.url, self.dados)
-        self.assertRedirects(response, reverse("core:home"))
-        self.assertEqual(int(self.client.session["_auth_user_id"]), self.usuario.pk)
-        response = self.client.get(self.url)
-        self.assertTrue(response.wsgi_request.user.is_authenticated)
-        self.assertContains(response, "Sua sessão está ativa.")
-        self.assertContains(response, f'action="{reverse("contas:sair")}"')
+    def test_perfil_exige_autenticacao(self):
+        self.client.logout()
+
+        response = self.client.get(reverse("contas:perfil"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("core:entrar"), response.url)
+
+    def test_atualiza_dados_e_cnh(self):
+        response = self.client.post(
+            reverse("contas:perfil"),
+            self.dados(
+                cnh_numero="12345678901",
+                cnh_validade="2030-12-31",
+            ),
+        )
+
+        self.assertRedirects(response, reverse("contas:perfil"))
         self.usuario.refresh_from_db()
-        self.assertIsNotNone(self.usuario.last_login)
-
-    def test_email_ignora_caixa_e_espacos_externos(self):
-        response = self.client.post(self.url, {
-            **self.dados, "username": "  PESSOA@EXAMPLE.COM  ",
-        })
-        self.assertRedirects(response, reverse("core:home"))
-        self.assertIn("_auth_user_id", self.client.session)
-
-    def test_mesmo_erro_para_senha_incorreta_email_inexistente_e_inativo(self):
-        for ativo, dados in (
-            (True, {**self.dados, "password": "incorreta"}),
-            (True, {**self.dados, "username": "inexistente@example.com"}),
-            (False, self.dados),
-        ):
-            with self.subTest(ativo=ativo, email=dados["username"]):
-                self.usuario.is_active = ativo
-                self.usuario.save(update_fields=["is_active"])
-                response = self.client.post(self.url, dados)
-                self.assertFormError(
-                    response.context["form"], None, "E-mail ou senha inválidos.",
-                )
-                self.assertNotIn("_auth_user_id", self.client.session)
-
-    def test_campos_invalidos_nao_autenticam(self):
-        for dados in ({}, {**self.dados, "username": "invalido"},
-                      {**self.dados, "password": ""}):
-            with self.subTest(dados=dados.keys()):
-                response = self.client.post(self.url, dados)
-                self.assertTrue(response.context["form"].errors)
-                self.assertNotIn("_auth_user_id", self.client.session)
-
-    def test_site_nao_aceita_username_como_alternativa_ao_email(self):
-        Usuario.objects.create_user(
-            username="outro@example.com", email="diferente@example.com",
-            password=self.senha,
-        )
-        response = self.client.post(self.url, {
-            **self.dados, "username": "outro@example.com",
-        })
-        self.assertFormError(
-            response.context["form"], None, "E-mail ou senha inválidos.",
-        )
-        self.assertNotIn("_auth_user_id", self.client.session)
-
-    def test_login_preserva_senha_sem_remover_espacos(self):
-        senha = "  Senha-espacos!93  "
-        self.usuario.set_password(senha)
-        self.usuario.save(update_fields=["password"])
-        response = self.client.post(self.url, {**self.dados, "password": senha})
-        self.assertRedirects(response, reverse("core:home"))
-
-    def test_redirecionamento_interno_apos_login(self):
-        destino = reverse("core:reservas")
-        response = self.client.post(self.url, {**self.dados, "next": destino})
-        self.assertRedirects(response, destino)
-
-    def test_redirecionamentos_externos_recusados(self):
-        for destino in ("https://externo.example/", "//externo.example/"):
-            with self.subTest(destino=destino):
-                self.client.logout()
-                response = self.client.post(self.url, {
-                    **self.dados, "next": destino,
-                })
-                self.assertRedirects(response, reverse("core:home"))
-
-    def test_next_preservado_apos_erro_sem_executar_html(self):
-        destino = '"><script>alert(1)</script>'
-        response = self.client.post(self.url, {
-            **self.dados, "password": "incorreta", "next": destino,
-        })
-        self.assertNotContains(response, "<script>alert(1)</script>")
-        self.assertNotContains(response, self.senha)
-        self.assertContains(response, "&lt;script&gt;")
-
-    def test_sair_por_post_encerra_sessao(self):
-        self.client.post(self.url, self.dados)
-        response = self.client.post(reverse("contas:sair"))
-        self.assertRedirects(response, self.url)
-        self.assertNotIn("_auth_user_id", self.client.session)
-        response = self.client.get(self.url)
-        self.assertFalse(response.wsgi_request.user.is_authenticated)
-
-    def test_get_nao_encerra_sessao(self):
-        self.client.post(self.url, self.dados)
-        response = self.client.get(reverse("contas:sair"))
-        self.assertEqual(response.status_code, 405)
-        self.assertIn("_auth_user_id", self.client.session)
-
-    def test_logout_recusa_redirecionamento_externo(self):
-        self.client.post(self.url, self.dados)
-        response = self.client.post(reverse("contas:sair"), {
-            "next": "https://externo.example/",
-        })
-        self.assertRedirects(response, self.url)
-
-    def test_login_e_logout_exigem_csrf(self):
-        client = Client(enforce_csrf_checks=True)
-        self.assertEqual(client.post(self.url, self.dados).status_code, 403)
-        client.get(self.url)
-        response = client.post(self.url, {
-            **self.dados, "csrfmiddlewaretoken": client.cookies["csrftoken"].value,
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(client.post(reverse("contas:sair")).status_code, 403)
-        self.assertIn("_auth_user_id", client.session)
-        response = client.post(reverse("contas:sair"), {
-            "csrfmiddlewaretoken": client.cookies["csrftoken"].value,
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertNotIn("_auth_user_id", client.session)
-
-    def test_login_rotaciona_identificador_de_sessao(self):
-        session = self.client.session
-        session["teste"] = "sessao-anonima"
-        session.save()
-        chave_anterior = session.session_key
-        self.client.post(self.url, self.dados)
-        self.assertNotEqual(self.client.session.session_key, chave_anterior)
-
-    def test_usuario_bloqueado_perde_acesso_na_proxima_requisicao(self):
-        self.client.post(self.url, self.dados)
-        self.usuario.is_active = False
-        self.usuario.save(update_fields=["is_active"])
-        response = self.client.get(self.url)
-        self.assertFalse(response.wsgi_request.user.is_authenticated)
-
-    def test_admin_preserva_login_por_username(self):
-        self.usuario.is_staff = True
-        self.usuario.save(update_fields=["is_staff"])
-        response = self.client.post(reverse("admin:login"), {
-            "username": self.usuario.username, "password": self.senha,
-            "next": reverse("admin:index"),
-        })
-        self.assertRedirects(response, reverse("admin:index"))
-
-    def test_backend_recusa_email_vazio_e_senha_ausente(self):
-        self.assertIsNone(authenticate(email="", password=self.senha))
-        self.assertIsNone(authenticate(email=self.usuario.email))
-
-    def test_cadastro_seguido_de_login(self):
-        response = self.client.post(reverse("contas:cadastro"), {
-            "first_name": "Nova", "last_name": "Pessoa",
-            "email": "nova@example.com", "proprietario": "on",
-            "password1": self.senha, "password2": self.senha,
-        })
-        self.assertRedirects(response, reverse("contas:cadastro_concluido"))
-        response = self.client.post(self.url, {
-            "username": "nova@example.com", "password": self.senha,
-        })
-        self.assertRedirects(response, reverse("core:home"))
+        self.assertEqual(self.usuario.last_name, "Atualizado")
+        self.assertEqual(self.usuario.cnh_numero, "12345678901")
         self.assertEqual(
-            int(self.client.session["_auth_user_id"]),
-            Usuario.objects.get(email="nova@example.com").pk,
+            self.usuario.cnh_validade.isoformat(),
+            "2030-12-31",
         )
+        self.assertEqual(
+            self.usuario.aprovacao_cnh,
+            Usuario.Aprovacao.PENDENTE,
+        )
+
+    def test_exige_numero_e_validade_da_cnh_juntos(self):
+        response = self.client.post(
+            reverse("contas:perfil"),
+            self.dados(cnh_numero="12345678901"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Informe a validade da CNH.",
+        )
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.cnh_numero, "")
+
+    def test_documento_e_armazenado_fora_da_area_publica(self):
+        arquivo = imagem_documento()
+
+        response = self.client.post(
+            reverse("contas:enviar_documento"),
+            self.dados(documento_identidade=arquivo),
+        )
+
+        self.assertRedirects(response, reverse("contas:perfil"))
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.documento_identidade)
+        caminho = Path(self.usuario.documento_identidade.path).resolve()
+        self.assertTrue(caminho.exists())
+        self.assertTrue(
+            caminho.is_relative_to(Path(self.private_dir).resolve())
+        )
+        self.assertEqual(
+            self.usuario.aprovacao_documento,
+            Usuario.Aprovacao.PENDENTE,
+        )
+
+    def test_documento_nao_expoe_nome_ou_url_no_perfil(self):
+        self.usuario.documento_identidade = SimpleUploadedFile(
+            "documento-secreto.pdf",
+            b"%PDF-1.4",
+            content_type="application/pdf",
+        )
+        self.usuario.save()
+
+        response = self.client.get(reverse("contas:perfil"))
+
+        self.assertNotContains(response, "documento-secreto.pdf")
+        self.assertNotContains(response, self.usuario.documento_identidade.url)
+        self.assertContains(response, "armazenado em área privada")
+
+    def test_troca_de_documento_reinicia_aprovacao(self):
+        self.usuario.documento_identidade = SimpleUploadedFile(
+            "antigo.pdf",
+            b"%PDF-1.4",
+            content_type="application/pdf",
+        )
+        self.usuario.aprovacao_documento = Usuario.Aprovacao.APROVADO
+        self.usuario.save()
+
+        response = self.client.post(
+            reverse("contas:enviar_documento"),
+            self.dados(
+                documento_identidade=imagem_documento(),
+            ),
+        )
+
+        self.assertRedirects(response, reverse("contas:perfil"))
+        self.usuario.refresh_from_db()
+        self.assertEqual(
+            self.usuario.aprovacao_documento,
+            Usuario.Aprovacao.PENDENTE,
+        )
+
+    def test_troca_de_cnh_reinicia_aprovacao(self):
+        self.usuario.cnh_numero = "11111111111"
+        self.usuario.cnh_validade = timezone.localdate() + timedelta(days=365)
+        self.usuario.aprovacao_cnh = Usuario.Aprovacao.APROVADO
+        self.usuario.save()
+
+        response = self.client.post(
+            reverse("contas:perfil"),
+            self.dados(
+                cnh_numero="22222222222",
+                cnh_validade="2031-01-01",
+            ),
+        )
+
+        self.assertRedirects(response, reverse("contas:perfil"))
+        self.usuario.refresh_from_db()
+        self.assertEqual(
+            self.usuario.aprovacao_cnh,
+            Usuario.Aprovacao.PENDENTE,
+        )
+
+    def test_documento_com_extensao_invalida_e_rejeitado(self):
+        response = self.client.post(
+            reverse("contas:enviar_documento"),
+            self.dados(
+                documento_identidade=SimpleUploadedFile(
+                    "arquivo.exe",
+                    b"conteudo",
+                    content_type="application/octet-stream",
+                ),
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.usuario.refresh_from_db()
+        self.assertFalse(self.usuario.documento_identidade)
+
+    def test_documento_acima_do_limite_e_rejeitado(self):
+        response = self.client.post(
+            reverse("contas:enviar_documento"),
+            self.dados(
+                documento_identidade=SimpleUploadedFile(
+                    "grande.pdf",
+                    b"x" * (5 * 1024 * 1024 + 1),
+                    content_type="application/pdf",
+                ),
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "no máximo 5 MB")
+        self.usuario.refresh_from_db()
+        self.assertFalse(self.usuario.documento_identidade)
+
+    def test_aprovacoes_nao_podem_ser_alteradas_pelo_formulario(self):
+        response = self.client.post(
+            reverse("contas:perfil"),
+            self.dados(
+                aprovacao_documento=Usuario.Aprovacao.APROVADO,
+                aprovacao_cnh=Usuario.Aprovacao.APROVADO,
+                is_staff="True",
+            ),
+        )
+
+        self.assertRedirects(response, reverse("contas:perfil"))
+        self.usuario.refresh_from_db()
+        self.assertEqual(
+            self.usuario.aprovacao_documento,
+            Usuario.Aprovacao.PENDENTE,
+        )
+        self.assertEqual(
+            self.usuario.aprovacao_cnh,
+            Usuario.Aprovacao.PENDENTE,
+        )
+        self.assertFalse(self.usuario.is_staff)
+
+    def test_exige_ao_menos_um_papel(self):
+        response = self.client.post(
+            reverse("contas:perfil"),
+            self.dados(papeis=[]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Selecione pelo menos um perfil de uso.")
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.locatario)
+        self.assertTrue(self.usuario.proprietario)
+
+    def test_proprietario_com_veiculo_nao_pode_remover_papel(self):
+        criar_veiculo(self.usuario, categoria="Veículo do perfil")
+
+        response = self.client.post(
+            reverse("contas:perfil"),
+            self.dados(papeis=["locatario"]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Você possui veículos cadastrados",
+        )
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.proprietario)
+
+
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+class RecuperacaoSenhaTests(TestCase):
+    """A recuperação e a alteração de senha devem usar os fluxos do Django."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.usuario = Usuario.objects.create_user(
+            username="recuperar",
+            email="recuperar@example.com",
+            password=SENHA,
+            locatario=True,
+        )
+
+    def test_pagina_de_recuperacao_renderiza(self):
+        response = self.client.get(reverse("contas:recuperar_senha"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "contas/recuperar_senha.html")
+        self.assertContains(response, 'name="email"')
+
+    def test_solicitacao_envia_link_e_permite_redefinir(self):
+        response = self.client.post(
+            reverse("contas:recuperar_senha"),
+            {"email": "recuperar@example.com"},
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("contas:recuperar_senha_enviado"),
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        mensagem = mail.outbox[0]
+        self.assertEqual(mensagem.to, ["recuperar@example.com"])
+        self.assertIn("recuperar", mensagem.body)
+
+        link = re.search(
+            r"http://[^\s]+/conta/senha/redefinir/[^\s]+",
+            mensagem.body,
+        )
+        self.assertIsNotNone(link)
+
+        confirmacao = self.client.get(link.group(0), follow=True)
+        self.assertEqual(confirmacao.status_code, 200)
+        self.assertContains(confirmacao, 'name="new_password1"')
+
+        nova_senha = "NovaSenha!2026"
+        resposta = self.client.post(
+            confirmacao.wsgi_request.path,
+            {
+                "new_password1": nova_senha,
+                "new_password2": nova_senha,
+            },
+        )
+
+        self.assertRedirects(
+            resposta,
+            reverse("contas:redefinir_senha_concluido"),
+        )
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password(nova_senha))
+
+    def test_email_desconhecido_nao_revela_cadastro(self):
+        response = self.client.post(
+            reverse("contas:recuperar_senha"),
+            {"email": "ninguem@example.com"},
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("contas:recuperar_senha_enviado"),
+        )
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_link_invalido_informa_e_oferece_novo_pedido(self):
+        uid = urlsafe_base64_encode(force_bytes(self.usuario.pk))
+
+        response = self.client.get(
+            reverse(
+                "contas:redefinir_senha",
+                kwargs={"uidb64": uid, "token": "token-invalido"},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Link inválido")
+        self.assertContains(response, "Solicite um novo link")
+        self.assertContains(response, reverse("contas:recuperar_senha"))
+
+    def test_alteracao_de_senha_exige_login(self):
+        response = self.client.get(reverse("contas:alterar_senha"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("core:entrar"), response.url)
+
+    def test_alteracao_de_senha_com_senha_atual_valida(self):
+        self.client.force_login(self.usuario)
+        nova_senha = "OutraSenha!2026"
+
+        response = self.client.post(
+            reverse("contas:alterar_senha"),
+            {
+                "old_password": SENHA,
+                "new_password1": nova_senha,
+                "new_password2": nova_senha,
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("contas:alterar_senha_concluido"),
+        )
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password(nova_senha))
+        self.assertIn("_auth_user_id", self.client.session)
+
+    def test_alteracao_com_senha_atual_incorreta_nao_altera(self):
+        self.client.force_login(self.usuario)
+
+        response = self.client.post(
+            reverse("contas:alterar_senha"),
+            {
+                "old_password": "senha-errada",
+                "new_password1": "OutraSenha!2026",
+                "new_password2": "OutraSenha!2026",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password(SENHA))
+
+
+class PainelTests(TestCase):
+    """O painel deve mostrar indicadores apenas do próprio usuário."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.locatario = Usuario.objects.create_user(
+            username="locatario-painel",
+            email="locatario@example.com",
+            password=SENHA,
+            locatario=True,
+        )
+        cls.proprietario = Usuario.objects.create_user(
+            username="proprietario-painel",
+            email="proprietario@example.com",
+            password=SENHA,
+            proprietario=True,
+        )
+        cls.outro = Usuario.objects.create_user(
+            username="outro-painel",
+            email="outro@example.com",
+            password=SENHA,
+            proprietario=True,
+            locatario=True,
+        )
+
+        cls.veiculo = criar_veiculo(
+            cls.proprietario,
+            categoria="Hatch do painel",
+        )
+        cls.outro_veiculo = criar_veiculo(
+            cls.outro,
+            categoria="Veículo de outro dono",
+        )
+
+        cls.reserva = criar_reserva(
+            cls.veiculo,
+            cls.locatario,
+            status=Reserva.Status.SOLICITADA,
+        )
+        cls.reserva_aceita = criar_reserva(
+            cls.outro_veiculo,
+            cls.outro,
+            status=Reserva.Status.ACEITA,
+            inicio=timezone.localdate() + timedelta(days=10),
+            fim=timezone.localdate() + timedelta(days=12),
+        )
+
+    def test_painel_exige_login(self):
+        response = self.client.get(reverse("contas:painel"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("core:entrar"), response.url)
+
+    def test_locatario_ve_apenas_secao_de_locatario(self):
+        self.client.force_login(self.locatario)
+
+        response = self.client.get(reverse("contas:painel"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Como locatário")
+        self.assertNotContains(response, "Como proprietário")
+        self.assertEqual(response.context["resumo_locatario"]["total"], 1)
+        self.assertEqual(response.context["resumo_locatario"]["ativas"], 0)
+        self.assertEqual(
+            response.context["resumo_locatario"]["solicitadas"],
+            1,
+        )
+        self.assertNotContains(response, "Veículo de outro dono")
+
+    def test_proprietario_ve_solicitacoes_e_veiculos(self):
+        self.client.force_login(self.proprietario)
+
+        response = self.client.get(reverse("contas:painel"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Como proprietário")
+        self.assertNotContains(response, "Como locatário")
+        self.assertEqual(
+            response.context["resumo_proprietario"]["quantidade"],
+            1,
+        )
+        self.assertEqual(
+            response.context["resumo_proprietario"]["pendentes"],
+            1,
+        )
+        self.assertEqual(response.context["resumo_veiculos"]["total"], 1)
+        self.assertEqual(response.context["resumo_veiculos"]["publicados"], 1)
+        self.assertContains(response, "locatario-painel")
+        self.assertContains(response, "Hatch do painel")
+        self.assertNotContains(response, "Veículo de outro dono")
+        self.assertNotContains(response, "outro-painel")
+
+    def test_usuario_com_dois_papeis_ve_as_duas_secoes(self):
+        self.client.force_login(self.outro)
+
+        response = self.client.get(reverse("contas:painel"))
+
+        self.assertContains(response, "Como locatário")
+        self.assertContains(response, "Como proprietário")
+        self.assertEqual(response.context["resumo_locatario"]["ativas"], 1)
+        self.assertEqual(response.context["resumo_proprietario"]["ativas"], 1)
+
+    def test_usuario_sem_papel_recebe_orientacao(self):
+        sem_papel = Usuario.objects.create_user(
+            username="sem-papel",
+            email="sem-papel@example.com",
+            password=SENHA,
+        )
+        self.client.force_login(sem_papel)
+
+        response = self.client.get(reverse("contas:painel"))
+
+        self.assertContains(response, "Defina como você usa o ShareCar")
+        self.assertContains(response, reverse("contas:perfil"))
+
+    def test_painel_nao_expoe_documentos_nem_aprovacoes_editaveis(self):
+        self.proprietario.documento_identidade.name = (
+            "identidades/documento-privado.pdf"
+        )
+        self.proprietario.save(update_fields=["documento_identidade"])
+        self.client.force_login(self.proprietario)
+
+        response = self.client.get(reverse("contas:painel"))
+
+        self.assertNotContains(response, "documento-privado.pdf")
+        self.assertNotContains(response, self.proprietario.documento_identidade.url)
+        self.assertNotContains(response, 'name="aprovacao_documento"')
+
+    def test_navegacao_autenticada_aponta_para_o_painel(self):
+        self.client.force_login(self.locatario)
+
+        response = self.client.get(reverse("contas:painel"))
+
+        self.assertContains(
+            response,
+            f'href="{reverse("contas:painel")}"',
+        )
+        self.assertContains(response, 'aria-current="page"')

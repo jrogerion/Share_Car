@@ -1,0 +1,60 @@
+{% extends "core/page.html" %}
+{% block title %}Pagamento simulado — Reserva #{{ reserva.pk }} — ShareCar{% endblock %}
+{% block back_url %}{% url 'reservas:detalhe' reserva.pk %}{% endblock %}
+{% block back_label %}Voltar à reserva{% endblock %}
+{% block page_kicker %}ShareCar · Pagamento simulado{% endblock %}
+{% block page_title %}Pagamento da reserva #{{ reserva.pk }}{% endblock %}
+{% block page_subtitle %}Nenhum valor real será cobrado. A simulação apenas registra o resultado para liberar o check-in.{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Aviso de simulação">
+    <i class="bi bi-credit-card" aria-hidden="true"></i>
+    Pagamento fictício. Não informe dados de cartão, senhas ou códigos reais.
+  </aside>
+{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="pagamento-title">
+      <h2 id="pagamento-title">Dados da simulação</h2>
+      {% if form.non_field_errors %}
+        <div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <form method="post" action="{% url 'pagamentos:pagar' reserva.pk %}" class="flow-fields" novalidate>
+        {% csrf_token %}
+        <fieldset class="flow-fields">
+          <legend>{{ form.meio.label }}</legend>
+          {{ form.meio }}
+          {{ form.meio.errors }}
+        </fieldset>
+        <fieldset class="flow-fields">
+          <legend>{{ form.resultado.label }}</legend>
+          {{ form.resultado }}
+          {{ form.resultado.errors }}
+        </fieldset>
+        <button class="discovery-button" type="submit">Confirmar simulação</button>
+      </form>
+      <p class="flow-small">Ao aprovar, o check-in do locatário é liberado. Novas tentativas substituem o resultado anterior até a aprovação.</p>
+    </section>
+
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="resumo-title">
+        <h2 id="resumo-title">Resumo</h2>
+        <p><strong>{{ reserva.veiculo.categoria }}</strong> em {{ reserva.veiculo.cidade }}</p>
+        <p class="flow-small">{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diária{{ reserva.dias|pluralize }}</p>
+        <dl class="flow-prices">
+          <div><dt>Diárias</dt><dd>R$ {{ reserva.valor_diarias|floatformat:2 }}</dd></div>
+          <div><dt>Taxas</dt><dd>R$ {{ reserva.taxas|floatformat:2 }}</dd></div>
+          <div class="flow-total"><dt>Total</dt><dd>R$ {{ reserva.total|floatformat:2 }}</dd></div>
+        </dl>
+      </section>
+
+      {% if pagamento %}
+        <section class="flow-panel" aria-labelledby="ultimo-pagamento-title">
+          <h2 id="ultimo-pagamento-title">Última tentativa</h2>
+          <span class="flow-status {% if pagamento.status == 'aprovado' %}flow-status-info{% elif pagamento.status == 'recusado' or pagamento.status == 'estornado' %}flow-status-danger{% else %}flow-status-pending{% endif %}">{{ pagamento.get_status_display }}</span>
+          <p class="flow-small">Meio: {{ pagamento.get_meio_display }}.</p>
+          <p class="flow-small">Valor registrado: R$ {{ pagamento.valor_bruto|floatformat:2 }}.</p>
+        </section>
+      {% endif %}
+    </aside>
+  </div>
+{% endblock %}

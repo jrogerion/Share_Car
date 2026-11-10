@@ -1,0 +1,10 @@
+Olá, {{ user.get_username }}.
+
+Recebemos um pedido para redefinir a senha da sua conta no ShareCar.
+
+Acesse o link abaixo para criar uma nova senha:
+{{ protocol }}://{{ domain }}{% url 'contas:redefinir_senha' uidb64=uid token=token %}
+
+Se você não solicitou esta alteração, ignore esta mensagem. Sua senha atual continua válida.
+
+Equipe ShareCar

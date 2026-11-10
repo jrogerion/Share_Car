@@ -1,0 +1,72 @@
+{% extends "core/page.html" %}
+{% block title %}{% if eh_check_out %}Check-out{% else %}Check-in{% endif %} — Reserva #{{ reserva.pk }} — ShareCar{% endblock %}
+{% block back_url %}{% url 'reservas:detalhe' reserva.pk %}{% endblock %}
+{% block back_label %}Voltar à reserva{% endblock %}
+{% block page_kicker %}ShareCar · Vistoria{% endblock %}
+{% block page_title %}{% if eh_check_out %}Check-out da reserva #{{ reserva.pk }}{% else %}Check-in da reserva #{{ reserva.pk }}{% endif %}{% endblock %}
+{% block page_subtitle %}{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }} · {{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }}{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice" aria-label="Sobre a vistoria">
+    <i class="bi bi-camera" aria-hidden="true"></i>
+    Registre a quilometragem, o combustível e fotos do veículo. As fotos ficam vinculadas à reserva.
+  </aside>
+{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="registro-title">
+      <h2 id="registro-title">{% if eh_check_out %}Dados da devolução{% else %}Dados da retirada{% endif %}</h2>
+      {% if form.non_field_errors %}
+        <div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <form method="post" action="{% if eh_check_out %}{% url 'locacoes:check_out' reserva.pk %}{% else %}{% url 'locacoes:check_in' reserva.pk %}{% endif %}" enctype="multipart/form-data" class="flow-fields" novalidate>
+        {% csrf_token %}
+        <label for="{{ form.quilometragem.id_for_label }}">{{ form.quilometragem.label }}</label>
+        {{ form.quilometragem }}
+        {{ form.quilometragem.errors }}
+        {% if eh_check_out and check_in %}
+          <p class="flow-small">Quilometragem registrada no check-in: <strong>{{ check_in.quilometragem }} km</strong>.</p>
+        {% endif %}
+
+        <label for="{{ form.nivel_combustivel.id_for_label }}">{{ form.nivel_combustivel.label }}</label>
+        {{ form.nivel_combustivel }}
+        {{ form.nivel_combustivel.errors }}
+
+        <label for="{{ form.fotos.id_for_label }}">{{ form.fotos.label }}</label>
+        {{ form.fotos }}
+        {{ form.fotos.errors }}
+        <p class="flow-small">{{ form.fotos.help_text }}</p>
+
+        <button class="discovery-button" type="submit">
+          {% if eh_check_out %}Registrar check-out{% else %}Registrar check-in{% endif %}
+        </button>
+      </form>
+    </section>
+
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="vistoria-title">
+        <h2 id="vistoria-title">Vistoria registrada</h2>
+        {% if check_in %}
+          <h3>Check-in</h3>
+          <dl class="flow-prices">
+            <div><dt>Quilometragem</dt><dd>{{ check_in.quilometragem }} km</dd></div>
+            <div><dt>Combustível</dt><dd>{{ check_in.nivel_combustivel }}%</dd></div>
+            <div><dt>Fotos</dt><dd>{{ check_in.fotos.all|length }}</dd></div>
+          </dl>
+        {% else %}
+          <p class="flow-small">Check-in ainda não registrado.</p>
+        {% endif %}
+
+        {% if check_out %}
+          <h3>Check-out</h3>
+          <dl class="flow-prices">
+            <div><dt>Quilometragem</dt><dd>{{ check_out.quilometragem }} km</dd></div>
+            <div><dt>Combustível</dt><dd>{{ check_out.nivel_combustivel }}%</dd></div>
+            <div><dt>Fotos</dt><dd>{{ check_out.fotos.all|length }}</dd></div>
+          </dl>
+        {% endif %}
+      </section>
+
+      <a class="btn btn-outline-secondary" href="{% url 'reservas:detalhe' reserva.pk %}">Cancelar e voltar</a>
+    </aside>
+  </div>
+{% endblock %}

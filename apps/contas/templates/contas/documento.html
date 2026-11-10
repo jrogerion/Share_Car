@@ -1,0 +1,23 @@
+{% extends "core/page.html" %}
+{% block title %}Enviar documento — ShareCar{% endblock %}
+{% block page_kicker %}ShareCar · Sua conta{% endblock %}
+{% block page_title %}Documento de identidade{% endblock %}
+{% block page_subtitle %}Envie uma imagem para análise administrativa manual.{% endblock %}
+{% block back_url %}{% url 'contas:perfil' %}{% endblock %}
+{% block back_label %}Minha conta{% endblock %}
+{% block page_notice %}{% endblock %}
+{% block page_content %}
+  <section class="flow-panel" aria-labelledby="documento-title">
+    <h2 id="documento-title">Enviar ou substituir documento</h2>
+    <p>O arquivo é privado: somente você e superusuários podem baixá-lo. Um novo envio deixa a aprovação pendente. O arquivo anterior não é excluído automaticamente.</p>
+    <form method="post" enctype="multipart/form-data" class="flow-fields">
+      {% csrf_token %}
+      {% if form.errors %}<div role="alert"><p>Não foi possível enviar. Confira o arquivo abaixo.</p>{{ form.non_field_errors }}</div>{% endif %}
+      {{ form.documento_identidade.label_tag }}
+      {{ form.documento_identidade }}
+      <p id="id_documento_identidade_helptext" class="flow-small">{{ form.documento_identidade.help_text }}</p>
+      {{ form.documento_identidade.errors }}
+      <button class="discovery-button" type="submit">Enviar documento</button>
+    </form>
+  </section>
+{% endblock %}

@@ -14,15 +14,26 @@
     </div>
   </section>
   <div class="container discovery-content">
-    <section id="busca" class="discovery-search" aria-label="Prévia da busca" aria-describedby="demo-notice">
+    <form
+      id="busca"
+      class="discovery-search"
+      method="get"
+      action="{% url 'core:resultados' %}"
+      role="search"
+      aria-labelledby="busca-title"
+      aria-describedby="demo-notice"
+      data-search-form
+    >
+      <h2 id="busca-title" class="visually-hidden">Buscar veículos</h2>
       <div class="discovery-fields">
-        <div class="discovery-location"><label for="cidade"><i class="bi bi-geo-alt" aria-hidden="true"></i> Localização</label><input id="cidade" type="text" placeholder="Qual é a sua cidade?" autocomplete="address-level2"></div>
-        <div><label for="retirada">Retirada</label><input id="retirada" type="date"></div>
-        <div><label for="devolucao">Devolução</label><input id="devolucao" type="date"></div>
-        <a class="discovery-button" href="{% url 'core:resultados' %}"><i class="bi bi-search" aria-hidden="true"></i> Explorar exemplos</a>
+        <div class="discovery-field discovery-location"><label for="cidade"><i class="bi bi-geo-alt" aria-hidden="true"></i> Localização</label><input id="cidade" name="cidade" type="text" placeholder="Qual é a sua cidade?" autocomplete="address-level2" maxlength="150" enterkeyhint="search" required></div>
+        <div class="discovery-field"><label for="retirada"><i class="bi bi-calendar-event" aria-hidden="true"></i> Retirada</label><input id="retirada" name="retirada" type="date" min="{% now 'Y-m-d' %}"></div>
+        <div class="discovery-field"><label for="devolucao"><i class="bi bi-calendar-check" aria-hidden="true"></i> Devolução</label><input id="devolucao" name="devolucao" type="date" min="{% now 'Y-m-d' %}"></div>
+        <button class="discovery-button" type="submit" data-search-submit><span class="spinner-border spinner-border-sm" aria-hidden="true" data-search-spinner hidden></span><i class="bi bi-search" aria-hidden="true" data-search-icon></i> <span data-search-label>Buscar carros</span></button>
       </div>
-      <p id="demo-notice" class="discovery-note">Prévia visual: os campos ainda não filtram carros nem geram reservas.</p>
-    </section>
+      <p class="visually-hidden" role="status" data-search-status></p>
+      <p id="demo-notice" class="discovery-note">A busca considera a cidade e, quando informado, o período de retirada e devolução.</p>
+    </form>
     <section id="vantagens" class="discovery-categories" aria-label="Categorias ilustradas">
       <span><i class="bi bi-car-front" aria-hidden="true"></i> Hatch</span>
       <span><i class="bi bi-car-front-fill" aria-hidden="true"></i> Sedã</span>
@@ -122,130 +133,35 @@
   </div>
 {% endblock %}
 {% block scripts %}
-<script>
-  (() => {
-    const dialog = document.getElementById('vehicle-preview');
-    if (!dialog) return;
 
-    const panel = dialog.querySelector('.discovery-preview-panel');
-    const steps = dialog.querySelectorAll('[data-preview-step]');
-    const previewTitle = document.getElementById('preview-title');
-    const previewEyebrow = document.getElementById('preview-eyebrow');
-    const locationInput = document.getElementById('cidade');
-    const pickupInput = document.getElementById('retirada');
-    const returnInput = document.getElementById('devolucao');
-    const previewPhoto = document.getElementById('preview-photo');
-    const previewImage = document.getElementById('preview-image');
-    const summaryPhoto = document.getElementById('summary-photo');
-    const summaryImage = document.getElementById('summary-image');
+  <script>
+    (() => {
+      const retirada = document.getElementById("retirada");
+      const devolucao = document.getElementById("devolucao");
 
-    const currency = new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      maximumFractionDigits: 0,
-    });
-
-    let currentVehicleName = '';
-    let lastFocusedCard = null;
-
-    const formatPrice = (value) => currency.format(Number(value) || 0);
-
-    const formatDate = (value) => {
-      if (!value) return 'A definir';
-      const date = new Date(`${value}T12:00:00`);
-      return Number.isNaN(date.getTime()) ? 'A definir' : date.toLocaleDateString('pt-BR');
-    };
-
-    const setPhoto = (container, image, photoClass, src, alt) => {
-      container.className = `discovery-preview-photo ${photoClass}`;
-      image.src = src;
-      image.alt = alt;
-    };
-
-    const fillPreview = (card) => {
-      const data = card.dataset;
-      const cardImage = card.querySelector('img');
-      const dailyRate = formatPrice(data.dailyRate);
-
-      currentVehicleName = data.vehicleName;
-
-      setPhoto(previewPhoto, previewImage, data.photo, cardImage.src, `Imagem ilustrativa do ${data.vehicleName}`);
-      document.getElementById('preview-details').textContent = data.vehicleDetails;
-      document.getElementById('preview-rating').textContent = data.vehicleRating;
-      document.getElementById('preview-price').textContent = dailyRate;
-
-      document.getElementById('summary-name').textContent = data.vehicleName;
-      document.getElementById('summary-details').textContent = data.vehicleDetails;
-      setPhoto(summaryPhoto, summaryImage, data.photo, cardImage.src, '');
-      document.getElementById('summary-location').textContent = locationInput?.value.trim() || 'A definir';
-      document.getElementById('summary-pickup').textContent = formatDate(pickupInput?.value);
-      document.getElementById('summary-return').textContent = formatDate(returnInput?.value);
-      document.getElementById('summary-price').textContent = `${dailyRate}/dia`;
-
-      document.getElementById('payment-price').textContent = dailyRate;
-      document.getElementById('payment-vehicle').textContent = data.vehicleName;
-    };
-
-    const showStep = (stepName) => {
-      steps.forEach((step) => {
-        step.hidden = step.dataset.previewStep !== stepName;
-      });
-
-      if (stepName === 'vehicle') {
-        previewEyebrow.textContent = 'Prévia do veículo';
-        previewTitle.textContent = currentVehicleName;
-      } else if (stepName === 'summary') {
-        previewEyebrow.textContent = currentVehicleName;
-        previewTitle.textContent = 'Resumo de reserva';
-      } else {
-        previewEyebrow.textContent = 'Simulação';
-        previewTitle.textContent = 'Pagamento simulado';
+      if (!retirada || !devolucao) {
+        return;
       }
 
-      panel.scrollTop = 0;
-      previewTitle.focus();
-    };
+      const hoje = "{% now 'Y-m-d' %}";
+      retirada.min = hoje;
+      devolucao.min = hoje;
 
-    const openPreview = (card) => {
-      fillPreview(card);
-      lastFocusedCard = card;
-
-      if (!dialog.open) dialog.showModal();
-
-      document.body.classList.add('preview-open');
-      showStep('vehicle');
-    };
-
-    document.querySelectorAll('.discovery-car[data-vehicle-name]').forEach((card) => {
-      card.addEventListener('click', () => openPreview(card));
-      card.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          openPreview(card);
+      const validarPeriodo = () => {
+        if (retirada.value) {
+          devolucao.min = retirada.value;
         }
-      });
-    });
 
-    dialog.querySelectorAll('[data-preview-close]').forEach((button) => {
-      button.addEventListener('click', () => dialog.close());
-    });
+        if (retirada.value && devolucao.value && devolucao.value <= retirada.value) {
+          devolucao.setCustomValidity("A devolução deve ser posterior à retirada.");
+        } else {
+          devolucao.setCustomValidity("");
+        }
+      };
 
-    dialog.querySelectorAll('[data-preview-next]').forEach((button) => {
-      button.addEventListener('click', () => showStep(button.dataset.previewNext));
-    });
+      retirada.addEventListener("change", validarPeriodo);
+      devolucao.addEventListener("input", validarPeriodo);
+    })();
+  </script>
 
-    dialog.querySelectorAll('[data-preview-back]').forEach((button) => {
-      button.addEventListener('click', () => showStep(button.dataset.previewBack));
-    });
-
-    dialog.addEventListener('close', () => {
-      document.body.classList.remove('preview-open');
-
-      if (lastFocusedCard) {
-        lastFocusedCard.focus();
-        lastFocusedCard = null;
-      }
-    });
-  })();
-</script>
 {% endblock %}
