@@ -2,12 +2,15 @@ import base64
 import shutil
 import tempfile
 from html.parser import HTMLParser
+from urllib.parse import urlencode
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, TestCase, override_settings
+from django.templatetags.static import static
 from django.urls import reverse
 
 from apps.contas.models import Usuario
+from apps.core.destaques import DESTAQUES
 from apps.veiculos.models import FotoVeiculo, Veiculo
 
 
@@ -98,6 +101,62 @@ class TemplatePagesTests(SimpleTestCase):
                 self.assertContains(response, f'name="{field}"')
         self.assertContains(response, 'type="submit"')
         self.assertContains(response, "Buscar carros")
+
+    def test_home_category_chips_link_to_filtered_results(self):
+        response = self.client.get(reverse("core:home"))
+
+        for categoria in ("Hatch", "Sedã", "SUV", "Picape"):
+            with self.subTest(categoria=categoria):
+                href = (
+                    f'{reverse("core:resultados")}?'
+                    f'{urlencode({"categoria": categoria})}'
+                )
+                self.assertContains(response, f'href="{href}"')
+
+    def test_home_destaques_link_to_car_details(self):
+        response = self.client.get(reverse("core:home"))
+
+        for carro in DESTAQUES:
+            with self.subTest(carro=carro.slug):
+                self.assertContains(
+                    response,
+                    f'href="{reverse("core:destaque", args=[carro.slug])}"',
+                )
+                self.assertContains(response, carro.nome)
+
+    def test_pagina_de_destaque_exibe_carrossel_e_detalhes(self):
+        for carro in DESTAQUES:
+            with self.subTest(carro=carro.slug):
+                response = self.client.get(
+                    reverse("core:destaque", args=[carro.slug]),
+                )
+
+                self.assertEqual(response.status_code, 200)
+                self.assertTemplateUsed(response, "core/destaque.html")
+                self.assertContains(response, carro.nome)
+                self.assertContains(response, carro.descricao)
+                self.assertContains(response, carro.cidade)
+                self.assertContains(response, carro.categoria)
+                self.assertContains(response, f"R$ {carro.preco_diaria},00")
+                self.assertContains(response, "data-carousel-track")
+                self.assertContains(response, "data-carousel-prev")
+                self.assertContains(response, "data-carousel-next")
+                self.assertContains(response, f"Foto 1 de {len(carro.fotos)}")
+                self.assertContains(
+                    response,
+                    'class="flow-carousel-item',
+                    count=len(carro.fotos),
+                )
+                for foto in carro.fotos:
+                    self.assertContains(response, static(foto))
+
+    def test_destaque_inexistente_retorna_404(self):
+        response = self.client.get(
+            reverse("core:destaque", args=["carro-inexistente"]),
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Página não encontrada", status_code=404)
 
     def test_home_search_form_tem_estado_de_carregamento(self):
         response = self.client.get(reverse("core:home"))
@@ -295,6 +354,14 @@ class ResultadosTests(TestCase):
         self.assertContains(response, "SUV público de São Paulo")
         self.assertContains(response, "SUV público do Rio de Janeiro")
         self.assertNotContains(response, "Hatch público de São Paulo")
+
+    def test_categoria_sem_anuncios_retorna_resultado_vazio(self):
+        response = self.buscar(categoria="Picape")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Não foi possível aplicar os filtros.")
+        self.assertContains(response, "Nenhum veículo encontrado")
+        self.assertContains(response, '<option value="Picape" selected>')
 
     def test_filtra_por_cambio(self):
         response = self.buscar(cambio="Manual")
@@ -882,3 +949,73 @@ class AutenticacaoTests(TestCase):
 
         self.assertRedirects(response, reverse("core:home"))
         self.assertNotIn("_auth_user_id", self.client.session)
+
+
+class PwaTests(SimpleTestCase):
+    """A PWA deve expor manifesto, service worker e tela offline."""
+
+    def test_manifesto_disponivel(self):
+        response = self.client.get(reverse("core:manifest"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers["Content-Type"],
+            "application/manifest+json",
+        )
+        dados = response.json()
+        self.assertEqual(dados["short_name"], "ShareCar")
+        self.assertEqual(dados["lang"], "pt-BR")
+        self.assertEqual(dados["display"], "standalone")
+        self.assertEqual(dados["start_url"], reverse("core:home"))
+        self.assertEqual(dados["theme_color"], "#0f766e")
+        tamanhos = {icone["sizes"] for icone in dados["icons"]}
+        self.assertIn("192x192", tamanhos)
+        self.assertIn("512x512", tamanhos)
+        self.assertTrue(
+            any(icone["purpose"] == "maskable" for icone in dados["icons"])
+        )
+        for icone in dados["icons"]:
+            self.assertEqual(icone["type"], "image/png")
+            self.assertTrue(icone["src"].startswith("/static/icons/"))
+
+    def test_service_worker_servido_na_raiz(self):
+        response = self.client.get(reverse("core:service_worker"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers["Content-Type"].split(";")[0],
+            "application/javascript",
+        )
+        self.assertEqual(response.headers["Service-Worker-Allowed"], "/")
+        self.assertIn("no-cache", response.headers["Cache-Control"])
+        conteudo = response.content.decode()
+        self.assertIn("sharecar-v1", conteudo)
+        self.assertIn(reverse("core:offline"), conteudo)
+        for caminho in (
+            "css/base.css",
+            "js/pwa.js",
+            "icons/icon-192.png",
+            "icons/maskable-512.png",
+        ):
+            with self.subTest(caminho=caminho):
+                self.assertIn(static(caminho), conteudo)
+
+    def test_tela_offline(self):
+        response = self.client.get(reverse("core:offline"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Você está offline")
+        self.assertContains(response, "Tentar novamente")
+        self.assertContains(response, 'rel="manifest"')
+
+    def test_paginas_incluem_manifesto_e_registro(self):
+        response = self.client.get(reverse("core:home"))
+
+        self.assertContains(response, f'href="{reverse("core:manifest")}"')
+        self.assertContains(
+            response,
+            f'data-sw-url="{reverse("core:service_worker")}"',
+        )
+        self.assertContains(response, "js/pwa.js")
+        self.assertContains(response, "apple-touch-icon")
+        self.assertContains(response, "apple-mobile-web-app-capable")

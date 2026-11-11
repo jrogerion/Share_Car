@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sem conexão — ShareCar</title>
+  <meta name="theme-color" content="#0f766e">
+  <link rel="manifest" href="{% url 'core:manifest' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <style>
+    .offline-page { display: grid; min-height: 100dvh; margin: 0; place-items: center; padding: 24px; }
+    .offline-shell { display: flex; flex-direction: column; gap: 24px; width: min(100%, 460px); }
+    .offline-brand { display: inline-flex; align-items: center; gap: 12px; color: var(--sc-ink); font-size: 1.1rem; font-weight: 800; text-decoration: none; }
+    .offline-card { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 28px; background: var(--sc-white); border: 1px solid var(--sc-line); border-radius: var(--sc-radius); box-shadow: var(--sc-shadow); }
+    .offline-card img { width: 72px; height: 72px; border-radius: 16px; }
+    .offline-kicker { margin: 0; color: var(--sc-teal-dark); font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .offline-card h1 { margin: 0; font-size: clamp(1.8rem, 5vw, 2.4rem); letter-spacing: -.04em; }
+    .offline-card p { margin: 0; color: var(--sc-muted); font-size: .92rem; line-height: 1.7; }
+    .offline-small { font-size: .78rem !important; }
+  </style>
+</head>
+<body class="offline-page">
+  <main class="offline-shell" id="conteudo">
+    <a class="offline-brand" href="{% url 'core:home' %}">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      ShareCar
+    </a>
+    <section class="offline-card" aria-labelledby="offline-title">
+      <img src="{% static 'icons/icon-192.png' %}" alt="" width="72" height="72">
+      <p class="offline-kicker">Sem conexão</p>
+      <h1 id="offline-title">Você está offline</h1>
+      <p>Não foi possível carregar esta página. Verifique sua internet e tente novamente.</p>
+      <button class="discovery-button" type="button" onclick="window.location.reload()">Tentar novamente</button>
+      <p class="offline-small">Os recursos da PWA já armazenados continuam funcionando quando a conexão volta.</p>
+    </section>
+  </main>
+</body>
+</html>

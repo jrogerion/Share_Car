@@ -226,6 +226,18 @@ class BuscaVeiculoForm(PeriodoReservaMixin, forms.Form):
         self.fields["combustivel"].choices = [("", "Todos")] + self._opcoes(
             publicos, "combustivel"
         )
+        self._incluir_categoria_solicitada()
+
+    def _incluir_categoria_solicitada(self) -> None:
+        """Aceita a categoria de um link direto mesmo sem anúncios publicados."""
+        if not self.is_bound:
+            return
+        categoria = (self.data.get("categoria") or "").strip()
+        if not categoria or len(categoria) > 50:
+            return
+        campo = self.fields["categoria"]
+        if categoria not in dict(campo.choices):
+            campo.choices = [*campo.choices, (categoria, categoria)]
 
     def clean(self):
         dados = super().clean()

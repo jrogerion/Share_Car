@@ -75,6 +75,15 @@ a.flow-car:hover, a.flow-car:focus-visible { color: inherit; border-color: var(-
 .flow-gallery-item { margin: 0; overflow: hidden; background: var(--sc-sand); border: 1px solid var(--sc-line); border-radius: 16px; }
 .flow-gallery-item:first-child { grid-column: 1 / -1; }
 .flow-gallery-item img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; }
+.flow-carousel { overflow: hidden; background: var(--sc-white); border: 1px solid var(--sc-line); border-radius: var(--sc-radius); box-shadow: var(--sc-shadow); }
+.flow-carousel-track { display: flex; overflow-x: auto; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+.flow-carousel-track:focus-visible { outline: 3px solid var(--sc-focus); outline-offset: -3px; }
+.flow-carousel-item { display: grid; flex: 0 0 100%; place-items: center; min-height: 260px; margin: 0; padding: 24px; scroll-snap-align: start; scroll-snap-stop: always; }
+.flow-carousel-item img { display: block; width: 100%; max-width: 640px; height: auto; }
+.flow-carousel-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--sc-line); }
+.flow-carousel-controls[hidden] { display: none; }
+.flow-carousel-controls .btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; }
+.flow-carousel-controls .flow-small { margin: 0; text-align: center; }
 .flow-description p:last-child { margin-bottom: 0; }
 .flow-specs { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; padding: 0; list-style: none; }
 .flow-specs li { padding: 10px 14px; background: #f0fdfa; color: #115e59; border-radius: 10px; font-size: .8rem; }
@@ -131,4 +140,5 @@ a.flow-car:hover, a.flow-car:focus-visible { color: inherit; border-color: var(-
   .flow-pagination-links .btn { flex: 1 1 auto; }
   .flow-gallery { grid-template-columns: minmax(0,1fr); }
   .flow-gallery-item:first-child { grid-column: auto; }
+  .flow-carousel-item { min-height: 180px; padding: 16px; }
 }

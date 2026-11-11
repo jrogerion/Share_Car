@@ -5,12 +5,17 @@ from django.views.generic import TemplateView
 from apps.contas.forms import LoginEmailForm
 from apps.veiculos.views import CadastroVeiculoView
 
-from .views import DetalhesVeiculoView, HomeView, ResultadosView
+from .pwa import manifest, offline, service_worker
+from .views import DestaqueView, DetalhesVeiculoView, HomeView, ResultadosView
 
 app_name = "core"
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
+    path("destaques/<slug:slug>/", DestaqueView.as_view(), name="destaque"),
+    path("manifest.webmanifest", manifest, name="manifest"),
+    path("sw.js", service_worker, name="service_worker"),
+    path("offline/", offline, name="offline"),
     path(
         "entrar/",
         auth_views.LoginView.as_view(

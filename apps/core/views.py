@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.views.generic import DetailView, ListView, TemplateView
 
 from apps.avaliacoes.services import resumo_avaliacoes_veiculo
@@ -12,11 +13,32 @@ from apps.veiculos.disponibilidade import motivo_indisponibilidade
 from apps.veiculos.forms import BuscaVeiculoForm
 from apps.veiculos.models import Veiculo
 
+from .destaques import DESTAQUES, DESTAQUES_POR_SLUG
+
 
 class HomeView(TemplateView):
-    """Exibe a página inicial estática, sem consultas ou contexto dinâmico."""
+    """Exibe a página inicial com os veículos ilustrativos em destaque."""
 
     template_name = "core/home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["destaques"] = DESTAQUES
+        return context
+
+
+class DestaqueView(TemplateView):
+    """Exibe a página ilustrativa de um veículo em destaque da home."""
+
+    template_name = "core/destaque.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        carro = DESTAQUES_POR_SLUG.get(self.kwargs["slug"])
+        if carro is None:
+            raise Http404("Destaque não encontrado.")
+        context["carro"] = carro
+        return context
 
 
 class DetalhesVeiculoView(DetailView):

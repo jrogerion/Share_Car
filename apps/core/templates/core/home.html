@@ -34,20 +34,31 @@
       <p class="visually-hidden" role="status" data-search-status></p>
       <p id="demo-notice" class="discovery-note">A busca considera a cidade e, quando informado, o período de retirada e devolução.</p>
     </form>
-    <section id="vantagens" class="discovery-categories" aria-label="Categorias ilustradas">
-      <span><i class="bi bi-car-front" aria-hidden="true"></i> Hatch</span>
-      <span><i class="bi bi-car-front-fill" aria-hidden="true"></i> Sedã</span>
-      <span><i class="bi bi-truck" aria-hidden="true"></i> SUV</span>
-      <span><i class="bi bi-truck-flatbed" aria-hidden="true"></i> Picape</span>
+    <section id="vantagens" class="discovery-categories" aria-label="Filtrar por categoria">
+      <a href="{% url 'core:resultados' %}?categoria=Hatch"><i class="bi bi-car-front" aria-hidden="true"></i> Hatch</a>
+      <a href="{% url 'core:resultados' %}?categoria=Sed%C3%A3"><i class="bi bi-car-front-fill" aria-hidden="true"></i> Sedã</a>
+      <a href="{% url 'core:resultados' %}?categoria=SUV"><i class="bi bi-truck" aria-hidden="true"></i> SUV</a>
+      <a href="{% url 'core:resultados' %}?categoria=Picape"><i class="bi bi-truck-flatbed" aria-hidden="true"></i> Picape</a>
     </section>
     <section id="destaques" class="discovery-section" aria-labelledby="destaques-title">
       <div class="discovery-heading"><h2 id="destaques-title">Encontre o seu estilo</h2><span>Exemplos ilustrativos</span></div>
-      <p class="discovery-note">Veículos, preços e notas fictícios para demonstrar a experiência.</p>
+      <p class="discovery-note">Escolha um carro para ver fotos, detalhes e conhecer a experiência.</p>
       <div class="discovery-cars" tabindex="0" role="region" aria-label="Exemplos de veículos; role para ver mais no celular">
-        <article class="discovery-car"><div class="discovery-photo photo-blue"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Fiat Argo</h3><p>2021 · Hatch</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,8 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,8</span><strong>R$ 150<small>/dia</small></strong></div></div></article>
-        <article class="discovery-car"><div class="discovery-photo photo-lilac"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Jeep Renegade</h3><p>2022 · SUV</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 189<small>/dia</small></strong></div></div></article>
-        <article class="discovery-car"><div class="discovery-photo photo-mint"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Honda City</h3><p>2023 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 240<small>/dia</small></strong></div></div></article>
-        <article class="discovery-car"><div class="discovery-photo photo-rose"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Toyota Corolla</h3><p>2022 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 5 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 5,0</span><strong>R$ 320<small>/dia</small></strong></div></div></article>
+        {% for carro in destaques %}
+          <a class="discovery-car" href="{% url 'core:destaque' carro.slug %}">
+            <div class="discovery-photo {% cycle 'photo-blue' 'photo-lilac' 'photo-mint' 'photo-rose' %}">
+              <img src="{% static carro.foto_principal %}" alt="" width="320" height="160">
+            </div>
+            <div class="discovery-car-body">
+              <h3>{{ carro.nome }}</h3>
+              <p>{{ carro.ano }} · {{ carro.categoria }}</p>
+              <div class="discovery-meta">
+                <span aria-label="Nota ilustrativa {{ carro.nota }} de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> {{ carro.nota }}</span>
+                <strong>R$ {{ carro.preco_diaria }}<small>/dia</small></strong>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
       </div>
     </section>
     <section id="como-funciona" class="discovery-section" aria-labelledby="como-title">

@@ -1,0 +1,157 @@
+{% extends "core/page.html" %}
+{% load static %}
+{% block title %}{{ carro.nome }} — ShareCar{% endblock %}
+{% block meta_description %}Conheça o {{ carro.nome }} {{ carro.ano }}, um {{ carro.categoria|lower }} ilustrativo em destaque no ShareCar.{% endblock %}
+{% block back_url %}{% url 'core:home' %}{% endblock %}
+{% block back_label %}Voltar ao início{% endblock %}
+{% block page_kicker %}ShareCar · Destaque{% endblock %}
+{% block page_title %}{{ carro.nome }}{% endblock %}
+{% block page_subtitle %}{{ carro.ano }} · {{ carro.categoria }} · {{ carro.cidade }}{% endblock %}
+{% block demo_notice %}
+  <aside class="flow-notice flow-demo-notice" aria-label="Aviso de demonstração">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    <div>
+      <strong>Exemplo ilustrativo</strong>
+      <p>Este veículo faz parte da demonstração da experiência. Para alugar, consulte os veículos reais na busca.</p>
+    </div>
+  </aside>
+{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <div class="flow-stack">
+      <section class="flow-carousel" aria-label="Fotos do {{ carro.nome }}" data-carousel>
+        <div class="flow-carousel-track" data-carousel-track tabindex="0" aria-label="Galeria de fotos do {{ carro.nome }}. Use as setas para navegar.">
+          {% for foto in carro.fotos %}
+            <figure class="flow-carousel-item {% cycle 'photo-blue' 'photo-mint' 'photo-rose' %}">
+              <img
+                src="{% static foto %}"
+                alt="Foto {{ forloop.counter }} de {{ carro.fotos|length }} do {{ carro.nome }}"
+                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+              >
+            </figure>
+          {% endfor %}
+        </div>
+        <div class="flow-carousel-controls" data-carousel-controls hidden>
+          <button class="btn btn-outline-secondary" type="button" data-carousel-prev aria-label="Foto anterior">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          </button>
+          <p class="flow-small" data-carousel-status aria-live="polite">Foto 1 de {{ carro.fotos|length }}</p>
+          <button class="btn btn-outline-secondary" type="button" data-carousel-next aria-label="Próxima foto">
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="sobre-title">
+        <h2 id="sobre-title">Sobre o carro</h2>
+        <div class="flow-description">{{ carro.descricao|linebreaks }}</div>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="equipamentos-title">
+        <h2 id="equipamentos-title">Equipamentos e comodidades</h2>
+        <ul class="flow-specs">
+          {% for equipamento in carro.equipamentos %}
+            <li>{{ equipamento }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="dados-title">
+        <h2 id="dados-title">Dados do veículo</h2>
+        <dl class="flow-prices">
+          <div><dt>Categoria</dt><dd>{{ carro.categoria }}</dd></div>
+          <div><dt>Ano</dt><dd>{{ carro.ano }}</dd></div>
+          <div><dt>Câmbio</dt><dd>{{ carro.cambio }}</dd></div>
+          <div><dt>Combustível</dt><dd>{{ carro.combustivel }}</dd></div>
+          <div><dt>Passageiros</dt><dd>{{ carro.passageiros }}</dd></div>
+          <div><dt>Localização</dt><dd>{{ carro.cidade }}</dd></div>
+        </dl>
+      </section>
+    </div>
+
+    <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="diaria-title">
+        <h2 id="diaria-title">Diária</h2>
+        <p><strong class="flow-price">R$ {{ carro.preco_diaria|floatformat:2 }}</strong> <span class="flow-small">/dia</span></p>
+        <p class="flow-small">Valor ilustrativo para demonstrar a experiência.</p>
+        <p class="flow-small">
+          <i class="bi bi-star-fill" aria-hidden="true"></i>
+          Nota média: <strong>{{ carro.nota }} de 5</strong>
+        </p>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="busca-title">
+        <h2 id="busca-title">Quer alugar?</h2>
+        <p class="flow-small">Veja os veículos reais disponíveis na categoria {{ carro.categoria }}.</p>
+        <a class="discovery-button" href="{% url 'core:resultados' %}?categoria={{ carro.categoria|urlencode }}">Ver {{ carro.categoria }} disponíveis</a>
+      </section>
+
+      <section class="flow-panel" aria-labelledby="local-title">
+        <h2 id="local-title">Localização</h2>
+        <p><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ carro.cidade }}</p>
+        <a class="btn btn-outline-secondary" href="{% url 'core:home' %}">Voltar ao início</a>
+      </section>
+    </aside>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+    (() => {
+      const carousel = document.querySelector("[data-carousel]");
+
+      if (!carousel) {
+        return;
+      }
+
+      const track = carousel.querySelector("[data-carousel-track]");
+
+      if (!track) {
+        return;
+      }
+
+      const slides = Array.from(track.querySelectorAll(".flow-carousel-item"));
+      const controls = carousel.querySelector("[data-carousel-controls]");
+      const anterior = carousel.querySelector("[data-carousel-prev]");
+      const proxima = carousel.querySelector("[data-carousel-next]");
+      const status = carousel.querySelector("[data-carousel-status]");
+
+      if (slides.length < 2 || !controls || !anterior || !proxima || !status) {
+        return;
+      }
+
+      controls.hidden = false;
+
+      const indiceAtual = () => {
+        const largura = track.clientWidth || 1;
+        return Math.max(0, Math.min(Math.round(track.scrollLeft / largura), slides.length - 1));
+      };
+
+      const atualizar = () => {
+        const indice = indiceAtual();
+        status.textContent = `Foto ${indice + 1} de ${slides.length}`;
+        anterior.disabled = indice === 0;
+        proxima.disabled = indice === slides.length - 1;
+      };
+
+      const irPara = (indice) => {
+        const destino = Math.max(0, Math.min(indice, slides.length - 1));
+        track.scrollTo({ left: destino * track.clientWidth, behavior: "smooth" });
+      };
+
+      anterior.addEventListener("click", () => irPara(indiceAtual() - 1));
+      proxima.addEventListener("click", () => irPara(indiceAtual() + 1));
+      track.addEventListener("scroll", () => window.requestAnimationFrame(atualizar), { passive: true });
+      track.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          irPara(indiceAtual() - 1);
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          irPara(indiceAtual() + 1);
+        }
+      });
+      window.addEventListener("resize", atualizar);
+      atualizar();
+    })();
+  </script>
+{% endblock %}
