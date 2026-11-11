@@ -2,28 +2,36 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import never_cache
 from django.views.generic import DetailView, ListView
 
 from apps.avaliacoes.services import avaliacoes_da_reserva, pode_avaliar
 from apps.locacoes.services import check_in_da_reserva, check_out_da_reserva
 from apps.pagamentos.models import Pagamento
 from apps.veiculos.consultas import veiculos_publicos
+from apps.veiculos.disponibilidade import STATUS_RESERVA_BLOQUEANTES
 from apps.veiculos.models import PeriodoAgenda, Veiculo
 
 from .forms import PeriodoAgendaForm, ReservaForm
 from .models import Reserva
 from .services import (
+    AgendaInvalida,
     ReservaInvalida,
     aceitar_reserva,
+    adicionar_periodo_agenda,
     cancelar_reserva,
     criar_reserva,
     pagamento_aprovado,
     recusar_reserva,
+    remover_periodo_agenda,
 )
 
 
@@ -251,6 +259,7 @@ class CancelarReservaView(LoginRequiredMixin, View):
         )
 
 
+@method_decorator(never_cache, name="dispatch")
 class AgendaVeiculoView(LoginRequiredMixin, View):
     """Permite ao proprietário cadastrar disponibilidade e bloqueios."""
 
@@ -265,20 +274,33 @@ class AgendaVeiculoView(LoginRequiredMixin, View):
         form = PeriodoAgendaForm(request.POST)
 
         if form.is_valid():
-            periodo = form.save(commit=False)
-            periodo.veiculo = veiculo
-            periodo.save()
-            messages.success(request, "Período adicionado à agenda.")
-            return redirect("reservas:agenda", pk=veiculo.pk)
+            try:
+                adicionar_periodo_agenda(
+                    veiculo=veiculo, **form.cleaned_data,
+                )
+            except AgendaInvalida as exc:
+                form.add_error(None, str(exc))
+            else:
+                messages.success(request, "Período adicionado à agenda.")
+                return redirect("reservas:agenda", pk=veiculo.pk)
 
         return self._renderizar(request, veiculo, form)
 
     def _renderizar(self, request, veiculo, form):
         periodos = veiculo.periodos_agenda.order_by("inicio", "id")
+        pagina = Paginator(periodos, 20).get_page(request.GET.get("page"))
+        ocupacoes = Reserva.objects.filter(
+            veiculo=veiculo, status__in=STATUS_RESERVA_BLOQUEANTES,
+            fim__gt=timezone.localdate(),
+        ).order_by("inicio", "pk")[:10]
         return render(
             request,
             self.template_name,
-            {"veiculo": veiculo, "form": form, "periodos": periodos},
+            {
+                "veiculo": veiculo, "form": form,
+                "periodos": pagina.object_list, "page_obj": pagina,
+                "reservas_vigentes": ocupacoes,
+            },
         )
 
     @staticmethod
@@ -298,7 +320,10 @@ class RemoverPeriodoView(LoginRequiredMixin, View):
             pk=pk,
         )
         veiculo_pk = periodo.veiculo_id
-        periodo.delete()
-        messages.success(request, "Período removido da agenda.")
+        try:
+            remover_periodo_agenda(periodo)
+        except AgendaInvalida as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, "Período removido da agenda.")
         return redirect("reservas:agenda", pk=veiculo_pk)
-

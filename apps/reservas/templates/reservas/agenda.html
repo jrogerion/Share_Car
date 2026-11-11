@@ -1,14 +1,14 @@
 {% extends "core/page.html" %}
 {% block title %}Disponibilidade de {{ veiculo.categoria }} — ShareCar{% endblock %}
-{% block back_url %}{% url 'reservas:minhas' %}{% endblock %}
-{% block back_label %}Minhas reservas{% endblock %}
+{% block back_url %}{% url 'veiculos:meus' %}{% endblock %}
+{% block back_label %}Meus veículos{% endblock %}
 {% block page_kicker %}ShareCar · Agenda do veículo{% endblock %}
 {% block page_title %}Disponibilidade de {{ veiculo.categoria }} em {{ veiculo.cidade }}{% endblock %}
 {% block page_subtitle %}Defina quando o veículo pode ser reservado e bloqueie períodos indisponíveis.{% endblock %}
 {% block demo_notice %}
   <aside class="flow-notice" aria-label="Como funciona a agenda">
     <i class="bi bi-calendar-range" aria-hidden="true"></i>
-    Se houver períodos disponíveis cadastrados, o veículo só aceita reservas dentro deles. Períodos bloqueados sempre impedem novas reservas. Sem nenhum período cadastrado, o veículo fica disponível por padrão.
+    Se houver janelas disponíveis cadastradas, a solicitação deve caber inteira em uma delas. Bloqueios e reservas vigentes sempre prevalecem. Sem janelas disponíveis, o veículo fica disponível por padrão, exceto nas datas ocupadas. A busca sem datas não verifica a agenda.
   </aside>
 {% endblock %}
 {% block page_content %}
@@ -17,6 +17,7 @@
       <h2 id="novo-periodo-title">Adicionar período</h2>
       <form method="post" action="{% url 'reservas:agenda' veiculo.pk %}">
         {% csrf_token %}
+        {% if form.errors %}<div class="flow-notice flow-error" role="alert"><p>Não foi possível adicionar o período.</p>{{ form.non_field_errors }}</div>{% endif %}
         <label for="{{ form.inicio.id_for_label }}">Início</label>
         {{ form.inicio }}
         {{ form.inicio.errors }}
@@ -29,7 +30,8 @@
         <button class="discovery-button" type="submit">Adicionar período</button>
       </form>
       <p class="flow-small">As diárias usam o intervalo [início, fim): a devolução no dia final não ocupa uma diária adicional.</p>
-      <a class="btn btn-outline-secondary" href="{% url 'core:detalhes' veiculo.pk %}">Ver anúncio</a>
+      <p class="flow-small">Remover a última janela disponível retorna à disponibilidade por padrão, sem cancelar reservas ou remover bloqueios.</p>
+      <a class="btn btn-outline-secondary" href="{% url 'core:resultados' %}">Testar busca por datas</a>
     </section>
 
     <section class="flow-panel" aria-labelledby="periodos-title">
@@ -48,8 +50,22 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="flow-small">Nenhum período cadastrado. O veículo está disponível por padrão para qualquer data futura.</p>
+        <p class="flow-small">Nenhum período cadastrado. A disponibilidade por padrão continua respeitando reservas existentes.</p>
+      {% endif %}
+      {% if page_obj.has_other_pages %}
+        <nav class="flow-pagination" aria-label="Paginação da agenda">
+          <p>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</p>
+          {% if page_obj.has_previous %}<a href="{% querystring page=page_obj.previous_page_number %}">Anterior</a>{% endif %}
+          {% if page_obj.has_next %}<a href="{% querystring page=page_obj.next_page_number %}">Próxima</a>{% endif %}
+        </nav>
       {% endif %}
     </section>
   </div>
+  <section class="flow-panel" aria-labelledby="reservas-agenda-title">
+    <h2 id="reservas-agenda-title">Próximos períodos ocupados por reservas</h2>
+    <p class="flow-small">Até 10 reservas vigentes. A agenda não cancela nem altera reservas.</p>
+    {% for reserva in reservas_vigentes %}
+      <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.get_status_display }} · <a href="{% url 'reservas:detalhe' reserva.pk %}">Consultar reserva</a></p>
+    {% empty %}<p>Nenhuma reserva vigente neste veículo.</p>{% endfor %}
+  </section>
 {% endblock %}

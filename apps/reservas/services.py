@@ -1,10 +1,14 @@
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import transaction
+from django.db.models import Exists, OuterRef
+from django.utils import timezone
 
 from apps.administracao.models import ConfiguracaoComissao
-from apps.veiculos.disponibilidade import motivo_indisponibilidade
-from apps.veiculos.models import Veiculo
+from apps.veiculos.disponibilidade import (
+    STATUS_RESERVA_BLOQUEANTES, motivo_indisponibilidade,
+)
+from apps.veiculos.models import PeriodoAgenda, Veiculo
 
 from .models import Reserva
 
@@ -15,6 +19,73 @@ COMISSAO_PADRAO = Decimal("15.00")
 
 class ReservaInvalida(Exception):
     """Indica que a transição ou o período solicitado não é permitido."""
+
+
+class AgendaInvalida(Exception):
+    """Indica uma alteração de agenda incompatível com os compromissos."""
+
+
+def _reservas_vigentes(veiculo):
+    return Reserva.objects.filter(
+        veiculo=veiculo, status__in=STATUS_RESERVA_BLOQUEANTES,
+        fim__gt=timezone.localdate(),
+    )
+
+
+def _reservas_sem_cobertura(veiculo, disponibilidades):
+    cobertura = disponibilidades.filter(
+        inicio__lte=OuterRef("inicio"), fim__gte=OuterRef("fim"),
+    )
+    return _reservas_vigentes(veiculo).annotate(
+        _coberta=Exists(cobertura),
+    ).filter(_coberta=False)
+
+
+@transaction.atomic
+def adicionar_periodo_agenda(*, veiculo, inicio, fim, tipo):
+    """Recebe datas validadas e serializa a agenda com novas reservas."""
+    veiculo = Veiculo.objects.select_for_update().get(pk=veiculo.pk)
+    periodos = PeriodoAgenda.objects.filter(veiculo=veiculo)
+    if periodos.filter(inicio=inicio, fim=fim, tipo=tipo).exists():
+        raise AgendaInvalida("Este período já está cadastrado na agenda.")
+    if tipo == PeriodoAgenda.Tipo.BLOQUEADO:
+        if _reservas_vigentes(veiculo).filter(
+            inicio__lt=fim, fim__gt=inicio,
+        ).exists():
+            raise AgendaInvalida(
+                "Não é possível bloquear datas de uma reserva vigente.",
+            )
+    else:
+        disponiveis = periodos.filter(tipo=PeriodoAgenda.Tipo.DISPONIVEL)
+        if _reservas_sem_cobertura(veiculo, disponiveis).exclude(
+            inicio__gte=inicio, fim__lte=fim,
+        ).exists():
+            raise AgendaInvalida(
+                "Esta disponibilidade deixaria reservas vigentes "
+                "fora da agenda. "
+                "Inclua um período que também cubra essas reservas.",
+            )
+    return PeriodoAgenda.objects.create(
+        veiculo=veiculo, inicio=inicio, fim=fim, tipo=tipo,
+    )
+
+
+@transaction.atomic
+def remover_periodo_agenda(periodo):
+    veiculo = Veiculo.objects.select_for_update().get(pk=periodo.veiculo_id)
+    restantes = PeriodoAgenda.objects.filter(
+        veiculo=veiculo, tipo=PeriodoAgenda.Tipo.DISPONIVEL,
+    ).exclude(pk=periodo.pk)
+    if (
+        periodo.tipo == PeriodoAgenda.Tipo.DISPONIVEL
+        and restantes.exists()
+        and _reservas_sem_cobertura(veiculo, restantes).exists()
+    ):
+        raise AgendaInvalida(
+            "Este período cobre reservas vigentes. Cadastre outra "
+            "disponibilidade que as cubra antes de removê-lo.",
+        )
+    periodo.delete()
 
 
 def percentual_comissao() -> Decimal:

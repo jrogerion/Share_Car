@@ -36,8 +36,8 @@ class PeriodoAgendaForm(forms.ModelForm):
         model = PeriodoAgenda
         fields = ("inicio", "fim", "tipo")
         widgets = {
-            "inicio": forms.DateInput(attrs={"type": "date"}),
-            "fim": forms.DateInput(attrs={"type": "date"}),
+            "inicio": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "fim": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -51,6 +51,9 @@ class PeriodoAgendaForm(forms.ModelForm):
         inicio = dados.get("inicio")
         fim = dados.get("fim")
 
+        if inicio and inicio < timezone.localdate():
+            self.add_error("inicio", "O início não pode estar no passado.")
+
         if inicio and fim and fim <= inicio:
             self.add_error(
                 "fim",
@@ -61,4 +64,3 @@ class PeriodoAgendaForm(forms.ModelForm):
             self.add_error("fim", "O período não pode terminar no passado.")
 
         return dados
-
