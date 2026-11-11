@@ -39,7 +39,7 @@ def buscar_veiculos(
     veiculos = veiculos_publicos()
 
     if cidade:
-        veiculos = veiculos.filter(cidade__icontains=cidade.strip())
+        veiculos = veiculos.filter(cidade__unaccent__icontains=cidade.strip())
     if categoria:
         veiculos = veiculos.filter(categoria__iexact=categoria.strip())
     if cambio:

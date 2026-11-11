@@ -91,7 +91,7 @@
           <tbody>
             {% for veiculo in veiculos_pendentes %}
               <tr>
-                <td>{{ veiculo.categoria }} em {{ veiculo.cidade }}</td>
+                <td><a href="{% url 'administracao:analise_veiculo' veiculo.pk %}">{{ veiculo.categoria }} em {{ veiculo.cidade }}</a></td>
                 <td>{{ veiculo.proprietario.username }}</td>
                 <td class="flow-table-actions">
                   <form method="post" action="{% url 'administracao:veiculo' veiculo.pk 'aprovar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Aprovar</button></form>
@@ -142,7 +142,7 @@
         <tbody>
           {% for veiculo in veiculos_recentes %}
             <tr>
-              <td>{{ veiculo.categoria }} em {{ veiculo.cidade }}</td>
+              <td><a href="{% url 'administracao:analise_veiculo' veiculo.pk %}">{{ veiculo.categoria }} em {{ veiculo.cidade }}</a></td>
               <td>{{ veiculo.proprietario.username }}</td>
               <td>{{ veiculo.get_aprovacao_display }}</td>
               <td>{% if veiculo.bloqueado %}Bloqueado{% elif veiculo.ativo %}Ativo{% else %}Inativo{% endif %}</td>

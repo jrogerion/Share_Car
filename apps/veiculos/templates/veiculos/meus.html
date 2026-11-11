@@ -24,6 +24,12 @@
           <dt>Anúncio</dt><dd>{% if veiculo.ativo %}Ativo{% else %}Inativo{% endif %}</dd>
           <dt>Bloqueio administrativo</dt><dd>{% if veiculo.bloqueado %}Bloqueado{% else %}Não bloqueado{% endif %}</dd>
         </dl>
+        {% if veiculo.motivos_nao_publicacao %}
+          <p><strong>Não publicado:</strong></p>
+          <ul>{% for motivo in veiculo.motivos_nao_publicacao %}<li>{{ motivo }}</li>{% endfor %}</ul>
+        {% else %}
+          <p><strong>Publicado na busca.</strong> Se não encontrar o anúncio, confira os filtros de cidade e período. A busca por datas depende da agenda.</p>
+        {% endif %}
         <div class="flow-actions">
           <a class="btn btn-outline-secondary" href="{% url 'veiculos:editar' veiculo.pk %}">Editar veículo</a>
           <a class="btn btn-outline-secondary" href="{% url 'veiculos:fotos' veiculo.pk %}">Fotos</a>
