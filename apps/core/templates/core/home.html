@@ -44,12 +44,81 @@
       <div class="discovery-heading"><h2 id="destaques-title">Encontre o seu estilo</h2><span>Exemplos ilustrativos</span></div>
       <p class="discovery-note">Veículos, preços e notas fictícios para demonstrar a experiência.</p>
       <div class="discovery-cars" tabindex="0" role="region" aria-label="Exemplos de veículos; role para ver mais no celular">
-        <article class="discovery-car"><div class="discovery-photo photo-blue"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Fiat Argo</h3><p>2021 · Hatch</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,8 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,8</span><strong>R$ 150<small>/dia</small></strong></div></div></article>
-        <article class="discovery-car"><div class="discovery-photo photo-lilac"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Jeep Renegade</h3><p>2022 · SUV</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 189<small>/dia</small></strong></div></div></article>
-        <article class="discovery-car"><div class="discovery-photo photo-mint"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Honda City</h3><p>2023 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 240<small>/dia</small></strong></div></div></article>
-        <article class="discovery-car"><div class="discovery-photo photo-rose"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Toyota Corolla</h3><p>2022 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 5 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 5,0</span><strong>R$ 320<small>/dia</small></strong></div></div></article>
+        <article class="discovery-car" role="button" tabindex="0" aria-haspopup="dialog" data-vehicle-name="Fiat Argo" data-vehicle-details="2021 · Hatch" data-vehicle-rating="4,8" data-daily-rate="150" data-photo="photo-blue"><div class="discovery-photo photo-blue"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Fiat Argo</h3><p>2021 · Hatch</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,8 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,8</span><strong>R$ 150<small>/dia</small></strong></div></div></article>
+        <article class="discovery-car" role="button" tabindex="0" aria-haspopup="dialog" data-vehicle-name="Jeep Renegade" data-vehicle-details="2022 · SUV" data-vehicle-rating="4,9" data-daily-rate="189" data-photo="photo-lilac"><div class="discovery-photo photo-lilac"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Jeep Renegade</h3><p>2022 · SUV</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 189<small>/dia</small></strong></div></div></article>
+        <article class="discovery-car" role="button" tabindex="0" aria-haspopup="dialog" data-vehicle-name="Honda City" data-vehicle-details="2023 · Sedã" data-vehicle-rating="4,9" data-daily-rate="240" data-photo="photo-mint"><div class="discovery-photo photo-mint"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Honda City</h3><p>2023 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 240<small>/dia</small></strong></div></div></article>
+        <article class="discovery-car" role="button" tabindex="0" aria-haspopup="dialog" data-vehicle-name="Toyota Corolla" data-vehicle-details="2022 · Sedã" data-vehicle-rating="5,0" data-daily-rate="320" data-photo="photo-rose"><div class="discovery-photo photo-rose"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Toyota Corolla</h3><p>2022 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 5 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 5,0</span><strong>R$ 320<small>/dia</small></strong></div></div></article>
       </div>
     </section>
+    <dialog id="vehicle-preview" class="discovery-preview" aria-labelledby="preview-title">
+      <div class="discovery-preview-panel">
+        <header class="discovery-preview-header">
+          <div>
+            <p class="discovery-preview-eyebrow" id="preview-eyebrow">Prévia do veículo</p>
+            <h2 class="discovery-preview-title" id="preview-title" tabindex="-1">Fiat Argo</h2>
+          </div>
+          <button type="button" class="discovery-preview-close" data-preview-close aria-label="Fechar prévia">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
+        </header>
+
+        <div class="discovery-preview-step" data-preview-step="vehicle">
+          <div class="discovery-preview-photo photo-blue" id="preview-photo">
+            <img src="{% static 'images/car.svg' %}" alt="" width="320" height="160" id="preview-image">
+          </div>
+          <div class="discovery-preview-meta">
+            <span id="preview-details">2021 · Hatch</span>
+            <span class="discovery-preview-rating"><i class="bi bi-star-fill" aria-hidden="true"></i> <span id="preview-rating">4,8</span></span>
+          </div>
+          <p class="discovery-preview-price"><span id="preview-price">R$ 150</span><small>/dia</small></p>
+          <p class="discovery-note">Prévia visual do veículo selecionado. Os dados são ilustrativos.</p>
+          <div class="discovery-preview-actions">
+            <button type="button" class="discovery-button" data-preview-next="summary">Ver resumo de reserva</button>
+          </div>
+        </div>
+
+        <div class="discovery-preview-step" data-preview-step="summary" hidden>
+          <div class="discovery-preview-selected">
+            <div class="discovery-preview-photo photo-blue" id="summary-photo">
+              <img src="{% static 'images/car.svg' %}" alt="" width="320" height="160" id="summary-image">
+            </div>
+            <div>
+              <strong id="summary-name">Fiat Argo</strong>
+              <span id="summary-details">2021 · Hatch</span>
+            </div>
+          </div>
+          <dl class="discovery-preview-list">
+            <div><dt>Localização</dt><dd id="summary-location">A definir</dd></div>
+            <div><dt>Retirada</dt><dd id="summary-pickup">A definir</dd></div>
+            <div><dt>Devolução</dt><dd id="summary-return">A definir</dd></div>
+            <div><dt>Diária</dt><dd id="summary-price">R$ 150/dia</dd></div>
+          </dl>
+          <p class="discovery-note">Prévia visual: os campos de busca ainda não geram reservas.</p>
+          <div class="discovery-preview-actions">
+            <button type="button" class="discovery-preview-secondary" data-preview-back="vehicle"><i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar</button>
+            <button type="button" class="discovery-button" data-preview-next="payment">Conhecer pagamento simulado</button>
+          </div>
+        </div>
+
+        <div class="discovery-preview-step" data-preview-step="payment" hidden>
+          <p class="discovery-preview-simulation"><i class="bi bi-info-circle" aria-hidden="true"></i><span><strong>Simulação:</strong> nenhum pagamento real será processado.</span></p>
+          <div class="discovery-preview-payment">
+            <span>Pagamento simulado</span>
+            <strong><span id="payment-price">R$ 150</span><small>/dia</small></strong>
+            <small id="payment-vehicle">Fiat Argo</small>
+          </div>
+          <dl class="discovery-preview-list">
+            <div><dt>Forma de pagamento</dt><dd>Cartão simulado</dd></div>
+            <div><dt>Status</dt><dd>Demonstração</dd></div>
+          </dl>
+          <p class="discovery-note">Esta prévia demonstra apenas a experiência. Nenhum dado de cartão é solicitado, armazenado ou cobrado.</p>
+          <div class="discovery-preview-actions">
+            <button type="button" class="discovery-preview-secondary" data-preview-back="summary"><i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar</button>
+            <button type="button" class="discovery-preview-secondary" data-preview-close>Fechar prévia</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
     <section id="como-funciona" class="discovery-section" aria-labelledby="como-title">
       <div class="discovery-heading"><h2 id="como-title">Como funciona</h2><span>Simples, do início ao fim</span></div>
       <ol class="discovery-steps">
@@ -64,6 +133,7 @@
   </div>
 {% endblock %}
 {% block scripts %}
+
   <script>
     (() => {
       const retirada = document.getElementById("retirada");
@@ -93,4 +163,5 @@
       devolucao.addEventListener("input", validarPeriodo);
     })();
   </script>
+
 {% endblock %}

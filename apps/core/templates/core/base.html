@@ -42,10 +42,13 @@
           </button>
 
           <div class="collapse navbar-collapse" id="menuPrincipal">
-            <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+            <div class="navbar-nav mx-auto align-items-lg-center gap-lg-2">
               {% include "core/includes/navigation_links.html" with link_class="nav-link" %}
               <a class="nav-link" href="{% url 'core:home' %}#como-funciona">Como funciona</a>
               <a class="btn btn-brand btn-sm px-3" href="{% url 'core:veiculo' %}" {% if request.resolver_match.url_name == 'veiculo' %}aria-current="page"{% endif %}>Anunciar carro</a>
+            </div>
+            <div class="navbar-nav ms-lg-auto align-items-lg-center gap-lg-2">
+              {% include "core/includes/navigation_account.html" with link_class="nav-link" %}
             </div>
           </div>
         </div>
