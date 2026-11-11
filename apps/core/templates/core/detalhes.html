@@ -94,12 +94,17 @@
             {% if eh_proprietario %}
               <p class="flow-small">Este é o seu anúncio; não é possível reservá-lo.</p>
             {% elif user.is_authenticated %}
+              {% if impedimento_locatario %}
+                <p class="flow-notice" role="status">{{ impedimento_locatario }}</p>
+                <a class="btn btn-outline-secondary" href="{% url 'contas:perfil' %}">Consultar Minha conta</a>
+              {% else %}
               <form method="post" action="{% url 'reservas:criar' veiculo.pk %}">
                 {% csrf_token %}
                 <input type="hidden" name="retirada" value="{{ periodo_inicio|date:'Y-m-d' }}">
                 <input type="hidden" name="devolucao" value="{{ periodo_fim|date:'Y-m-d' }}">
                 <button class="discovery-button" type="submit">Solicitar reserva</button>
               </form>
+              {% endif %}
             {% else %}
               <a class="discovery-button" href="{% url 'core:entrar' %}?next={{ request.get_full_path|urlencode }}">Entrar para solicitar</a>
             {% endif %}

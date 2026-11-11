@@ -66,7 +66,9 @@ def filtrar_por_disponibilidade(
     )
 
 
-def motivo_indisponibilidade(veiculo: Veiculo, inicio, fim) -> str:
+def motivo_indisponibilidade(
+    veiculo: Veiculo, inicio, fim, *, reserva_ignorada=None,
+) -> str:
     """Retorna a razão da indisponibilidade ou string vazia se estiver livre."""
     if fim <= inicio:
         return "A devolução deve ser posterior à retirada."
@@ -82,12 +84,15 @@ def motivo_indisponibilidade(veiculo: Veiculo, inicio, fim) -> str:
     ).exists():
         return "O veículo está bloqueado no período informado."
 
-    if Reserva.objects.filter(
+    reservas = Reserva.objects.filter(
         veiculo=veiculo,
         status__in=STATUS_RESERVA_BLOQUEANTES,
         inicio__lt=fim,
         fim__gt=inicio,
-    ).exists():
+    )
+    if reserva_ignorada is not None:
+        reservas = reservas.exclude(pk=reserva_ignorada)
+    if reservas.exists():
         return "O veículo já possui uma reserva no período informado."
 
     if PeriodoAgenda.objects.filter(

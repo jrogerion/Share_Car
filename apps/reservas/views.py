@@ -29,7 +29,7 @@ from .services import (
     adicionar_periodo_agenda,
     cancelar_reserva,
     criar_reserva,
-    pagamento_aprovado,
+    motivo_impedimento_aceite,
     recusar_reserva,
     remover_periodo_agenda,
 )
@@ -45,6 +45,7 @@ def _executar_acao(request, reserva, acao, mensagem):
     return redirect("reservas:detalhe", pk=reserva.pk)
 
 
+@method_decorator(never_cache, name="dispatch")
 class MinhasReservasView(LoginRequiredMixin, ListView):
     """Lista as reservas em que o usuário é locatário ou proprietário."""
 
@@ -63,17 +64,32 @@ class MinhasReservasView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        reservas = self.get_queryset()
-        context["como_locatario"] = reservas.filter(locatario=self.request.user)
-        context["como_proprietario"] = reservas.filter(
-            veiculo__proprietario=self.request.user
+        reservas = self.object_list
+        locatario = Paginator(reservas.filter(locatario=self.request.user), 10)
+        proprietario = Paginator(reservas.filter(
+            veiculo__proprietario=self.request.user,
+        ), 10)
+        context["pagina_locatario"] = locatario.get_page(
+            self.request.GET.get("locatario_page"),
         )
-        context["meus_veiculos"] = Veiculo.objects.filter(
+        context["pagina_proprietario"] = proprietario.get_page(
+            self.request.GET.get("proprietario_page"),
+        )
+        context["como_locatario"] = context["pagina_locatario"].object_list
+        context["como_proprietario"] = (
+            context["pagina_proprietario"].object_list
+        )
+        meus_veiculos = Veiculo.objects.filter(
             proprietario=self.request.user
         ).order_by("cidade", "categoria")
+        context["pagina_veiculos"] = Paginator(meus_veiculos, 10).get_page(
+            self.request.GET.get("veiculos_page"),
+        )
+        context["meus_veiculos"] = context["pagina_veiculos"].object_list
         return context
 
 
+@method_decorator(never_cache, name="dispatch")
 class DetalheReservaView(LoginRequiredMixin, DetailView):
     """Exibe a reserva apenas para o locatário ou o proprietário do veículo."""
 
@@ -97,6 +113,10 @@ class DetalheReservaView(LoginRequiredMixin, DetailView):
             and reserva.status == Reserva.Status.SOLICITADA
         )
         context["pode_recusar"] = context["pode_aceitar"]
+        if context["pode_aceitar"]:
+            impedimento = motivo_impedimento_aceite(reserva)
+            context["impedimento_aceite"] = impedimento
+            context["pode_aceitar"] = not impedimento
         context["pode_cancelar"] = (
             context["eh_locatario"]
             and reserva.status
@@ -107,7 +127,10 @@ class DetalheReservaView(LoginRequiredMixin, DetailView):
             pagamento = reserva.pagamento
         except Pagamento.DoesNotExist:
             pagamento = None
-        aprovado = pagamento_aprovado(reserva)
+        aprovado = (
+            pagamento is not None
+            and pagamento.status == Pagamento.Status.APROVADO
+        )
         check_in = check_in_da_reserva(reserva)
         check_out = check_out_da_reserva(reserva)
 
@@ -178,7 +201,13 @@ class CriarReservaView(LoginRequiredMixin, View):
         except ReservaInvalida as exc:
             messages.error(request, str(exc))
             return self._voltar_ao_veiculo(veiculo, form.data)
-        except IntegrityError:
+        except IntegrityError as exc:
+            diagnostico = getattr(exc.__cause__, "diag", None)
+            if (
+                getattr(diagnostico, "constraint_name", None)
+                != "reserva_sem_sobreposicao"
+            ):
+                raise
             messages.error(
                 request,
                 "O período acabou de ser reservado por outra pessoa. "
@@ -201,6 +230,8 @@ class CriarReservaView(LoginRequiredMixin, View):
 
     @staticmethod
     def _voltar_ao_veiculo(veiculo, dados):
+        if not veiculos_publicos().filter(pk=veiculo.pk).exists():
+            return redirect("core:resultados")
         parametros = urlencode(
             {
                 "retirada": dados.get("retirada", ""),

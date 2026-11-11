@@ -31,11 +31,15 @@ class ReservaBaseTests(TestCase):
             username="locatario",
             email="locatario@example.com",
             password="senha-de-teste",
+            locatario=True, aprovacao_cnh="aprovado", cnh_numero="CNH-TESTE-001",
+            cnh_validade=timezone.localdate() + timedelta(days=365),
         )
         cls.outro = Usuario.objects.create_user(
             username="outro",
             email="outro@example.com",
             password="senha-de-teste",
+            locatario=True, aprovacao_cnh="aprovado", cnh_numero="CNH-TESTE-002",
+            cnh_validade=timezone.localdate() + timedelta(days=365),
         )
         cls.veiculo = cls.criar_veiculo()
         cls.veiculo2 = cls.criar_veiculo(cidade="Campinas")

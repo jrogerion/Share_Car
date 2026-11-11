@@ -235,7 +235,11 @@ class AgendaDisponibilidadeTests(TestCase):
 class ConcorrenciaAgendaTests(TransactionTestCase):
     def test_bloqueio_e_reserva_simultaneos_nao_ocupam_mesmas_datas(self):
         dono = Usuario.objects.create_user("dono-concorrencia")
-        locatario = Usuario.objects.create_user("locatario-concorrencia")
+        locatario = Usuario.objects.create_user(
+            "locatario-concorrencia", locatario=True,
+            aprovacao_cnh="aprovado", cnh_numero="CNH-TESTE-001",
+            cnh_validade=timezone.localdate() + timedelta(days=365),
+        )
         veiculo = Veiculo.objects.create(
             proprietario=dono, caracteristicas="Veículo de concorrência",
             cidade="Cidade teste", categoria="Hatch", cambio="Manual",
