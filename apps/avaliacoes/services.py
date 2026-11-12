@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Avg, Count, F
+from django.db.models import Avg, Count, Exists, F, OuterRef
 
 from apps.reservas.models import Reserva
 
@@ -12,6 +12,8 @@ class AvaliacaoInvalida(Exception):
 
 def participante_da_reserva(reserva: Reserva, usuario):
     """Retorna o usuário avaliado ou None quando o autor não participa."""
+    if reserva.locatario_id == reserva.veiculo.proprietario_id:
+        return None
     if reserva.locatario_id == usuario.pk:
         return reserva.veiculo.proprietario
     if reserva.veiculo.proprietario_id == usuario.pk:
@@ -31,6 +33,8 @@ def pode_avaliar(reserva: Reserva, usuario) -> bool:
 @transaction.atomic
 def avaliar_reserva(*, reserva: Reserva, autor, nota: int) -> Avaliacao:
     """Registra a avaliação do locatário ou do proprietário."""
+    if type(nota) is not int or not 1 <= nota <= 5:
+        raise AvaliacaoInvalida("Informe uma nota inteira de 1 a 5.")
     atual = Reserva.objects.select_for_update().select_related(
         "veiculo",
         "veiculo__proprietario",
@@ -62,9 +66,15 @@ def avaliacoes_da_reserva(reserva: Reserva):
 
 
 def resumo_avaliacoes_veiculo(veiculo) -> dict:
-    """Calcula a média das notas dadas pelos locatários ao proprietário."""
+    """Agrega só notas de locatários já liberadas pela avaliação recíproca."""
+    contraparte = Avaliacao.objects.filter(
+        reserva_id=OuterRef("reserva_id"),
+        autor_id=OuterRef("avaliado_id"),
+        avaliado_id=OuterRef("autor_id"),
+    )
     return Avaliacao.objects.filter(
         reserva__veiculo=veiculo,
+        reserva__status=Reserva.Status.CONCLUIDA,
         autor=F("reserva__locatario"),
         avaliado=F("reserva__veiculo__proprietario"),
-    ).aggregate(media=Avg("nota"), total=Count("pk"))
+    ).filter(Exists(contraparte)).aggregate(media=Avg("nota"), total=Count("pk"))
