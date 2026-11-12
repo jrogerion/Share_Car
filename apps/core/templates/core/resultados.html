@@ -99,9 +99,15 @@
   <div class="flow-cars">
     {% for veiculo in veiculos %}
       <a class="flow-panel flow-car" href="{% url 'core:detalhes' veiculo.pk %}{% if request.GET.retirada and request.GET.devolucao %}?retirada={{ request.GET.retirada|urlencode }}&amp;devolucao={{ request.GET.devolucao|urlencode }}{% endif %}" aria-label="Ver detalhes de {{ veiculo.categoria }} em {{ veiculo.cidade }}">
-        <div class="flow-car-photo {% cycle 'photo-blue' 'photo-rose' 'photo-mint' 'photo-lilac' %}">
-          <img src="{% static 'images/car.svg' %}" alt="" width="320" height="160">
-        </div>
+        {% with capa=veiculo.fotos.all|first %}
+          <div class="flow-car-photo{% if capa %} flow-car-photo-real{% else %} {% cycle 'photo-blue' 'photo-rose' 'photo-mint' 'photo-lilac' %}{% endif %}">
+            {% if capa %}
+              <img src="{{ capa.foto.url }}" alt="{{ veiculo.categoria }} em {{ veiculo.cidade }}" width="320" height="160" loading="lazy" decoding="async">
+            {% else %}
+              <img src="{% static 'images/car.svg' %}" alt="" width="320" height="160">
+            {% endif %}
+          </div>
+        {% endwith %}
         <div class="flow-car-body">
           <h2>{{ veiculo.categoria }} em {{ veiculo.cidade }}</h2>
           <p>{{ veiculo.caracteristicas|truncatechars:90 }}</p>

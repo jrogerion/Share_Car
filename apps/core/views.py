@@ -85,7 +85,7 @@ class ResultadosView(ListView):
             return Veiculo.objects.none()
 
         dados = self.filtro.cleaned_data
-        return buscar_veiculos(
+        return com_fotos_ordenadas(buscar_veiculos(
             cidade=dados.get("cidade", ""),
             categoria=dados.get("categoria", ""),
             cambio=dados.get("cambio", ""),
@@ -95,7 +95,7 @@ class ResultadosView(ListView):
             diaria_max=dados.get("diaria_max"),
             inicio=dados.get("retirada"),
             fim=dados.get("devolucao"),
-        )
+        ))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

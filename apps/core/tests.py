@@ -294,6 +294,12 @@ class ResultadosTests(TestCase):
         self.assertNotContains(response, "Veículo bloqueado")
         self.assertNotContains(response, "Veículo inativo")
 
+    def test_busca_sem_fotos_mantem_ilustracao(self):
+        response = self.buscar()
+
+        self.assertContains(response, "images/car.svg", count=3)
+        self.assertNotContains(response, "flow-car-photo-real")
+
     def test_filtra_por_cidade_sem_diferenciar_maiusculas(self):
         response = self.buscar(cidade="são paulo")
 
@@ -853,6 +859,34 @@ class DetalhesVeiculoFotosTests(TestCase):
         response = self.detalhe(self.veiculo)
 
         self.assertNotContains(response, "images/car.svg")
+
+    def test_busca_exibe_primeira_foto_de_cada_veiculo(self):
+        response = self.client.get(reverse("core:resultados"))
+
+        self.assertContains(response, self.foto_frente.foto.url, count=1)
+        self.assertContains(response, self.foto_outro_veiculo.foto.url, count=1)
+        self.assertNotContains(response, self.foto_lateral.foto.url)
+        self.assertNotContains(response, "images/car.svg")
+        self.assertContains(response, 'loading="lazy"', count=2)
+
+    def test_busca_filtrada_nao_exibe_capa_de_outro_veiculo(self):
+        response = self.client.get(
+            reverse("core:resultados"), {"cidade": "Campinas"},
+        )
+
+        self.assertContains(response, self.foto_outro_veiculo.foto.url)
+        self.assertNotContains(response, self.foto_frente.foto.url)
+
+    def test_busca_carrega_capas_sem_consulta_por_veiculo(self):
+        response = self.client.get(reverse("core:resultados"))
+
+        # A lista já foi renderizada; acessar suas fotos usa o prefetch.
+        with self.assertNumQueries(0):
+            capas = [
+                veiculo.fotos.all()[0]
+                for veiculo in response.context["veiculos"]
+            ]
+        self.assertEqual(len(capas), 2)
 
 
 class ResultadosSemVeiculosTests(TestCase):

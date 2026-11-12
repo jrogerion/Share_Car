@@ -99,6 +99,50 @@ class AccountNavigationTests(TestCase):
                     ):
                         self.assertIn("navigation-main", control["groups"])
 
+    def test_perfil_e_painel_destacam_apenas_o_link_da_pagina(self):
+        self.client.force_login(self.usuario)
+        for rota in ("contas:perfil", "contas:painel"):
+            with self.subTest(rota=rota):
+                parser = self.menu(self.client.get(reverse(rota)))
+                for region in self.regions:
+                    atuais = [
+                        link for link in parser.links[region]
+                        if "aria-current" in link
+                    ]
+                    self.assertEqual(len(atuais), 1)
+                    self.assertEqual(atuais[0]["href"], reverse(rota))
+                    self.assertEqual(atuais[0]["aria-current"], "page")
+
+    def test_anunciar_redireciona_sem_alterar_regra_de_aprovacao(self):
+        self.client.force_login(self.usuario)
+        response = self.client.get(reverse("core:veiculo"), follow=True)
+
+        self.assertRedirects(response, reverse("contas:perfil"))
+        parser = self.menu(response)
+        for region in self.regions:
+            atuais = [
+                link["href"] for link in parser.links[region]
+                if "aria-current" in link
+            ]
+            self.assertEqual(atuais, [reverse("contas:perfil")])
+
+    def test_anunciar_destacado_no_formulario_para_proprietario_aprovado(self):
+        self.usuario.proprietario = True
+        self.usuario.aprovacao_documento = Usuario.Aprovacao.APROVADO
+        self.usuario.save(update_fields=["proprietario", "aprovacao_documento"])
+        self.client.force_login(self.usuario)
+        response = self.client.get(reverse("core:veiculo"))
+
+        self.assertEqual(response.status_code, 200)
+        parser = self.menu(response)
+        atuais = [
+            link for link in parser.links["Navegação principal"]
+            if "aria-current" in link
+        ]
+        self.assertEqual(len(atuais), 1)
+        self.assertEqual(atuais[0]["href"], reverse("core:veiculo"))
+        self.assertEqual(atuais[0]["aria-current"], "page")
+
     def test_staff_preserva_acesso_a_administracao_sem_conta_duplicada(self):
         self.usuario.is_staff = True
         self.usuario.save(update_fields=["is_staff"])
