@@ -122,6 +122,17 @@ class RegistroLocacaoServiceTests(LocacaoBaseTests):
         with self.assertRaises(LocacaoInvalida):
             self.registrar(reserva, RegistroLocacao.Tipo.CHECK_IN)
 
+    def test_check_in_com_pagamento_recusado_e_bloqueado(self):
+        reserva = self.criar_reserva()
+        simular_pagamento(
+            reserva=reserva,
+            meio=Pagamento.Meio.PIX,
+            resultado="recusado",
+        )
+
+        with self.assertRaises(LocacaoInvalida):
+            self.registrar(reserva, RegistroLocacao.Tipo.CHECK_IN)
+
     def test_check_in_registra_fotos_e_inicia_locacao(self):
         reserva = self.criar_reserva()
         self.aprovar_pagamento(reserva)
