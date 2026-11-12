@@ -158,6 +158,19 @@ a {
   margin: 0;
 }
 
+@media (min-width: 992px) {
+  .site-navbar .navigation-main {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .site-navbar .site-account {
+    flex-shrink: 0;
+  }
+}
+
 .navigation-logout {
   display: inline-flex;
   align-items: center;
@@ -265,6 +278,12 @@ a {
 
   .site-navbar .navbar-nav {
     gap: var(--sc-space-1);
+  }
+
+  .site-navbar .site-account {
+    margin-top: var(--sc-space-1);
+    padding-top: var(--sc-space-1);
+    border-top: 1px solid var(--sc-line);
   }
 }
 
