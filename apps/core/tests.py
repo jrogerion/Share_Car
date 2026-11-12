@@ -2,6 +2,7 @@ import base64
 import shutil
 import tempfile
 from html.parser import HTMLParser
+from urllib.parse import urlencode
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, TestCase, override_settings
@@ -98,6 +99,17 @@ class TemplatePagesTests(SimpleTestCase):
                 self.assertContains(response, f'name="{field}"')
         self.assertContains(response, 'type="submit"')
         self.assertContains(response, "Buscar carros")
+
+    def test_home_categorias_apontam_para_busca_real(self):
+        response = self.client.get(reverse("core:home"))
+
+        self.assertContains(response, 'aria-label="Filtrar por categoria"')
+        for categoria in ("Hatch", "Sedã", "SUV", "Picape"):
+            with self.subTest(categoria=categoria):
+                url = reverse("core:resultados") + "?" + urlencode({
+                    "categoria": categoria,
+                })
+                self.assertContains(response, f'href="{url}"', count=1)
 
     def test_home_search_form_tem_estado_de_carregamento(self):
         response = self.client.get(reverse("core:home"))
@@ -295,6 +307,63 @@ class ResultadosTests(TestCase):
         self.assertContains(response, "SUV público de São Paulo")
         self.assertContains(response, "SUV público do Rio de Janeiro")
         self.assertNotContains(response, "Hatch público de São Paulo")
+
+    def test_categoria_sem_anuncios_publicos_retorna_busca_vazia(self):
+        for categoria in ("Sedã", "Picape", "Categoria inexistente"):
+            with self.subTest(categoria=categoria):
+                response = self.buscar(categoria=categoria)
+
+                self.assertFalse(response.context["filtro"].errors)
+                self.assertContains(response, "0 veículos encontrados")
+                self.assertContains(response, "Nenhum veículo encontrado")
+                self.assertNotContains(response, "Veículo pendente de aprovação")
+                self.assertContains(
+                    response, f'<option value="{categoria}" selected>',
+                )
+
+    def test_categoria_combina_cidade_sem_acentos_e_periodo(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from apps.veiculos.models import PeriodoAgenda
+
+        inicio = timezone.localdate() + timedelta(days=5)
+        fim = inicio + timedelta(days=3)
+        dados = {
+            "categoria": "SUV", "cidade": "sao paulo",
+            "retirada": inicio.isoformat(), "devolucao": fim.isoformat(),
+        }
+        response = self.buscar(**dados)
+        self.assertFalse(response.context["filtro"].errors)
+        self.assertEqual(list(response.context["veiculos"]), [self.sp_suv])
+
+        PeriodoAgenda.objects.create(
+            veiculo=self.sp_suv, inicio=inicio, fim=fim,
+            tipo=PeriodoAgenda.Tipo.BLOQUEADO,
+        )
+        response = self.buscar(**dados)
+        self.assertFalse(response.context["filtro"].errors)
+        self.assertContains(response, "0 veículos encontrados")
+
+    def test_categoria_de_link_nao_desabilita_validacao_dos_filtros(self):
+        for dados in (
+            {"categoria": "X" * 51},
+            {"categoria": "Sedã", "passageiros": "muitos"},
+            {"categoria": "Sedã", "retirada": "data-invalida"},
+            {"categoria": "Sedã", "cambio": "Inexistente"},
+        ):
+            with self.subTest(dados=dados):
+                response = self.buscar(**dados)
+                self.assertTrue(response.context["filtro"].errors)
+                self.assertContains(response, "Não foi possível aplicar os filtros.")
+
+    def test_categoria_solicitada_tem_html_escapado(self):
+        response = self.buscar(categoria='<script>alert(1)</script>')
+
+        self.assertFalse(response.context["filtro"].errors)
+        self.assertNotContains(response, '<script>alert(1)</script>')
+        self.assertContains(response, '&lt;script&gt;alert(1)&lt;/script&gt;')
 
     def test_filtra_por_cambio(self):
         response = self.buscar(cambio="Manual")
@@ -791,6 +860,14 @@ class ResultadosSemVeiculosTests(TestCase):
 
     def buscar(self, **filtros):
         return self.client.get(reverse("core:resultados"), filtros)
+
+    def test_categorias_da_home_funcionam_sem_veiculos(self):
+        for categoria in ("Hatch", "Sedã", "SUV", "Picape"):
+            with self.subTest(categoria=categoria):
+                response = self.buscar(categoria=categoria)
+                self.assertFalse(response.context["filtro"].errors)
+                self.assertContains(response, "0 veículos encontrados")
+                self.assertContains(response, "Nenhum veículo encontrado")
 
     def test_sem_veiculos_e_sem_filtros(self):
         response = self.buscar()

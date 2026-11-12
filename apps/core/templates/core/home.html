@@ -34,11 +34,11 @@
       <p class="visually-hidden" role="status" data-search-status></p>
       <p id="demo-notice" class="discovery-note">A busca considera a cidade e, quando informado, o período de retirada e devolução.</p>
     </form>
-    <section id="vantagens" class="discovery-categories" aria-label="Categorias ilustradas">
-      <span><i class="bi bi-car-front" aria-hidden="true"></i> Hatch</span>
-      <span><i class="bi bi-car-front-fill" aria-hidden="true"></i> Sedã</span>
-      <span><i class="bi bi-truck" aria-hidden="true"></i> SUV</span>
-      <span><i class="bi bi-truck-flatbed" aria-hidden="true"></i> Picape</span>
+    <section id="vantagens" class="discovery-categories" aria-label="Filtrar por categoria">
+      <a href="{% url 'core:resultados' %}?categoria=Hatch"><i class="bi bi-car-front" aria-hidden="true"></i> Hatch</a>
+      <a href="{% url 'core:resultados' %}?categoria=Sed%C3%A3"><i class="bi bi-car-front-fill" aria-hidden="true"></i> Sedã</a>
+      <a href="{% url 'core:resultados' %}?categoria=SUV"><i class="bi bi-truck" aria-hidden="true"></i> SUV</a>
+      <a href="{% url 'core:resultados' %}?categoria=Picape"><i class="bi bi-truck-flatbed" aria-hidden="true"></i> Picape</a>
     </section>
     <section id="destaques" class="discovery-section" aria-labelledby="destaques-title">
       <div class="discovery-heading"><h2 id="destaques-title">Encontre o seu estilo</h2><span>Exemplos ilustrativos</span></div>
