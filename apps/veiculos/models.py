@@ -22,6 +22,22 @@ class Veiculo(models.Model):
     bloqueado = models.BooleanField(default=False)
     aprovacao = models.CharField(max_length=10, choices=Aprovacao.choices, default=Aprovacao.PENDENTE)
 
+    @property
+    def motivos_nao_publicacao(self):
+        """Explica as mesmas condições usadas pela consulta pública."""
+        motivos = []
+        if self.aprovacao != self.Aprovacao.APROVADO:
+            motivos.append(
+                "Anúncio rejeitado. Revise os dados e envie novamente para análise."
+                if self.aprovacao == self.Aprovacao.REJEITADO
+                else "Aguardando aprovação administrativa."
+            )
+        if not self.ativo:
+            motivos.append("Anúncio desativado pelo proprietário.")
+        if self.bloqueado:
+            motivos.append("Anúncio bloqueado pela administração.")
+        return motivos
+
     class Meta:
         verbose_name = "veículo"
         verbose_name_plural = "veículos"

@@ -18,7 +18,7 @@
         <h2 id="veiculo-title">Veículo</h2>
         <p><strong>{{ reserva.veiculo.categoria }}</strong> em {{ reserva.veiculo.cidade }}</p>
         <p>{{ reserva.veiculo.cambio }} · {{ reserva.veiculo.combustivel }} · {{ reserva.veiculo.passageiros }} lugares</p>
-        <a class="btn btn-outline-secondary" href="{% url 'core:detalhes' reserva.veiculo.pk %}">Ver anúncio</a>
+        {% if not reserva.veiculo.motivos_nao_publicacao %}<a class="btn btn-outline-secondary" href="{% url 'core:detalhes' reserva.veiculo.pk %}">Ver anúncio</a>{% else %}<p>O anúncio não está publicado. Os dados contratados desta reserva continuam preservados.</p>{% endif %}
       </section>
 
       <section class="flow-panel" aria-labelledby="periodo-title">
@@ -126,6 +126,7 @@
       {% if pode_aceitar or pode_recusar or pode_cancelar %}
         <section class="flow-panel" aria-labelledby="acoes-title">
           <h2 id="acoes-title">Ações disponíveis</h2>
+          {% if impedimento_aceite %}<p class="flow-notice" role="status">{{ impedimento_aceite }}</p>{% endif %}
           <div class="flow-actions">
             {% if pode_aceitar %}
               <form method="post" action="{% url 'reservas:aceitar' reserva.pk %}">

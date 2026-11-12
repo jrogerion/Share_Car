@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     AlternarBloqueioUsuarioView,
     AlternarBloqueioVeiculoView,
+    AnaliseVeiculoView,
     ConfiguracaoComissaoView,
     DecidirCNHView,
     DecidirDocumentoView,
@@ -15,6 +16,10 @@ app_name = "administracao"
 urlpatterns = [
     path("", PainelAdministrativoView.as_view(), name="painel"),
     path("comissao/", ConfiguracaoComissaoView.as_view(), name="comissao"),
+    path(
+        "veiculos/<int:pk>/", AnaliseVeiculoView.as_view(),
+        name="analise_veiculo",
+    ),
     path(
         "usuarios/<int:pk>/documento/<str:decisao>/",
         DecidirDocumentoView.as_view(),

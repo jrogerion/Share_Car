@@ -2,28 +2,36 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import never_cache
 from django.views.generic import DetailView, ListView
 
 from apps.avaliacoes.services import avaliacoes_da_reserva, pode_avaliar
 from apps.locacoes.services import check_in_da_reserva, check_out_da_reserva
 from apps.pagamentos.models import Pagamento
 from apps.veiculos.consultas import veiculos_publicos
+from apps.veiculos.disponibilidade import STATUS_RESERVA_BLOQUEANTES
 from apps.veiculos.models import PeriodoAgenda, Veiculo
 
 from .forms import PeriodoAgendaForm, ReservaForm
 from .models import Reserva
 from .services import (
+    AgendaInvalida,
     ReservaInvalida,
     aceitar_reserva,
+    adicionar_periodo_agenda,
     cancelar_reserva,
     criar_reserva,
-    pagamento_aprovado,
+    motivo_impedimento_aceite,
     recusar_reserva,
+    remover_periodo_agenda,
 )
 
 
@@ -37,6 +45,7 @@ def _executar_acao(request, reserva, acao, mensagem):
     return redirect("reservas:detalhe", pk=reserva.pk)
 
 
+@method_decorator(never_cache, name="dispatch")
 class MinhasReservasView(LoginRequiredMixin, ListView):
     """Lista as reservas em que o usuário é locatário ou proprietário."""
 
@@ -55,17 +64,32 @@ class MinhasReservasView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        reservas = self.get_queryset()
-        context["como_locatario"] = reservas.filter(locatario=self.request.user)
-        context["como_proprietario"] = reservas.filter(
-            veiculo__proprietario=self.request.user
+        reservas = self.object_list
+        locatario = Paginator(reservas.filter(locatario=self.request.user), 10)
+        proprietario = Paginator(reservas.filter(
+            veiculo__proprietario=self.request.user,
+        ), 10)
+        context["pagina_locatario"] = locatario.get_page(
+            self.request.GET.get("locatario_page"),
         )
-        context["meus_veiculos"] = Veiculo.objects.filter(
+        context["pagina_proprietario"] = proprietario.get_page(
+            self.request.GET.get("proprietario_page"),
+        )
+        context["como_locatario"] = context["pagina_locatario"].object_list
+        context["como_proprietario"] = (
+            context["pagina_proprietario"].object_list
+        )
+        meus_veiculos = Veiculo.objects.filter(
             proprietario=self.request.user
         ).order_by("cidade", "categoria")
+        context["pagina_veiculos"] = Paginator(meus_veiculos, 10).get_page(
+            self.request.GET.get("veiculos_page"),
+        )
+        context["meus_veiculos"] = context["pagina_veiculos"].object_list
         return context
 
 
+@method_decorator(never_cache, name="dispatch")
 class DetalheReservaView(LoginRequiredMixin, DetailView):
     """Exibe a reserva apenas para o locatário ou o proprietário do veículo."""
 
@@ -89,6 +113,10 @@ class DetalheReservaView(LoginRequiredMixin, DetailView):
             and reserva.status == Reserva.Status.SOLICITADA
         )
         context["pode_recusar"] = context["pode_aceitar"]
+        if context["pode_aceitar"]:
+            impedimento = motivo_impedimento_aceite(reserva)
+            context["impedimento_aceite"] = impedimento
+            context["pode_aceitar"] = not impedimento
         context["pode_cancelar"] = (
             context["eh_locatario"]
             and reserva.status
@@ -99,7 +127,10 @@ class DetalheReservaView(LoginRequiredMixin, DetailView):
             pagamento = reserva.pagamento
         except Pagamento.DoesNotExist:
             pagamento = None
-        aprovado = pagamento_aprovado(reserva)
+        aprovado = (
+            pagamento is not None
+            and pagamento.status == Pagamento.Status.APROVADO
+        )
         check_in = check_in_da_reserva(reserva)
         check_out = check_out_da_reserva(reserva)
 
@@ -170,7 +201,13 @@ class CriarReservaView(LoginRequiredMixin, View):
         except ReservaInvalida as exc:
             messages.error(request, str(exc))
             return self._voltar_ao_veiculo(veiculo, form.data)
-        except IntegrityError:
+        except IntegrityError as exc:
+            diagnostico = getattr(exc.__cause__, "diag", None)
+            if (
+                getattr(diagnostico, "constraint_name", None)
+                != "reserva_sem_sobreposicao"
+            ):
+                raise
             messages.error(
                 request,
                 "O período acabou de ser reservado por outra pessoa. "
@@ -193,6 +230,8 @@ class CriarReservaView(LoginRequiredMixin, View):
 
     @staticmethod
     def _voltar_ao_veiculo(veiculo, dados):
+        if not veiculos_publicos().filter(pk=veiculo.pk).exists():
+            return redirect("core:resultados")
         parametros = urlencode(
             {
                 "retirada": dados.get("retirada", ""),
@@ -251,6 +290,7 @@ class CancelarReservaView(LoginRequiredMixin, View):
         )
 
 
+@method_decorator(never_cache, name="dispatch")
 class AgendaVeiculoView(LoginRequiredMixin, View):
     """Permite ao proprietário cadastrar disponibilidade e bloqueios."""
 
@@ -265,20 +305,33 @@ class AgendaVeiculoView(LoginRequiredMixin, View):
         form = PeriodoAgendaForm(request.POST)
 
         if form.is_valid():
-            periodo = form.save(commit=False)
-            periodo.veiculo = veiculo
-            periodo.save()
-            messages.success(request, "Período adicionado à agenda.")
-            return redirect("reservas:agenda", pk=veiculo.pk)
+            try:
+                adicionar_periodo_agenda(
+                    veiculo=veiculo, **form.cleaned_data,
+                )
+            except AgendaInvalida as exc:
+                form.add_error(None, str(exc))
+            else:
+                messages.success(request, "Período adicionado à agenda.")
+                return redirect("reservas:agenda", pk=veiculo.pk)
 
         return self._renderizar(request, veiculo, form)
 
     def _renderizar(self, request, veiculo, form):
         periodos = veiculo.periodos_agenda.order_by("inicio", "id")
+        pagina = Paginator(periodos, 20).get_page(request.GET.get("page"))
+        ocupacoes = Reserva.objects.filter(
+            veiculo=veiculo, status__in=STATUS_RESERVA_BLOQUEANTES,
+            fim__gt=timezone.localdate(),
+        ).order_by("inicio", "pk")[:10]
         return render(
             request,
             self.template_name,
-            {"veiculo": veiculo, "form": form, "periodos": periodos},
+            {
+                "veiculo": veiculo, "form": form,
+                "periodos": pagina.object_list, "page_obj": pagina,
+                "reservas_vigentes": ocupacoes,
+            },
         )
 
     @staticmethod
@@ -298,7 +351,10 @@ class RemoverPeriodoView(LoginRequiredMixin, View):
             pk=pk,
         )
         veiculo_pk = periodo.veiculo_id
-        periodo.delete()
-        messages.success(request, "Período removido da agenda.")
+        try:
+            remover_periodo_agenda(periodo)
+        except AgendaInvalida as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, "Período removido da agenda.")
         return redirect("reservas:agenda", pk=veiculo_pk)
-

@@ -14,7 +14,7 @@
   <section aria-labelledby="locatario-title">
     <div class="flow-section-heading">
       <h2 id="locatario-title">Como locatário</h2>
-      <span>{{ como_locatario|length }} reserva{{ como_locatario|length|pluralize }}</span>
+      <span>{{ pagina_locatario.paginator.count }} reserva{{ pagina_locatario.paginator.count|pluralize }}</span>
     </div>
     <div class="flow-reservations">
       {% for reserva in como_locatario %}
@@ -35,10 +35,18 @@
     </div>
   </section>
 
+  {% if pagina_locatario.has_other_pages %}
+    <nav class="flow-pagination" aria-label="Paginação como locatário">
+      <p>Página {{ pagina_locatario.number }} de {{ pagina_locatario.paginator.num_pages }}</p>
+      {% if pagina_locatario.has_previous %}<a href="{% querystring locatario_page=pagina_locatario.previous_page_number %}">Anterior</a>{% endif %}
+      {% if pagina_locatario.has_next %}<a href="{% querystring locatario_page=pagina_locatario.next_page_number %}">Próxima</a>{% endif %}
+    </nav>
+  {% endif %}
+
   <section aria-labelledby="proprietario-title">
     <div class="flow-section-heading">
       <h2 id="proprietario-title">Como proprietário</h2>
-      <span>{{ como_proprietario|length }} solicitaç{{ como_proprietario|length|pluralize:"ão,ões" }}</span>
+      <span>{{ pagina_proprietario.paginator.count }} solicitaç{{ pagina_proprietario.paginator.count|pluralize:"ão,ões" }}</span>
     </div>
     <div class="flow-reservations">
       {% for reserva in como_proprietario %}
@@ -59,10 +67,18 @@
     </div>
   </section>
 
+  {% if pagina_proprietario.has_other_pages %}
+    <nav class="flow-pagination" aria-label="Paginação como proprietário">
+      <p>Página {{ pagina_proprietario.number }} de {{ pagina_proprietario.paginator.num_pages }}</p>
+      {% if pagina_proprietario.has_previous %}<a href="{% querystring proprietario_page=pagina_proprietario.previous_page_number %}">Anterior</a>{% endif %}
+      {% if pagina_proprietario.has_next %}<a href="{% querystring proprietario_page=pagina_proprietario.next_page_number %}">Próxima</a>{% endif %}
+    </nav>
+  {% endif %}
+
   <section aria-labelledby="veiculos-title">
     <div class="flow-section-heading">
       <h2 id="veiculos-title">Meus veículos</h2>
-      <span>{{ meus_veiculos|length }} veículo{{ meus_veiculos|length|pluralize }}</span>
+      <span>{{ pagina_veiculos.paginator.count }} veículo{{ pagina_veiculos.paginator.count|pluralize }}</span>
     </div>
     <div class="flow-reservations">
       {% for veiculo in meus_veiculos %}
@@ -85,4 +101,11 @@
       {% endfor %}
     </div>
   </section>
+  {% if pagina_veiculos.has_other_pages %}
+    <nav class="flow-pagination" aria-label="Paginação dos veículos">
+      <p>Página {{ pagina_veiculos.number }} de {{ pagina_veiculos.paginator.num_pages }}</p>
+      {% if pagina_veiculos.has_previous %}<a href="{% querystring veiculos_page=pagina_veiculos.previous_page_number %}">Anterior</a>{% endif %}
+      {% if pagina_veiculos.has_next %}<a href="{% querystring veiculos_page=pagina_veiculos.next_page_number %}">Próxima</a>{% endif %}
+    </nav>
+  {% endif %}
 {% endblock %}

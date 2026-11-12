@@ -1,0 +1,48 @@
+{% extends "core/page.html" %}
+{% block title %}Analisar veículo — ShareCar{% endblock %}
+{% block back_url %}{% url 'administracao:painel' %}{% endblock %}
+{% block back_label %}Painel administrativo{% endblock %}
+{% block page_kicker %}ShareCar · Administração{% endblock %}
+{% block page_title %}Analisar veículo{% endblock %}
+{% block page_subtitle %}{{ veiculo.categoria }} · {{ veiculo.cidade }}{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel" aria-labelledby="dados-title">
+      <h2 id="dados-title">Dados do anúncio</h2>
+      <p>{{ veiculo.caracteristicas|linebreaksbr }}</p>
+      <dl>
+        <dt>Proprietário</dt><dd>{{ veiculo.proprietario.get_full_name|default:veiculo.proprietario.username }}</dd>
+        <dt>Câmbio</dt><dd>{{ veiculo.cambio }}</dd>
+        <dt>Combustível</dt><dd>{{ veiculo.combustivel }}</dd>
+        <dt>Passageiros</dt><dd>{{ veiculo.passageiros }}</dd>
+        <dt>Diária</dt><dd>R$ {{ veiculo.preco_diaria|floatformat:2 }}</dd>
+        <dt>Aprovação</dt><dd>{{ veiculo.get_aprovacao_display }}</dd>
+        <dt>Anúncio</dt><dd>{% if veiculo.ativo %}Ativo{% else %}Inativo{% endif %}</dd>
+        <dt>Bloqueio</dt><dd>{% if veiculo.bloqueado %}Bloqueado{% else %}Não bloqueado{% endif %}</dd>
+      </dl>
+      {% if veiculo.motivos_nao_publicacao %}
+        <h3>Por que não está publicado?</h3>
+        <ul>{% for motivo in veiculo.motivos_nao_publicacao %}<li>{{ motivo }}</li>{% endfor %}</ul>
+      {% else %}<p>Publicado na busca pública.</p>{% endif %}
+    </section>
+    <aside class="flow-panel">
+      <h2>Decisão administrativa</h2>
+      <p>Confira os dados e fotos antes de decidir. Aprovar não ativa um anúncio desativado nem remove bloqueios.</p>
+      <div class="flow-actions">
+        <form method="post" action="{% url 'administracao:veiculo' veiculo.pk 'aprovar' %}">{% csrf_token %}<button class="discovery-button" type="submit">Aprovar</button></form>
+        <form method="post" action="{% url 'administracao:veiculo' veiculo.pk 'rejeitar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Rejeitar</button></form>
+        <form method="post" action="{% url 'administracao:bloqueio_veiculo' veiculo.pk %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">{% if veiculo.bloqueado %}Desbloquear{% else %}Bloquear{% endif %}</button></form>
+      </div>
+      <p>A análise é manual. As alterações são registradas no histórico administrativo.</p>
+    </aside>
+  </div>
+  <section aria-labelledby="fotos-title">
+    <h2 id="fotos-title">Fotos cadastradas</h2>
+    <div class="flow-gallery">
+      {% for foto in veiculo.fotos.all %}
+        <figure class="flow-gallery-item"><img src="{{ foto.foto.url }}" alt="Foto {{ forloop.counter }} do veículo {{ veiculo.categoria }}" loading="lazy"></figure>
+      {% empty %}<p>Nenhuma foto cadastrada.</p>{% endfor %}
+    </div>
+  </section>
+{% endblock %}

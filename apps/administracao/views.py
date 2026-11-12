@@ -4,13 +4,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.generic import TemplateView
+from django.views.decorators.cache import never_cache
+from django.views.generic import DetailView, TemplateView
 
 from apps.contas.models import Usuario
 from apps.pagamentos.models import Pagamento
 from apps.reservas.models import Reserva
 from apps.veiculos.models import Veiculo
+from apps.veiculos.consultas import com_fotos_ordenadas
 
 from .forms import ConfiguracaoComissaoForm
 from .models import ConfiguracaoComissao
@@ -92,9 +95,9 @@ class AnalistaMixin(AdministradorMixin):
         return super().test_func() and self.request.user.is_superuser
 
 
-def registrar_analise(request, usuario, campo):
+def registrar_analise(request, objeto, campo):
     LogEntry.objects.log_actions(
-        user_id=request.user.pk, queryset=[usuario], action_flag=CHANGE,
+        user_id=request.user.pk, queryset=[objeto], action_flag=CHANGE,
         change_message=[{"changed": {"fields": [campo]}}],
     )
 
@@ -183,21 +186,34 @@ class AlternarBloqueioUsuarioView(AdministradorMixin, View):
         return redirect("administracao:painel")
 
 
+@method_decorator(never_cache, name="dispatch")
+class AnaliseVeiculoView(AdministradorMixin, DetailView):
+    template_name = "administracao/veiculo.html"
+    context_object_name = "veiculo"
+
+    def get_queryset(self):
+        return com_fotos_ordenadas(
+            Veiculo.objects.select_related("proprietario"),
+        )
+
+
 class DecidirVeiculoView(AdministradorMixin, View):
     """Aprova ou rejeita um veículo anunciado."""
 
+    @transaction.atomic
     def post(self, request, pk, decisao):
         if decisao not in DECISOES:
             messages.error(request, "Ação inválida.")
             return redirect("administracao:painel")
 
-        veiculo = get_object_or_404(Veiculo, pk=pk)
+        veiculo = get_object_or_404(Veiculo.objects.select_for_update(), pk=pk)
         veiculo.aprovacao = (
             Veiculo.Aprovacao.APROVADO
             if decisao == "aprovar"
             else Veiculo.Aprovacao.REJEITADO
         )
         veiculo.save(update_fields=["aprovacao"])
+        registrar_analise(request, veiculo, "aprovacao")
         messages.success(
             request,
             f"Veículo #{veiculo.pk} "
@@ -209,10 +225,12 @@ class DecidirVeiculoView(AdministradorMixin, View):
 class AlternarBloqueioVeiculoView(AdministradorMixin, View):
     """Bloqueia ou desbloqueia um veículo."""
 
+    @transaction.atomic
     def post(self, request, pk):
-        veiculo = get_object_or_404(Veiculo, pk=pk)
+        veiculo = get_object_or_404(Veiculo.objects.select_for_update(), pk=pk)
         veiculo.bloqueado = not veiculo.bloqueado
         veiculo.save(update_fields=["bloqueado"])
+        registrar_analise(request, veiculo, "bloqueado")
         messages.success(
             request,
             f"Veículo #{veiculo.pk} "

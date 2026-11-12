@@ -118,6 +118,7 @@
             <p>Corrija os filtros destacados acima para ver os veículos disponíveis.</p>
           {% else %}
             <p>Nenhum veículo publicado atende aos filtros informados. Ajuste a busca ou limpe os filtros.</p>
+            {% if request.GET.retirada and request.GET.devolucao %}<p>O período deve caber em uma janela disponível, quando cadastrada, e não pode coincidir com bloqueios ou reservas vigentes.</p>{% endif %}
           {% endif %}
           <a class="discovery-button" href="{% url 'core:resultados' %}">Limpar filtros</a>
         {% else %}

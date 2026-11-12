@@ -1,8 +1,12 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.views.generic import DetailView, ListView, TemplateView
 
 from apps.avaliacoes.services import resumo_avaliacoes_veiculo
 from apps.reservas.forms import ReservaForm
-from apps.reservas.services import estimar_reserva
+from apps.reservas.services import (
+    ReservaInvalida, estimar_reserva, motivo_impedimento_locatario,
+)
 from apps.veiculos.consultas import (
     buscar_veiculos,
     com_fotos_ordenadas,
@@ -19,6 +23,7 @@ class HomeView(TemplateView):
     template_name = "core/home.html"
 
 
+@method_decorator(never_cache, name="dispatch")
 class DetalhesVeiculoView(DetailView):
     """Exibe um veículo público; veículos não públicos resultam em 404."""
 
@@ -52,7 +57,15 @@ class DetalhesVeiculoView(DetailView):
             motivo = motivo_indisponibilidade(self.object, inicio, fim)
             context["motivo_indisponibilidade"] = motivo
             context["periodo_disponivel"] = not motivo
-            context["estimativa"] = estimar_reserva(self.object, inicio, fim)
+            try:
+                context["estimativa"] = estimar_reserva(self.object, inicio, fim)
+            except ReservaInvalida as exc:
+                context["periodo_disponivel"] = False
+                context["motivo_indisponibilidade"] = str(exc)
+            if self.request.user.is_authenticated:
+                context["impedimento_locatario"] = motivo_impedimento_locatario(
+                    self.request.user, fim,
+                )
             context["periodo_inicio"] = inicio
             context["periodo_fim"] = fim
 
