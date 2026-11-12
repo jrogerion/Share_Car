@@ -1,7 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import never_cache
 
 from apps.reservas.models import Reserva
 
@@ -10,6 +12,7 @@ from .models import Pagamento
 from .services import PagamentoInvalido, simular_pagamento
 
 
+@method_decorator(never_cache, name="dispatch")
 class PagarReservaView(LoginRequiredMixin, View):
     """Permite ao locatário simular o pagamento de uma reserva aceita."""
 

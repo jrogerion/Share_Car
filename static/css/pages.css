@@ -60,6 +60,8 @@ a.flow-car { transition: border-color var(--sc-transition), box-shadow var(--sc-
 a.flow-car:hover, a.flow-car:focus-visible { color: inherit; border-color: var(--sc-teal); box-shadow: var(--sc-shadow-hover); }
 .flow-car-photo { display: grid; place-items: center; padding: 20px; min-height: 140px; }
 .flow-car-photo img { display: block; width: 100%; max-width: 320px; height: auto; }
+.flow-car-photo.flow-car-photo-real { padding: 0; }
+.flow-car-photo-real img { max-width: none; height: 180px; object-fit: cover; }
 .flow-car-body { padding: 20px; }
 .flow-car-body h2 { margin-bottom: 8px; }
 .flow-car-body p { margin-bottom: 8px; font-size: .8rem; }

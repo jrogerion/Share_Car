@@ -1,7 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import never_cache
 
 from apps.reservas.models import Reserva
 
@@ -11,10 +13,12 @@ from .services import (
     LocacaoInvalida,
     check_in_da_reserva,
     check_out_da_reserva,
+    motivo_impedimento_registro,
     registrar_locacao,
 )
 
 
+@method_decorator(never_cache, name="dispatch")
 class RegistrarLocacaoView(LoginRequiredMixin, View):
     """Permite ao locatário registrar o check-in ou o check-out."""
 
@@ -22,10 +26,20 @@ class RegistrarLocacaoView(LoginRequiredMixin, View):
 
     def get(self, request, reserva_pk, tipo):
         reserva = self._reserva(request, reserva_pk)
-        return self._renderizar(request, reserva, tipo, RegistroLocacaoForm(tipo=tipo))
+        bloqueio = motivo_impedimento_registro(reserva, tipo)
+        if bloqueio:
+            messages.error(request, bloqueio)
+            return redirect("reservas:detalhe", pk=reserva.pk)
+        return self._renderizar(
+            request, reserva, tipo, RegistroLocacaoForm(tipo=tipo),
+        )
 
     def post(self, request, reserva_pk, tipo):
         reserva = self._reserva(request, reserva_pk)
+        bloqueio = motivo_impedimento_registro(reserva, tipo)
+        if bloqueio:
+            messages.error(request, bloqueio)
+            return redirect("reservas:detalhe", pk=reserva.pk)
         form = RegistroLocacaoForm(request.POST, request.FILES, tipo=tipo)
 
         if not form.is_valid():
@@ -40,8 +54,8 @@ class RegistrarLocacaoView(LoginRequiredMixin, View):
                 fotos=form.cleaned_data["fotos"],
             )
         except LocacaoInvalida as exc:
-            messages.error(request, str(exc))
-            return redirect("reservas:detalhe", pk=reserva.pk)
+            form.add_error(None, str(exc))
+            return self._renderizar(request, reserva, tipo, form)
 
         mensagem = (
             "Check-in registrado. A locação está em andamento."
@@ -61,13 +75,6 @@ class RegistrarLocacaoView(LoginRequiredMixin, View):
         )
 
     def _renderizar(self, request, reserva, tipo, form):
-        if tipo not in (
-            RegistroLocacao.Tipo.CHECK_IN,
-            RegistroLocacao.Tipo.CHECK_OUT,
-        ):
-            messages.error(request, "Tipo de registro inválido.")
-            return redirect("reservas:detalhe", pk=reserva.pk)
-
         return render(
             request,
             self.template_name,

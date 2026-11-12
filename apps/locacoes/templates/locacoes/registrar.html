@@ -18,6 +18,9 @@
       {% if form.non_field_errors %}
         <div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>
       {% endif %}
+      {% if form.errors %}
+        <p class="flow-small" role="status">Corrija os dados indicados e selecione novamente as fotos antes de enviar.</p>
+      {% endif %}
       <form method="post" action="{% if eh_check_out %}{% url 'locacoes:check_out' reserva.pk %}{% else %}{% url 'locacoes:check_in' reserva.pk %}{% endif %}" enctype="multipart/form-data" class="flow-fields" novalidate>
         {% csrf_token %}
         <label for="{{ form.quilometragem.id_for_label }}">{{ form.quilometragem.label }}</label>

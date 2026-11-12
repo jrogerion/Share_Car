@@ -2,7 +2,9 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import never_cache
 
 from apps.reservas.models import Reserva
 
@@ -16,6 +18,7 @@ from .services import (
 )
 
 
+@method_decorator(never_cache, name="dispatch")
 class AvaliarReservaView(LoginRequiredMixin, View):
     """Permite que locatário e proprietário avaliem a locação concluída."""
 
@@ -34,6 +37,11 @@ class AvaliarReservaView(LoginRequiredMixin, View):
 
     def post(self, request, reserva_pk):
         reserva = self._reserva(request, reserva_pk)
+        if not pode_avaliar(reserva, request.user):
+            messages.error(
+                request, "Esta reserva não está disponível para avaliação.",
+            )
+            return redirect("reservas:detalhe", pk=reserva.pk)
         form = AvaliacaoForm(request.POST)
 
         if not form.is_valid():
@@ -50,7 +58,8 @@ class AvaliarReservaView(LoginRequiredMixin, View):
         else:
             messages.success(
                 request,
-                "Avaliação registrada. Ela será exibida após a outra parte avaliar.",
+                "Avaliação registrada. As notas ficam disponíveis quando "
+                "ambas as partes avaliam.",
             )
         return redirect("reservas:detalhe", pk=reserva.pk)
 
@@ -82,7 +91,7 @@ class AvaliarReservaView(LoginRequiredMixin, View):
                 "form": form,
                 "avaliado": participante_da_reserva(reserva, request.user),
                 "minha_avaliacao": minha,
-                "avaliacao_outra_parte": outra,
+                "avaliacao_outra_parte": outra if minha is not None else None,
                 "outra_parte_avaliou": outra is not None,
             },
         )

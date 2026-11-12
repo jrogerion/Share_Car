@@ -19,7 +19,8 @@
 .discovery-note { margin: 12px 0 16px; color: var(--home-muted); font-size: .75rem; line-height: 1.6; }
 .discovery-search .discovery-note { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid #f1f5f9; }
 .discovery-categories { display: flex; flex-wrap: wrap; gap: 10px; padding: 28px 0 4px; }
-.discovery-categories > span { display: inline-flex; gap: 8px; align-items: center; padding: 10px 16px; border: 1px solid var(--home-line); border-radius: 12px; background: #fff; font-size: .8rem; font-weight: 600; }
+.discovery-categories > a { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--home-line); border-radius: 12px; background: #fff; color: inherit; font-size: .8rem; font-weight: 600; text-decoration: none; }
+.discovery-categories > a:hover, .discovery-categories > a:focus-visible { border-color: var(--home-brand); background: var(--sc-teal-light); }
 .discovery-categories i { color: var(--home-brand); }
 .discovery-section { margin-top: 36px; }
 .discovery-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
@@ -68,14 +69,18 @@
   .discovery-hero { padding: 28px 0 88px; border-radius: 0 0 28px 28px; }
   .discovery-search { padding: 18px; }
   .discovery-categories { gap: 8px; }
-  .discovery-categories > span { padding: 10px 12px; }
+  .discovery-categories > a { padding: 10px 12px; }
   .discovery-section { margin-top: 28px; }
   .discovery-cars { display: flex; overflow-x: auto; scroll-snap-type: x proximity; gap: 12px; }
   .discovery-car { flex: 0 0 76%; max-width: 280px; scroll-snap-align: start; }
   .discovery-steps, .discovery-owner { padding: 20px; }
   .discovery-owner > i { display: none; }
-  .discovery-tabbar { display: grid; grid-template-columns: repeat(auto-fit,minmax(52px,1fr)); position: fixed; inset: auto 0 0; z-index: 1040; padding: 10px 8px calc(8px + env(safe-area-inset-bottom,0px)); background: #fff; border-top: 1px solid var(--home-line); }
-  .discovery-tabbar > a, .discovery-tabbar .nav-logout-button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: var(--sc-radius-control); color: var(--home-muted); font-size: .7rem; font-weight: 600; text-decoration: none; }
+  .discovery-tabbar { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0,1fr); position: fixed; inset: auto 0 0; z-index: 1040; padding: 10px 8px calc(8px + env(safe-area-inset-bottom,0px)); background: #fff; border-top: 1px solid var(--home-line); }
+  .discovery-tabbar > a, .discovery-tabbar .nav-logout-button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; min-height: 54px; border-radius: var(--sc-radius-control); color: var(--home-muted); font-size: .7rem; font-weight: 600; text-align: center; overflow-wrap: anywhere; text-decoration: none; }
+  .discovery-tabbar .navigation-account { flex-direction: column; gap: 0; }
+  .discovery-tabbar .navigation-profile { width: 100%; }
+  .discovery-tabbar .navigation-user-name { max-width: 100%; font-size: .7rem; }
+  .discovery-tabbar .navigation-account .nav-logout-button { flex-direction: row; width: 100%; min-height: 44px; padding: 2px; }
   .discovery-tabbar i { font-size: 1.15rem; }
   .discovery-tabbar [aria-current] { color: var(--home-brand); background: var(--sc-teal-light); box-shadow: inset 0 2px var(--home-brand); }
   .discovery-tabbar small { font-size: .55rem; font-weight: 400; }

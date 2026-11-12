@@ -17,6 +17,13 @@ def simular_pagamento(
     resultado: str,
 ) -> Pagamento:
     """Cria ou substitui o pagamento simulado de uma reserva aceita."""
+    if meio not in Pagamento.Meio.values:
+        raise PagamentoInvalido("Meio de pagamento inválido.")
+    if resultado not in ("aprovado", "recusado"):
+        raise PagamentoInvalido("Resultado da simulação inválido.")
+
+    # Mesmo bloqueio usado no cancelamento e no check-in: o estado e os
+    # valores vêm do banco, nunca da instância ou do formulário do cliente.
     atual = Reserva.objects.select_for_update().get(pk=reserva.pk)
 
     if atual.status != Reserva.Status.ACEITA:

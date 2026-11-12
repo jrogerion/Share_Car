@@ -1,12 +1,7 @@
 from django import forms
-from django.core.validators import FileExtensionValidator
 
 from .models import RegistroLocacao
-
-TAMANHO_MAXIMO_FOTO = 5 * 1024 * 1024
-MAXIMO_FOTOS = 6
-EXTENSOES_FOTO = ["jpg", "jpeg", "png"]
-TIPOS_FOTO = {"image/jpeg", "image/png"}
+from .validacoes import QUILOMETRAGEM_MAXIMA, validar_fotos
 
 
 class MultipleFileInput(forms.FileInput):
@@ -34,6 +29,7 @@ class RegistroLocacaoForm(forms.Form):
     quilometragem = forms.IntegerField(
         label="Quilometragem",
         min_value=0,
+        max_value=QUILOMETRAGEM_MAXIMA,
         widget=forms.NumberInput(attrs={"min": 0, "inputmode": "numeric"}),
     )
     nivel_combustivel = forms.IntegerField(
@@ -52,7 +48,8 @@ class RegistroLocacaoForm(forms.Form):
             }
         ),
         help_text=(
-            "Envie de 1 a 6 fotos em JPG ou PNG, com até 5 MB cada. "
+            "Envie de 1 a 6 fotos em JPG ou PNG, com até 5 MB e "
+            "20 megapixels cada. "
             "Registre frente, traseira, laterais, interior e painel."
         ),
     )
@@ -64,36 +61,4 @@ class RegistroLocacaoForm(forms.Form):
             self.fields["quilometragem"].label = "Quilometragem final"
 
     def clean_fotos(self):
-        arquivos = self.cleaned_data.get("fotos") or []
-        if not isinstance(arquivos, (list, tuple)):
-            arquivos = [arquivos]
-        arquivos = list(arquivos)
-
-        if not arquivos:
-            raise forms.ValidationError("Envie ao menos uma foto do veículo.")
-        if len(arquivos) > MAXIMO_FOTOS:
-            raise forms.ValidationError(
-                f"Envie no máximo {MAXIMO_FOTOS} fotos por registro."
-            )
-
-        validador_extensao = FileExtensionValidator(EXTENSOES_FOTO)
-        for arquivo in arquivos:
-            if arquivo.size > TAMANHO_MAXIMO_FOTO:
-                raise forms.ValidationError(
-                    "Cada foto deve ter no máximo 5 MB."
-                )
-
-            tipo = getattr(arquivo, "content_type", None)
-            if tipo and tipo not in TIPOS_FOTO:
-                raise forms.ValidationError(
-                    "Envie as fotos em JPG ou PNG."
-                )
-
-            try:
-                validador_extensao(arquivo)
-            except forms.ValidationError as exc:
-                raise forms.ValidationError(
-                    "Envie as fotos em JPG ou PNG."
-                ) from exc
-
-        return arquivos
+        return validar_fotos(self.cleaned_data.get("fotos"))
