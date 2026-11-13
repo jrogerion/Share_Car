@@ -1,16 +1,19 @@
 import base64
 import shutil
 import tempfile
+from collections import Counter
 from html.parser import HTMLParser
 from urllib.parse import urlencode
 
+from django.contrib.staticfiles import finders
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.templatetags.static import static
 from django.urls import reverse
+from django.utils.html import escape
 
 from apps.contas.models import Usuario
-from apps.core.destaques import DESTAQUES
+from apps.core.destaques import DESTAQUES, DESTAQUES_POR_SLUG
 from apps.veiculos.models import FotoVeiculo, Veiculo
 
 
@@ -124,6 +127,53 @@ class TemplatePagesTests(SimpleTestCase):
                 )
                 self.assertContains(response, carro.nome)
 
+    def test_home_exibe_capa_real_do_corolla(self):
+        corolla = DESTAQUES_POR_SLUG["toyota-corolla"]
+        response = self.client.get(reverse("core:home"))
+
+        self.assertContains(response, static(corolla.foto_principal))
+        self.assertContains(response, "discovery-photo-real")
+
+    def test_home_exibe_cinco_exemplos_por_categoria(self):
+        self.assertEqual(
+            Counter(carro.categoria for carro in DESTAQUES),
+            {"Sedã": 5, "Hatch": 5, "SUV": 5, "Picape": 5},
+        )
+
+        response = self.client.get(reverse("core:home"))
+
+        self.assertContains(
+            response,
+            'class="discovery-car"',
+            count=len(DESTAQUES),
+        )
+
+    def test_fotos_dos_exemplos_existem_nos_arquivos_estaticos(self):
+        for carro in DESTAQUES:
+            with self.subTest(carro=carro.slug):
+                self.assertEqual(len(carro.fotos), 3)
+                self.assertTrue(carro.creditos)
+                for foto in (*carro.fotos, carro.capa):
+                    self.assertIsNotNone(finders.find(foto), foto)
+
+    def test_pagina_do_corolla_usa_fotos_reais_com_creditos(self):
+        corolla = DESTAQUES_POR_SLUG["toyota-corolla"]
+        response = self.client.get(
+            reverse("core:destaque", args=[corolla.slug]),
+        )
+
+        self.assertContains(response, corolla.nome)
+        self.assertContains(
+            response,
+            "flow-carousel-item-real",
+            count=len(corolla.fotos),
+        )
+        self.assertContains(response, corolla.creditos)
+        for foto in corolla.fotos:
+            with self.subTest(foto=foto):
+                self.assertTrue(foto.endswith(".jpg"))
+                self.assertContains(response, static(foto))
+
     def test_pagina_de_destaque_exibe_carrossel_e_detalhes(self):
         for carro in DESTAQUES:
             with self.subTest(carro=carro.slug):
@@ -147,6 +197,12 @@ class TemplatePagesTests(SimpleTestCase):
                     'class="flow-carousel-item',
                     count=len(carro.fotos),
                 )
+                self.assertContains(
+                    response,
+                    "flow-carousel-item-real",
+                    count=len(carro.fotos),
+                )
+                self.assertContains(response, escape(carro.creditos))
                 for foto in carro.fotos:
                     self.assertContains(response, static(foto))
 

@@ -80,6 +80,9 @@ a.flow-car:hover, a.flow-car:focus-visible { color: inherit; border-color: var(-
 .flow-carousel-track:focus-visible { outline: 3px solid var(--sc-focus); outline-offset: -3px; }
 .flow-carousel-item { display: grid; flex: 0 0 100%; place-items: center; min-height: 260px; margin: 0; padding: 24px; scroll-snap-align: start; scroll-snap-stop: always; }
 .flow-carousel-item img { display: block; width: 100%; max-width: 640px; height: auto; }
+.flow-carousel-item-real { padding: 0; background: #eef2f6; }
+.flow-carousel-item-real img { max-width: 100%; }
+.flow-carousel-credits { margin: 0; padding: 10px 16px; border-top: 1px solid var(--sc-line); color: var(--sc-muted); font-size: .7rem; line-height: 1.6; }
 .flow-carousel-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--sc-line); }
 .flow-carousel-controls[hidden] { display: none; }
 .flow-carousel-controls .btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; }

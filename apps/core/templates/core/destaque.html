@@ -22,7 +22,7 @@
       <section class="flow-carousel" aria-label="Fotos do {{ carro.nome }}" data-carousel>
         <div class="flow-carousel-track" data-carousel-track tabindex="0" aria-label="Galeria de fotos do {{ carro.nome }}. Use as setas para navegar.">
           {% for foto in carro.fotos %}
-            <figure class="flow-carousel-item {% cycle 'photo-blue' 'photo-mint' 'photo-rose' %}">
+            <figure class="flow-carousel-item {% cycle 'photo-blue' 'photo-mint' 'photo-rose' %}{% if carro.fotos_reais %} flow-carousel-item-real{% endif %}">
               <img
                 src="{% static foto %}"
                 alt="Foto {{ forloop.counter }} de {{ carro.fotos|length }} do {{ carro.nome }}"
@@ -40,6 +40,9 @@
             <i class="bi bi-arrow-right" aria-hidden="true"></i>
           </button>
         </div>
+        {% if carro.creditos %}
+          <p class="flow-carousel-credits">{{ carro.creditos }}</p>
+        {% endif %}
       </section>
 
       <section class="flow-panel" aria-labelledby="sobre-title">

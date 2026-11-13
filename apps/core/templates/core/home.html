@@ -46,8 +46,8 @@
       <div class="discovery-cars" tabindex="0" role="region" aria-label="Exemplos de veículos; role para ver mais no celular">
         {% for carro in destaques %}
           <a class="discovery-car" href="{% url 'core:destaque' carro.slug %}">
-            <div class="discovery-photo {% cycle 'photo-blue' 'photo-lilac' 'photo-mint' 'photo-rose' %}">
-              <img src="{% static carro.foto_principal %}" alt="" width="320" height="160">
+            <div class="discovery-photo {% cycle 'photo-blue' 'photo-lilac' 'photo-mint' 'photo-rose' %}{% if carro.fotos_reais %} discovery-photo-real{% endif %}">
+              <img src="{% static carro.foto_principal %}" alt="" width="320" height="160" loading="lazy" decoding="async">
             </div>
             <div class="discovery-car-body">
               <h3>{{ carro.nome }}</h3>

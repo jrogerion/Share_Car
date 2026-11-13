@@ -26,11 +26,13 @@
 .discovery-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
 .discovery-heading h2 { margin: 0; font-size: clamp(1.1rem,2vw,1.4rem); font-weight: 800; letter-spacing: -.025em; }
 .discovery-heading > span { color: var(--home-muted); font-size: .75rem; }
-.discovery-cars { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 18px; padding: 8px 4px 16px; }
+.discovery-cars { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 18px; padding: 8px 4px 16px; }
 .discovery-car { display: block; overflow: hidden; background: var(--sc-white); border: 1px solid var(--home-line); border-radius: var(--sc-radius); box-shadow: var(--sc-shadow); color: inherit; text-decoration: none; transition: transform var(--sc-transition), border-color var(--sc-transition), box-shadow var(--sc-transition); }
 .discovery-car:hover, .discovery-car:focus-visible { color: inherit; text-decoration: none; border-color: var(--home-brand); box-shadow: var(--sc-shadow-hover); transform: translateY(-4px); }
 .discovery-photo { display: grid; place-items: center; aspect-ratio: 1.65; padding: 18px; }
 .discovery-photo img { display: block; width: 100%; height: auto; transition: transform var(--sc-transition); }
+.discovery-photo-real { padding: 0; }
+.discovery-photo-real img { width: 100%; height: 100%; object-fit: cover; }
 .discovery-car:hover .discovery-photo img, .discovery-car:focus-visible .discovery-photo img { transform: scale(1.05); }
 .photo-blue { background: #dbeafe; }
 .photo-lilac { background: #ede9fe; }
@@ -54,6 +56,9 @@
 .discovery-owner p { margin: 0; color: #405e56; font-size: .85rem; line-height: 1.6; }
 .discovery-owner > span { margin-left: auto; flex-shrink: 0; color: #405e56; font-size: .75rem; }
 .discovery-tabbar { display: none; }
+@media (max-width: 1199.98px) {
+  .discovery-cars { grid-template-columns: repeat(4,minmax(0,1fr)); }
+}
 @media (max-width: 991.98px) {
   .discovery-fields { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .discovery-location, .discovery-button { grid-column: 1 / -1; }
