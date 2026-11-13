@@ -12,6 +12,11 @@ app_name = "core"
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path(
+        "como-funciona/",
+        TemplateView.as_view(template_name="core/como_funciona.html"),
+        name="como_funciona",
+    ),
+    path(
         "entrar/",
         auth_views.LoginView.as_view(
             template_name="core/entrar.html",
