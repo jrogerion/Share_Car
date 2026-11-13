@@ -1,0 +1,770 @@
+/* Guia público do ShareCar — segue os tokens e componentes de base.css/home.css. */
+.como-funciona-page {
+  --how-brand: var(--sc-teal);
+  --how-brand-dark: var(--sc-teal-dark);
+  --how-ink: var(--sc-ink);
+  --how-muted: var(--sc-muted);
+  --how-line: var(--sc-line);
+  --how-soft: var(--sc-teal-light);
+}
+
+.how-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 3.5rem 0 5.75rem;
+  border-radius: 0 0 2rem 2rem;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(153, 246, 228, .28), transparent 28%),
+    linear-gradient(125deg, #115e59, #0f766e 56%, #0d9488);
+  color: var(--sc-white);
+}
+
+.how-hero::after {
+  position: absolute;
+  right: -9rem;
+  bottom: -13rem;
+  width: 30rem;
+  height: 30rem;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 5rem rgba(255, 255, 255, .04),
+    0 0 0 10rem rgba(255, 255, 255, .025);
+  content: "";
+  pointer-events: none;
+}
+
+.how-hero .container {
+  position: relative;
+  z-index: 1;
+}
+
+.how-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin: 0 0 1rem;
+  color: #ccfbf1;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.how-eyebrow::before {
+  width: 1.6rem;
+  height: 2px;
+  background: currentColor;
+  content: "";
+}
+
+.how-title {
+  max-width: 14ch;
+  margin: 0 0 1.1rem;
+  font-size: clamp(2.3rem, 5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -.045em;
+  line-height: 1.04;
+}
+
+.how-lead {
+  max-width: 39rem;
+  margin: 0 0 1.75rem;
+  color: #e4fff9;
+  font-size: clamp(.98rem, 1.5vw, 1.1rem);
+  line-height: 1.7;
+}
+
+.how-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .8rem;
+}
+
+.how-hero .discovery-button {
+  border-color: var(--sc-white);
+  background: var(--sc-white);
+  color: var(--how-brand-dark);
+}
+
+.how-hero .discovery-button:hover,
+.how-hero .discovery-button:focus-visible {
+  border-color: #ccfbf1;
+  background: #ccfbf1;
+  color: #134e4a;
+}
+
+.how-ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 48px;
+  padding: .875rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, .48);
+  border-radius: var(--sc-radius-control);
+  color: var(--sc-white);
+  font-size: .9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color var(--sc-transition), border-color var(--sc-transition);
+}
+
+.how-ghost-button:hover,
+.how-ghost-button:focus-visible {
+  border-color: var(--sc-white);
+  background: rgba(255, 255, 255, .13);
+  color: var(--sc-white);
+}
+
+.how-hero-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem 1.25rem;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  color: #d8fff8;
+  font-size: .82rem;
+  font-weight: 600;
+  list-style: none;
+}
+
+.how-hero-points li {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+.how-hero-points i {
+  color: #99f6e4;
+}
+
+.how-hero-card {
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 1.4rem;
+  background: rgba(255, 255, 255, .11);
+  box-shadow: 0 24px 55px rgba(4, 41, 38, .22);
+  backdrop-filter: blur(8px);
+}
+
+.how-hero-card-head {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .2);
+}
+
+.how-hero-card-head i {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: .8rem;
+  background: rgba(255, 255, 255, .18);
+  color: #ccfbf1;
+  font-size: 1.25rem;
+}
+
+.how-hero-card-head strong {
+  display: block;
+  font-size: .95rem;
+  font-weight: 800;
+}
+
+.how-hero-card-head span {
+  display: block;
+  margin-top: .15rem;
+  color: #ccfbf1;
+  font-size: .75rem;
+}
+
+.how-hero-steps {
+  display: grid;
+  gap: .85rem;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how-hero-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+  color: #ecfffc;
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+.how-hero-steps li > span {
+  display: grid;
+  flex: 0 0 auto;
+  width: 1.55rem;
+  height: 1.55rem;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .18);
+  color: var(--sc-white);
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.how-index {
+  position: relative;
+  z-index: 2;
+  margin-top: -2.2rem;
+}
+
+.how-index-inner {
+  display: flex;
+  gap: .45rem;
+  overflow-x: auto;
+  padding: .8rem;
+  border: 1px solid var(--how-line);
+  border-radius: 1rem;
+  background: var(--sc-white);
+  box-shadow: var(--sc-shadow-hover);
+  scrollbar-width: thin;
+}
+
+.how-index a {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .4rem;
+  min-height: 40px;
+  padding: .45rem .8rem;
+  border-radius: .65rem;
+  color: var(--how-muted);
+  font-size: .78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color var(--sc-transition), color var(--sc-transition);
+}
+
+.how-index a:hover,
+.how-index a:focus-visible {
+  background: var(--how-soft);
+  color: var(--how-brand-dark);
+}
+
+.how-content {
+  padding-top: 3.25rem;
+  padding-bottom: 4.5rem;
+}
+
+.how-section {
+  margin-top: 3.75rem;
+}
+
+.how-section:first-child {
+  margin-top: 0;
+}
+
+.how-section-heading {
+  max-width: 50rem;
+  margin-bottom: 1.75rem;
+}
+
+.how-kicker {
+  display: block;
+  margin-bottom: .5rem;
+  color: var(--how-brand-dark);
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.how-section-heading h2 {
+  margin: 0 0 .65rem;
+  color: var(--how-ink);
+  font-size: clamp(1.55rem, 3vw, 2.15rem);
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1.15;
+}
+
+.how-section-heading p {
+  margin: 0;
+  color: var(--how-muted);
+  font-size: .95rem;
+  line-height: 1.7;
+}
+
+.how-card {
+  height: 100%;
+  padding: 1.4rem;
+  border: 1px solid var(--how-line);
+  border-radius: var(--sc-radius);
+  background: var(--sc-white);
+  box-shadow: var(--sc-shadow);
+}
+
+.how-card h3 {
+  margin: .9rem 0 .5rem;
+  color: var(--how-ink);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+
+.how-card p {
+  margin: 0;
+  color: var(--how-muted);
+  font-size: .86rem;
+  line-height: 1.7;
+}
+
+.how-icon {
+  display: inline-grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  place-items: center;
+  border: 1px solid #b5e7de;
+  border-radius: .8rem;
+  background: var(--sc-teal-light);
+  color: var(--how-brand-dark);
+  font-size: 1.15rem;
+}
+
+.how-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  margin-top: 1.25rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid #b5e7de;
+  border-radius: var(--sc-radius-control);
+  background: var(--sc-teal-light);
+  color: var(--how-brand-dark);
+  font-size: .84rem;
+  line-height: 1.7;
+}
+
+.how-callout i {
+  flex: 0 0 auto;
+  margin-top: .1rem;
+  font-size: 1.1rem;
+}
+
+.how-callout p {
+  margin: 0;
+}
+
+.how-callout--warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.how-role-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.how-role-card {
+  padding: 1.5rem;
+  border: 1px solid var(--how-line);
+  border-radius: var(--sc-radius);
+  background: var(--sc-white);
+  box-shadow: var(--sc-shadow);
+}
+
+.how-role-card--owner {
+  background: #f6fdfb;
+}
+
+.how-role-head {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin-bottom: 1rem;
+}
+
+.how-role-head i {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: .9rem;
+  background: var(--sc-teal-light);
+  color: var(--how-brand-dark);
+  font-size: 1.2rem;
+}
+
+.how-role-head h3 {
+  margin: 0;
+  color: var(--how-ink);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.how-role-head span {
+  display: block;
+  margin-top: .1rem;
+  color: var(--how-muted);
+  font-size: .75rem;
+}
+
+.how-checklist {
+  display: grid;
+  gap: .6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: .55rem;
+  color: var(--how-muted);
+  font-size: .84rem;
+  line-height: 1.6;
+}
+
+.how-checklist i {
+  flex: 0 0 auto;
+  margin-top: .05rem;
+  color: var(--how-brand);
+  font-size: .95rem;
+}
+
+.how-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how-step {
+  position: relative;
+  height: 100%;
+  padding: 1.4rem;
+  border: 1px solid var(--how-line);
+  border-radius: var(--sc-radius);
+  background: var(--sc-white);
+  box-shadow: var(--sc-shadow);
+}
+
+.how-step-head {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin-bottom: .75rem;
+}
+
+.how-step-number {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: .65rem;
+  background: #ccfbf1;
+  color: var(--how-brand-dark);
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.how-step-head i {
+  color: var(--how-brand);
+  font-size: 1.05rem;
+}
+
+.how-step h3 {
+  margin: 0;
+  color: var(--how-ink);
+  font-size: .98rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.how-step p {
+  margin: 0;
+  color: var(--how-muted);
+  font-size: .84rem;
+  line-height: 1.7;
+}
+
+.how-step p + p {
+  margin-top: .55rem;
+}
+
+.how-step-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .8rem;
+  color: var(--how-brand-dark);
+  font-size: .78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.how-step-link:hover,
+.how-step-link:focus-visible {
+  color: var(--how-brand);
+  text-decoration: underline;
+}
+
+.how-note {
+  margin: .9rem 0 0;
+  padding-left: .9rem;
+  border-left: 3px solid #b5e7de;
+  color: var(--how-muted);
+  font-size: .78rem;
+  line-height: 1.7;
+}
+
+.how-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .85rem;
+}
+
+.how-status-item {
+  padding: 1.05rem 1.1rem;
+  border: 1px solid var(--how-line);
+  border-radius: var(--sc-radius-control);
+  background: var(--sc-white);
+}
+
+.how-badge {
+  display: inline-block;
+  padding: .25rem .55rem;
+  border-radius: .45rem;
+  font-size: .68rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.how-badge--pending {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.how-badge--info {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.how-badge--success {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.how-badge--danger {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.how-status-item p {
+  margin: .55rem 0 0;
+  color: var(--how-muted);
+  font-size: .8rem;
+  line-height: 1.6;
+}
+
+.how-faq {
+  display: grid;
+  gap: .7rem;
+}
+
+.how-faq details {
+  border: 1px solid var(--how-line);
+  border-radius: var(--sc-radius-control);
+  background: var(--sc-white);
+  box-shadow: var(--sc-shadow);
+}
+
+.how-faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  color: var(--how-ink);
+  font-size: .88rem;
+  font-weight: 700;
+  line-height: 1.5;
+  cursor: pointer;
+  list-style: none;
+}
+
+.how-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.how-faq summary::after {
+  flex: 0 0 auto;
+  color: var(--how-brand);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+  content: "+";
+  transition: transform var(--sc-transition);
+}
+
+.how-faq details[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.how-faq details[open] summary {
+  border-bottom: 1px solid var(--how-line);
+}
+
+.how-faq-body {
+  padding: .95rem 1.15rem 1.1rem;
+  color: var(--how-muted);
+  font-size: .84rem;
+  line-height: 1.75;
+}
+
+.how-faq-body p {
+  margin: 0;
+}
+
+.how-faq-body p + p {
+  margin-top: .55rem;
+}
+
+.how-faq-body a {
+  color: var(--how-brand-dark);
+  font-weight: 600;
+}
+
+.how-cta {
+  position: relative;
+  overflow: hidden;
+  margin-top: 4rem;
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(circle at 92% 5%, rgba(45, 212, 191, .2), transparent 32%),
+    linear-gradient(135deg, #0b1f33, #12314d);
+  color: var(--sc-white);
+  box-shadow: 0 24px 55px rgba(11, 31, 51, .18);
+}
+
+.how-cta h2 {
+  max-width: 22ch;
+  margin: 0 0 .65rem;
+  font-size: clamp(1.5rem, 3vw, 2.15rem);
+  font-weight: 800;
+  letter-spacing: -.035em;
+}
+
+.how-cta p {
+  max-width: 42rem;
+  margin: 0;
+  color: rgba(255, 255, 255, .74);
+  font-size: .9rem;
+  line-height: 1.7;
+}
+
+.how-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .8rem;
+  margin-top: 1.4rem;
+}
+
+.how-cta .discovery-button {
+  border-color: var(--sc-white);
+  background: var(--sc-white);
+  color: #115e59;
+}
+
+.how-cta .discovery-button:hover,
+.how-cta .discovery-button:focus-visible {
+  border-color: #ccfbf1;
+  background: #ccfbf1;
+  color: #134e4a;
+}
+
+.how-cta .how-ghost-button {
+  border-color: rgba(255, 255, 255, .42);
+}
+
+@media (max-width: 991.98px) {
+  .how-hero {
+    padding: 3rem 0 5.25rem;
+  }
+
+  .how-title {
+    max-width: 17ch;
+  }
+
+  .how-role-grid,
+  .how-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .how-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575.98px) {
+  .how-hero {
+    padding: 2.25rem 0 4.75rem;
+    border-radius: 0 0 1.5rem 1.5rem;
+  }
+
+  .how-title {
+    font-size: 2.15rem;
+  }
+
+  .how-hero-actions .discovery-button,
+  .how-hero-actions .how-ghost-button {
+    width: 100%;
+  }
+
+  .how-hero-card {
+    padding: 1.2rem;
+  }
+
+  .how-index {
+    margin-top: -1.75rem;
+  }
+
+  .how-index-inner {
+    padding: .6rem;
+  }
+
+  .how-content {
+    padding-top: 2.5rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .how-section {
+    margin-top: 2.75rem;
+  }
+
+  .how-card,
+  .how-role-card,
+  .how-step {
+    padding: 1.15rem;
+  }
+
+  .how-status-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .how-cta {
+    margin-top: 2.75rem;
+    border-radius: 1.25rem;
+  }
+
+  .how-cta-actions .discovery-button,
+  .how-cta-actions .how-ghost-button {
+    width: 100%;
+  }
+}

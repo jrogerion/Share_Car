@@ -1,0 +1,746 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Como funciona — ShareCar{% endblock %}
+{% block meta_description %}Guia completo do ShareCar: cadastro, busca, reserva, pagamento simulado, check-in, check-out, avaliações e anúncio de veículos.{% endblock %}
+{% block body_class %}home-page como-funciona-page{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+  <link rel="stylesheet" href="{% static 'css/como-funciona.css' %}">
+{% endblock %}
+{% block content %}
+  <section class="how-hero" aria-labelledby="how-title">
+    <div class="container">
+      <div class="row align-items-center gy-4">
+        <div class="col-lg-7">
+          <p class="how-eyebrow">ShareCar · Guia da plataforma</p>
+          <h1 id="how-title" class="how-title">Como funciona o ShareCar</h1>
+          <p class="how-lead">
+            Alugar ou anunciar um carro pode ser simples. Entenda cada etapa do
+            ShareCar, do cadastro à devolução. Esta página reúne o funcionamento
+            real da plataforma para você alugar, anunciar e acompanhar suas
+            locações com segurança.
+          </p>
+          <div class="how-hero-actions">
+            <a class="discovery-button" href="{% url 'core:resultados' %}">
+              <i class="bi bi-search" aria-hidden="true"></i> Buscar carros
+            </a>
+            {% if user.is_authenticated %}
+              <a class="how-ghost-button" href="{% url 'contas:painel' %}">
+                <i class="bi bi-speedometer2" aria-hidden="true"></i> Ir para meu painel
+              </a>
+            {% else %}
+              <a class="how-ghost-button" href="{% url 'contas:cadastro' %}">
+                <i class="bi bi-person-plus" aria-hidden="true"></i> Criar minha conta
+              </a>
+            {% endif %}
+          </div>
+          <ul class="how-hero-points">
+            <li><i class="bi bi-patch-check" aria-hidden="true"></i> Anúncios analisados pela administração</li>
+            <li><i class="bi bi-shield-lock" aria-hidden="true"></i> Documentos em área privada</li>
+            <li><i class="bi bi-credit-card" aria-hidden="true"></i> Pagamento simulado nesta versão</li>
+          </ul>
+        </div>
+        <div class="col-lg-5">
+          <aside class="how-hero-card" aria-labelledby="how-path-title">
+            <div class="how-hero-card-head">
+              <i class="bi bi-signpost-split" aria-hidden="true"></i>
+              <div>
+                <strong id="how-path-title">Seu caminho no ShareCar</strong>
+                <span>Três momentos principais</span>
+              </div>
+            </div>
+            <ol class="how-hero-steps">
+              <li><span aria-hidden="true">1</span> Crie sua conta e escolha como quer usar a plataforma.</li>
+              <li><span aria-hidden="true">2</span> Encontre um carro ou cadastre o seu anúncio.</li>
+              <li><span aria-hidden="true">3</span> Combine a retirada, devolva o veículo e avalie a locação.</li>
+            </ol>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="how-index" aria-label="Atalhos do guia">
+    <div class="container">
+      <div class="how-index-inner">
+        <a href="#visao-geral"><i class="bi bi-compass" aria-hidden="true"></i> Visão geral</a>
+        <a href="#primeiros-passos"><i class="bi bi-person-check" aria-hidden="true"></i> Primeiros passos</a>
+        <a href="#para-alugar"><i class="bi bi-key" aria-hidden="true"></i> Para alugar</a>
+        <a href="#para-proprietarios"><i class="bi bi-car-front" aria-hidden="true"></i> Para anunciar</a>
+        <a href="#status"><i class="bi bi-diagram-3" aria-hidden="true"></i> Status</a>
+        <a href="#seguranca"><i class="bi bi-shield-check" aria-hidden="true"></i> Segurança</a>
+        <a href="#dicas"><i class="bi bi-lightbulb" aria-hidden="true"></i> Dicas</a>
+        <a href="#perguntas"><i class="bi bi-question-circle" aria-hidden="true"></i> Perguntas frequentes</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container how-content">
+    <section id="visao-geral" class="how-section" aria-labelledby="visao-title">
+      <div class="how-section-heading">
+        <span class="how-kicker">O ponto de partida</span>
+        <h2 id="visao-title">Uma plataforma para alugar e anunciar carros entre pessoas</h2>
+        <p>
+          O ShareCar conecta quem precisa de um carro a proprietários que
+          disponibilizam seus veículos. A plataforma organiza o anúncio, a
+          disponibilidade, a solicitação de reserva, o pagamento simulado, a
+          vistoria e as avaliações entre as partes.
+        </p>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-search" aria-hidden="true"></i></span>
+            <h3>Para quem quer alugar</h3>
+            <p>Busque por cidade e período, compare os anúncios e envie uma solicitação ao proprietário.</p>
+          </article>
+        </div>
+        <div class="col-md-4">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-car-front" aria-hidden="true"></i></span>
+            <h3>Para quem quer anunciar</h3>
+            <p>Cadastre o veículo, defina preço e agenda e responda às solicitações recebidas.</p>
+          </article>
+        </div>
+        <div class="col-md-4">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+            <h3>Confiança em cada etapa</h3>
+            <p>Aprovações manuais, documentos privados, vistoria com fotos e avaliações mútuas após a locação.</p>
+          </article>
+        </div>
+      </div>
+
+      <aside class="how-callout" aria-label="Sobre o pagamento nesta versão">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <p>
+          <strong>Importante:</strong> esta versão acadêmica não movimenta
+          dinheiro real. O pagamento por Pix ou cartão é apenas uma simulação
+          para liberar o check-in. Não informe dados de cartão, senhas ou
+          códigos reais.
+        </p>
+      </aside>
+    </section>
+
+    <section id="primeiros-passos" class="how-section" aria-labelledby="primeiros-title">
+      <div class="how-section-heading">
+        <span class="how-kicker">Antes de começar</span>
+        <h2 id="primeiros-title">O que você precisa para usar a plataforma</h2>
+        <p>
+          Você pode alugar, anunciar ou fazer as duas coisas. Os perfis são
+          independentes e podem ser ajustados depois em Minha conta.
+        </p>
+      </div>
+
+      <div class="how-role-grid">
+        <article class="how-role-card">
+          <div class="how-role-head">
+            <i class="bi bi-key" aria-hidden="true"></i>
+            <div>
+              <h3>Quero alugar um carro</h3>
+              <span>Perfil de locatário</span>
+            </div>
+          </div>
+          <ul class="how-checklist">
+            <li><i class="bi bi-check-circle" aria-hidden="true"></i> Ter uma conta ativa no ShareCar.</li>
+            <li><i class="bi bi-check-circle" aria-hidden="true"></i> Selecionar o perfil de locatário em Minha conta.</li>
+            <li><i class="bi bi-check-circle" aria-hidden="true"></i> Informar número e validade da CNH.</li>
+            <li><i class="bi bi-check-circle" aria-hidden="true"></i> Ter a CNH aprovada pela administração e válida até a data de devolução.</li>
+          </ul>
+        </article>
+
+        <article class="how-role-card how-role-card--owner">
+          <div class="how-role-head">
+            <i class="bi bi-car-front" aria-hidden="true"></i>
+            <div>
+              <h3>Quero anunciar meu carro</h3>
+              <span>Perfil de proprietário</span>
+            </div>
+          </div>
+          <ul class="how-checklist">
+            <li><i class="bi bi-check-circle" aria-hidden="true"></i> Ter uma conta ativa no ShareCar.</li>
+            <li><i class="bi bi-check-circle" aria-hidden="true"></i> Selecionar o perfil de proprietário em Minha conta.</li>
+            <li><i class="bi bi-check-circle" aria-hidden="true"></i> Enviar o documento de identidade para análise.</li>
+            <li><i class="bi bi-check-circle" aria-hidden="true"></i> Ter o documento aprovado e o veículo aprovado, ativo e sem bloqueio.</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="how-note">
+        A análise é manual: enviar o documento, informar a CNH ou cadastrar um
+        veículo não libera a publicação automaticamente. O resultado aparece em
+        Minha conta e em Meus veículos.
+      </p>
+
+      <div class="how-section-heading mt-5">
+        <h2 id="acesso-title">Crie sua conta e faça login</h2>
+        <p>O acesso ao site é feito por e-mail e senha.</p>
+      </div>
+
+      <ol class="how-steps">
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">1</span>
+            <i class="bi bi-person-plus" aria-hidden="true"></i>
+            <h3>Crie sua conta</h3>
+          </div>
+          <p>
+            Na tela de entrada, selecione <strong>Criar uma conta</strong> e
+            informe nome, sobrenome, e-mail e senha. Marque se quer alugar,
+            anunciar ou as duas opções.
+          </p>
+          <p>O e-mail é o identificador de acesso e será usado também na recuperação de senha.</p>
+          <a class="how-step-link" href="{% url 'contas:cadastro' %}">Ir para o cadastro <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">2</span>
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+            <h3>Entre com e-mail e senha</h3>
+          </div>
+          <p>
+            Depois do cadastro, sua conta ainda não estará conectada. Acesse
+            <strong>Entrar</strong>, informe o e-mail cadastrado e a senha.
+          </p>
+          <p>Se esqueceu a senha, use o link de recuperação na tela de login.</p>
+          <a class="how-step-link" href="{% url 'core:entrar' %}">Ir para o login <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">3</span>
+            <i class="bi bi-person-gear" aria-hidden="true"></i>
+            <h3>Complete seu perfil</h3>
+          </div>
+          <p>
+            Em Minha conta, ajuste os perfis de uso, informe a CNH e envie uma
+            imagem do documento de identidade em JPEG ou PNG, com até 5 MB.
+          </p>
+          <p>Alterar os dados da CNH faz a aprovação voltar para pendente.</p>
+          <a class="how-step-link" href="{% url 'contas:perfil' %}">Abrir Minha conta <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">4</span>
+            <i class="bi bi-speedometer2" aria-hidden="true"></i>
+            <h3>Acompanhe tudo pelo painel</h3>
+          </div>
+          <p>
+            O painel reúne reservas, solicitações, anúncios e pendências. É por
+            ele que você chega às ações de cada etapa.
+          </p>
+          <p>As áreas de Reservas e Meus veículos também ficam disponíveis no menu.</p>
+          {% if user.is_authenticated %}
+            <a class="how-step-link" href="{% url 'contas:painel' %}">Abrir meu painel <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+          {% else %}
+            <a class="how-step-link" href="{% url 'core:entrar' %}">Entrar na minha conta <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+          {% endif %}
+        </li>
+      </ol>
+    </section>
+
+    <section id="para-alugar" class="how-section" aria-labelledby="alugar-title">
+      <div class="how-section-heading">
+        <span class="how-kicker">Do anúncio à devolução</span>
+        <h2 id="alugar-title">Como alugar um carro</h2>
+        <p>
+          A locação passa por busca, solicitação, aceite do proprietário,
+          pagamento simulado, check-in, check-out e avaliação.
+        </p>
+      </div>
+
+      <ol class="how-steps">
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">1</span>
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <h3>Busque a cidade e, se quiser, o período</h3>
+          </div>
+          <p>
+            Na página inicial, informe a cidade. As datas de retirada e
+            devolução são opcionais, mas ajudam a verificar a disponibilidade.
+          </p>
+          <p>
+            Nos resultados, refine por categoria, câmbio, combustível,
+            capacidade de passageiros e faixa de diária.
+          </p>
+          <a class="how-step-link" href="{% url 'core:resultados' %}">Buscar veículos <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">2</span>
+            <i class="bi bi-car-front" aria-hidden="true"></i>
+            <h3>Confira o anúncio</h3>
+          </div>
+          <p>
+            Veja fotos, descrição, cidade, câmbio, combustível, número de
+            passageiros e valor da diária antes de decidir.
+          </p>
+          <p>
+            A nota média aparece quando o veículo já recebeu avaliações de
+            locatários em locações concluídas e avaliadas pelas duas partes.
+          </p>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">3</span>
+            <i class="bi bi-calendar-check" aria-hidden="true"></i>
+            <h3>Verifique o período e solicite</h3>
+          </div>
+          <p>
+            No anúncio, informe retirada e devolução para consultar a
+            disponibilidade e ver a estimativa de diárias. Se estiver livre,
+            envie a solicitação.
+          </p>
+          <p>
+            É preciso estar conectado, ter o perfil de locatário e a CNH
+            aprovada e válida até a devolução. O período fica reservado assim
+            que a solicitação é enviada.
+          </p>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">4</span>
+            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+            <h3>Aguarde o aceite</h3>
+          </div>
+          <p>
+            O proprietário pode aceitar ou recusar a solicitação. Acompanhe a
+            resposta em Reservas, onde ficam as solicitações como locatário e
+            os pedidos recebidos como proprietário.
+          </p>
+          <p>Se a solicitação for recusada ou cancelada, o período volta a ficar disponível.</p>
+          <a class="how-step-link" href="{% url 'reservas:minhas' %}">Ver minhas reservas <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">5</span>
+            <i class="bi bi-credit-card" aria-hidden="true"></i>
+            <h3>Simule o pagamento</h3>
+          </div>
+          <p>
+            Com a reserva aceita, abra os detalhes e escolha Pix ou cartão. A
+            simulação pode ser aprovada ou recusada; se for recusada, é possível
+            tentar novamente.
+          </p>
+          <p>
+            O pagamento aprovado libera o check-in. Nenhum valor real é
+            cobrado e uma reserva já aprovada não pode ser paga de novo.
+          </p>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">6</span>
+            <i class="bi bi-camera" aria-hidden="true"></i>
+            <h3>Faça o check-in na retirada</h3>
+          </div>
+          <p>
+            Nos detalhes da reserva, registre a quilometragem, o nível de
+            combustível de 0 a 100% e de 1 a 6 fotos em JPG ou PNG, com até
+            5 MB cada.
+          </p>
+          <p>O check-in só é liberado com pagamento aprovado e coloca a locação em andamento.</p>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">7</span>
+            <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+            <h3>Devolva o carro e faça o check-out</h3>
+          </div>
+          <p>
+            Na devolução, informe a quilometragem final, o combustível e novas
+            fotos. A quilometragem final não pode ser menor que a registrada no
+            check-in.
+          </p>
+          <p>O check-out conclui a locação e libera as avaliações.</p>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">8</span>
+            <i class="bi bi-star" aria-hidden="true"></i>
+            <h3>Avalie a locação</h3>
+          </div>
+          <p>
+            Locatário e proprietário podem dar uma nota de 1 a 5, uma vez cada,
+            depois que a locação for concluída.
+          </p>
+          <p>
+            A avaliação da outra parte fica oculta até que as duas sejam
+            enviadas. Não é possível alterar a nota depois do envio.
+          </p>
+        </li>
+      </ol>
+
+      <aside class="how-callout how-callout--warning" aria-label="Sobre cancelamentos">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        <p>
+          Uma reserva pode ser cancelada enquanto estiver
+          <strong>solicitada</strong> ou <strong>aceita</strong>. Se já houver
+          pagamento aprovado, o cancelamento marca o pagamento como
+          <strong>estornado</strong> na simulação. Depois do check-in, a
+          locação não pode mais ser cancelada por esse fluxo.
+        </p>
+      </aside>
+    </section>
+
+    <section id="para-proprietarios" class="how-section" aria-labelledby="proprietarios-title">
+      <div class="how-section-heading">
+        <span class="how-kicker">Anuncie e gerencie seu veículo</span>
+        <h2 id="proprietarios-title">Como funciona para quem anuncia</h2>
+        <p>
+          O proprietário define o preço e a agenda, acompanha as solicitações e
+          vê o valor previsto de repasse. O locatário é quem registra a
+          vistoria de retirada e devolução.
+        </p>
+      </div>
+
+      <ol class="how-steps">
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">1</span>
+            <i class="bi bi-person-badge" aria-hidden="true"></i>
+            <h3>Ative o perfil e envie o documento</h3>
+          </div>
+          <p>
+            Em Minha conta, marque <strong>Quero anunciar meu carro</strong> e
+            envie uma imagem do documento de identidade. O arquivo fica em área
+            privada e passa por análise administrativa.
+          </p>
+          <p>Sem o perfil de proprietário e o documento aprovado, o cadastro de veículos fica bloqueado.</p>
+          <a class="how-step-link" href="{% url 'contas:perfil' %}">Configurar meu perfil <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">2</span>
+            <i class="bi bi-plus-square" aria-hidden="true"></i>
+            <h3>Cadastre o veículo</h3>
+          </div>
+          <p>
+            Informe características, cidade, categoria, câmbio, combustível,
+            capacidade de passageiros e valor da diária. O anúncio é criado
+            como <strong>pendente</strong>.
+          </p>
+          <p>Você pode adicionar fotos depois. As fotos dos anúncios são públicas, então não inclua documentos ou dados pessoais.</p>
+          <a class="how-step-link" href="{% url 'core:veiculo' %}">Cadastrar um carro <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">3</span>
+            <i class="bi bi-patch-check" aria-hidden="true"></i>
+            <h3>Aguarde a aprovação do anúncio</h3>
+          </div>
+          <p>
+            O veículo só aparece na busca quando está aprovado, ativo e sem
+            bloqueio administrativo. Editar os dados do carro ou adicionar uma
+            foto faz o anúncio voltar para análise.
+          </p>
+          <p>Ativar ou desativar o anúncio não altera a aprovação nem remove bloqueios.</p>
+          <a class="how-step-link" href="{% url 'veiculos:meus' %}">Ver meus veículos <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">4</span>
+            <i class="bi bi-calendar-range" aria-hidden="true"></i>
+            <h3>Organize a agenda</h3>
+          </div>
+          <p>
+            Em Agenda e disponibilidade, cadastre janelas disponíveis ou
+            períodos bloqueados. Bloqueios e reservas vigentes sempre
+            prevalecem.
+          </p>
+          <p>
+            Se houver janelas disponíveis cadastradas, o período solicitado
+            precisa caber inteiro em uma delas. Sem janelas, o veículo fica
+            disponível por padrão, exceto nas datas ocupadas.
+          </p>
+          <a class="how-step-link" href="{% url 'veiculos:meus' %}">Gerenciar disponibilidade <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">5</span>
+            <i class="bi bi-inbox" aria-hidden="true"></i>
+            <h3>Responda às solicitações</h3>
+          </div>
+          <p>
+            Cada pedido chega com status <strong>solicitada</strong> e mantém o
+            período bloqueado. Você pode aceitar ou recusar.
+          </p>
+          <p>
+            Para aceitar, o anúncio precisa estar publicado, a retirada não pode
+            estar no passado, o locatário precisa estar elegível e não pode
+            haver conflito de agenda.
+          </p>
+        </li>
+
+        <li class="how-step">
+          <div class="how-step-head">
+            <span class="how-step-number" aria-hidden="true">6</span>
+            <i class="bi bi-wallet2" aria-hidden="true"></i>
+            <h3>Acompanhe valores e vistoria</h3>
+          </div>
+          <p>
+            Nos detalhes da reserva, você vê o total contratado, a comissão e o
+            repasse previsto. A comissão padrão é de 15% e pode ser configurada
+            pela administração; cada reserva mantém o percentual do momento da
+            contratação.
+          </p>
+          <p>O locatário registra check-in e check-out; você acompanha a quilometragem, o combustível e a quantidade de fotos pela reserva.</p>
+          <a class="how-step-link" href="{% url 'reservas:minhas' %}">Ver solicitações recebidas <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </li>
+      </ol>
+
+      <p class="how-note">
+        A busca sem datas mostra os anúncios publicados sem verificar a agenda.
+        Para confirmar a disponibilidade de um período, informe retirada e
+        devolução na busca ou no anúncio.
+      </p>
+    </section>
+
+    <section id="status" class="how-section" aria-labelledby="status-title">
+      <div class="how-section-heading">
+        <span class="how-kicker">Acompanhe cada etapa</span>
+        <h2 id="status-title">O que cada status de reserva significa</h2>
+        <p>O status fica visível em Reservas e nos detalhes de cada locação.</p>
+      </div>
+
+      <div class="how-status-grid">
+        <article class="how-status-item">
+          <span class="how-badge how-badge--pending">Solicitada</span>
+          <p>Aguardando a resposta do proprietário. O período já está reservado e não pode ser solicitado por outra pessoa.</p>
+        </article>
+        <article class="how-status-item">
+          <span class="how-badge how-badge--info">Aceita</span>
+          <p>O proprietário aceitou. O locatário pode simular o pagamento para liberar o check-in.</p>
+        </article>
+        <article class="how-status-item">
+          <span class="how-badge how-badge--info">Em andamento</span>
+          <p>O check-in foi registrado. A locação está ativa até o check-out da devolução.</p>
+        </article>
+        <article class="how-status-item">
+          <span class="how-badge how-badge--success">Concluída</span>
+          <p>O check-out foi registrado. As duas partes podem enviar sua avaliação.</p>
+        </article>
+        <article class="how-status-item">
+          <span class="how-badge how-badge--danger">Recusada</span>
+          <p>O proprietário recusou a solicitação. O período deixa de ficar bloqueado.</p>
+        </article>
+        <article class="how-status-item">
+          <span class="how-badge how-badge--danger">Cancelada</span>
+          <p>A reserva foi cancelada antes do check-in. Se havia pagamento aprovado, ele é marcado como estornado na simulação.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="seguranca" class="how-section" aria-labelledby="seguranca-title">
+      <div class="how-section-heading">
+        <span class="how-kicker">Confiança e privacidade</span>
+        <h2 id="seguranca-title">Como a plataforma protege a negociação</h2>
+        <p>
+          A análise administrativa, a vistoria e as avaliações ajudam a manter
+          o histórico da locação organizado para as duas partes.
+        </p>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-person-check" aria-hidden="true"></i></span>
+            <h3>Aprovação manual</h3>
+            <p>Documentos, CNHs e anúncios passam por análise. A administração também pode bloquear contas e veículos.</p>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
+            <h3>Documento de identidade privado</h3>
+            <p>O documento enviado fica em área privada e só pode ser baixado pelo próprio usuário e por superusuários. Ele não aparece em anúncios, buscas ou reservas.</p>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-camera" aria-hidden="true"></i></span>
+            <h3>Vistoria com fotos</h3>
+            <p>Check-in e check-out registram quilometragem, combustível e fotos do veículo. Evite enquadrar pessoas, documentos ou dados pessoais nas imagens.</p>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-star-half" aria-hidden="true"></i></span>
+            <h3>Avaliações entre as partes</h3>
+            <p>As notas são enviadas após a conclusão e ficam ocultas até que as duas partes avaliem, reduzindo influência sobre a avaliação da outra pessoa.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="dicas" class="how-section" aria-labelledby="dicas-title">
+      <div class="how-section-heading">
+        <span class="how-kicker">Para uma locação tranquila</span>
+        <h2 id="dicas-title">Dicas importantes</h2>
+        <p>Pequenos cuidados antes e depois da reserva evitam imprevistos.</p>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+            <h3>Use datas na busca</h3>
+            <p>Informar retirada e devolução permite verificar bloqueios, reservas e janelas de disponibilidade. A busca sem datas não confirma a agenda.</p>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
+            <h3>Mantenha o perfil em dia</h3>
+            <p>CNH vencida ou não aprovada impede novas solicitações. Atualize a validade antes de reservar e acompanhe a situação das aprovações.</p>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-images" aria-hidden="true"></i></span>
+            <h3>Confira as fotos e a descrição</h3>
+            <p>Leia as características do carro e observe as fotos do anúncio. Na dúvida sobre o período, consulte a disponibilidade antes de solicitar.</p>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-camera-fill" aria-hidden="true"></i></span>
+            <h3>Registre a vistoria com clareza</h3>
+            <p>Fotografe frente, traseira, laterais, interior e painel. Anote a quilometragem e o combustível exatamente como estão no momento da retirada e da devolução.</p>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-calendar-week" aria-hidden="true"></i></span>
+            <h3>Atualize a agenda do veículo</h3>
+            <p>Proprietários devem manter janelas disponíveis e bloqueios atualizados. Uma agenda organizada reduz recusas e conflitos de período.</p>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="how-card">
+            <span class="how-icon"><i class="bi bi-chat-square-heart" aria-hidden="true"></i></span>
+            <h3>Avalie com honestidade</h3>
+            <p>A avaliação é única por parte e não pode ser alterada. Use a nota para registrar como foi a experiência real da locação.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="perguntas" class="how-section" aria-labelledby="perguntas-title">
+      <div class="how-section-heading">
+        <span class="how-kicker">Dúvidas comuns</span>
+        <h2 id="perguntas-title">Perguntas frequentes</h2>
+        <p>Respostas rápidas sobre o funcionamento desta versão do ShareCar.</p>
+      </div>
+
+      <div class="how-faq">
+        <details>
+          <summary>Preciso de CNH para alugar um carro?</summary>
+          <div class="how-faq-body">
+            <p>Sim. Para solicitar uma reserva, a conta precisa ter o perfil de locatário, a CNH com número e validade informados, aprovação administrativa e validade até a data de devolução.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Posso ser locatário e proprietário na mesma conta?</summary>
+          <div class="how-faq-body">
+            <p>Sim. Os perfis são independentes e podem ser marcados juntos no cadastro ou ajustados depois em Minha conta.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Meu documento de identidade aparece no anúncio ou na reserva?</summary>
+          <div class="how-faq-body">
+            <p>Não. O documento fica em armazenamento privado e só pode ser baixado pelo próprio usuário e por superusuários. Ele não é exibido em anúncios, buscas ou reservas.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Por que meu veículo não aparece na busca?</summary>
+          <div class="how-faq-body">
+            <p>Um anúncio só é público quando está aprovado, ativo e sem bloqueio administrativo. Edições nos dados do carro ou o envio de uma nova foto também fazem o anúncio voltar para análise. Se houver filtro de datas, a agenda também pode impedir a exibição.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>O pagamento é real?</summary>
+          <div class="how-faq-body">
+            <p>Não. Nesta versão, Pix e cartão são apenas meios de uma simulação. A plataforma não cobra valores reais e não deve receber dados de cartão, senhas ou códigos. A aprovação da simulação serve para liberar o check-in.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Posso cancelar uma reserva depois de pagar?</summary>
+          <div class="how-faq-body">
+            <p>É possível cancelar enquanto a reserva estiver solicitada ou aceita. Se o pagamento já estiver aprovado, ele será marcado como estornado na simulação. Depois do check-in, a locação em andamento não pode ser cancelada por esse fluxo.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Quando a avaliação fica visível?</summary>
+          <div class="how-faq-body">
+            <p>As avaliações são liberadas após o check-out, quando a locação fica concluída. Cada parte pode avaliar uma vez. A nota da outra parte só aparece depois que as duas avaliações forem enviadas.</p>
+            <p>A nota média exibida no veículo considera avaliações de locatários em locações concluídas e com avaliação recíproca.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Por que não consigo solicitar uma reserva?</summary>
+          <div class="how-faq-body">
+            <p>Confira se a conta está ativa, se o perfil de locatário está marcado, se a CNH foi aprovada e se continua válida até a devolução. Também não é possível reservar o próprio veículo nem um período já ocupado, bloqueado ou fora das janelas de disponibilidade.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Como funciona a comissão do proprietário?</summary>
+          <div class="how-faq-body">
+            <p>O valor da diária é definido pelo proprietário. Sobre o total da reserva incide a comissão da plataforma, com padrão de 15% e configuração pela administração. Cada reserva guarda o percentual vigente no momento da contratação, e o repasse previsto aparece nos detalhes para o proprietário.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Como altero minha senha ou recupero o acesso?</summary>
+          <div class="how-faq-body">
+            <p>Com a conta conectada, use <a href="{% url 'contas:alterar_senha' %}">Alterar senha</a> em Minha conta. Se esqueceu a senha, use o link de recuperação na tela de login e siga as instruções enviadas ao e-mail cadastrado.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="how-cta" aria-labelledby="cta-title">
+      <h2 id="cta-title">Pronto para começar?</h2>
+      <p>
+        Encontre um carro para o seu próximo período ou cadastre o seu veículo
+        para receber solicitações. Se ainda não tem conta, o cadastro leva
+        poucos minutos.
+      </p>
+      <div class="how-cta-actions">
+        <a class="discovery-button" href="{% url 'core:resultados' %}">
+          <i class="bi bi-search" aria-hidden="true"></i> Buscar carros
+        </a>
+        <a class="discovery-button" href="{% url 'core:veiculo' %}">
+          <i class="bi bi-car-front" aria-hidden="true"></i> Anunciar meu carro
+        </a>
+        {% if user.is_authenticated %}
+          <a class="how-ghost-button" href="{% url 'contas:painel' %}">Abrir meu painel</a>
+        {% else %}
+          <a class="how-ghost-button" href="{% url 'contas:cadastro' %}">Criar minha conta</a>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+{% endblock %}
