@@ -34,6 +34,7 @@ class AdministradorMixin(LoginRequiredMixin, UserPassesTestMixin):
         return super().handle_no_permission()
 
 
+@method_decorator(never_cache, name="dispatch")
 class PainelAdministrativoView(AdministradorMixin, TemplateView):
     """Resume aprovações, bloqueios, pagamentos e reservas recentes."""
 

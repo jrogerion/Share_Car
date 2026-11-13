@@ -129,6 +129,7 @@ class CadastroConcluidoView(TemplateView):
     template_name = "contas/cadastro_concluido.html"
 
 
+@method_decorator(never_cache, name="dispatch")
 class PainelView(LoginRequiredMixin, TemplateView):
     """Resume a atividade do usuário como locatário e/ou proprietário."""
 
