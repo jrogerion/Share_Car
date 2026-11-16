@@ -5,11 +5,15 @@ from django.views.generic import TemplateView
 from apps.contas.forms import LoginEmailForm
 from apps.veiculos.views import CadastroVeiculoView
 
+from . import pwa
 from .views import DetalhesVeiculoView, HomeView, ResultadosView
 
 app_name = "core"
 
 urlpatterns = [
+    path("manifest.webmanifest", pwa.manifest, name="manifest"),
+    path("service-worker.js", pwa.service_worker, name="service_worker"),
+    path("offline/", pwa.offline, name="offline"),
     path("", HomeView.as_view(), name="home"),
     path(
         "entrar/",
