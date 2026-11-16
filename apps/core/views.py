@@ -18,9 +18,16 @@ from apps.veiculos.models import Veiculo
 
 
 class HomeView(TemplateView):
-    """Exibe a página inicial estática, sem consultas ou contexto dinâmico."""
+    """Exibe até oito anúncios públicos recentes, com suas fotos carregadas."""
 
     template_name = "core/home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["destaques"] = list(com_fotos_ordenadas(
+            veiculos_publicos().order_by("-pk"),
+        )[:8])
+        return context
 
 
 @method_decorator(never_cache, name="dispatch")

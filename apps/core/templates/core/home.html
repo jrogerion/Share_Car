@@ -41,14 +41,40 @@
       <a href="{% url 'core:resultados' %}?categoria=Picape"><i class="bi bi-truck-flatbed" aria-hidden="true"></i> Picape</a>
     </section>
     <section id="destaques" class="discovery-section" aria-labelledby="destaques-title">
-      <div class="discovery-heading"><h2 id="destaques-title">Encontre o seu estilo</h2><span>Exemplos ilustrativos</span></div>
-      <p class="discovery-note">Veículos, preços e notas fictícios para demonstrar a experiência.</p>
-      <div class="discovery-cars" tabindex="0" role="region" aria-label="Exemplos de veículos; role para ver mais no celular">
-        <article class="discovery-car"><div class="discovery-photo photo-blue"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Fiat Argo</h3><p>2021 · Hatch</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,8 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,8</span><strong>R$ 150<small>/dia</small></strong></div></div></article>
-        <article class="discovery-car"><div class="discovery-photo photo-lilac"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Jeep Renegade</h3><p>2022 · SUV</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 189<small>/dia</small></strong></div></div></article>
-        <article class="discovery-car"><div class="discovery-photo photo-mint"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Honda City</h3><p>2023 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 4,9 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 4,9</span><strong>R$ 240<small>/dia</small></strong></div></div></article>
-        <article class="discovery-car"><div class="discovery-photo photo-rose"><img src="{% static 'images/car.svg' %}" alt="" width="320" height="160"></div><div class="discovery-car-body"><h3>Toyota Corolla</h3><p>2022 · Sedã</p><div class="discovery-meta"><span aria-label="Nota ilustrativa 5 de 5"><i class="bi bi-star-fill" aria-hidden="true"></i> 5,0</span><strong>R$ 320<small>/dia</small></strong></div></div></article>
-      </div>
+      <div class="discovery-heading"><h2 id="destaques-title">Encontre o seu estilo</h2><a href="{% url 'core:resultados' %}">Ver todos os anúncios</a></div>
+      <p class="discovery-note">Anúncios publicados. Confira a disponibilidade nas datas da sua viagem.</p>
+      {% if destaques %}
+        <div class="discovery-carousel" data-discovery-carousel>
+          <div id="discovery-cars" class="discovery-cars" tabindex="0" role="region" aria-roledescription="carrossel" aria-label="Anúncios de veículos">
+            {% for veiculo in destaques %}
+              <a class="discovery-car" href="{% url 'core:detalhes' veiculo.pk %}">
+                {% with capa=veiculo.fotos.all|first %}
+                  <div class="discovery-photo{% if capa %} discovery-photo-real{% else %} {% cycle 'photo-blue' 'photo-lilac' 'photo-mint' 'photo-rose' %}{% endif %}">
+                    {% if capa %}<img src="{{ capa.foto.url }}" alt="" width="320" height="194" loading="lazy" decoding="async">{% else %}<img src="{% static 'images/car.svg' %}" alt="" width="320" height="194">{% endif %}
+                  </div>
+                {% endwith %}
+                <div class="discovery-car-body">
+                  <h3>{{ veiculo.categoria }} em {{ veiculo.cidade }}</h3>
+                  <p>{{ veiculo.caracteristicas|truncatechars:70 }}</p>
+                  <div class="discovery-meta"><strong>R$ {{ veiculo.preco_diaria|floatformat:2 }}<small>/dia</small></strong></div>
+                  <span class="discovery-card-link">Ver anúncio <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+          <div class="discovery-carousel-controls" hidden>
+            <button type="button" class="discovery-carousel-button" data-carousel-prev aria-controls="discovery-cars" aria-label="Ver anúncio anterior">← <span>Anterior</span></button>
+            <button type="button" class="discovery-carousel-button" data-carousel-toggle aria-controls="discovery-cars" aria-pressed="false">Pausar carrossel</button>
+            <button type="button" class="discovery-carousel-button" data-carousel-next aria-controls="discovery-cars" aria-label="Ver próximo anúncio"><span>Próximo</span> →</button>
+          </div>
+          <p class="discovery-note" data-carousel-motion-note hidden>Avanço automático desativado pela preferência de movimento reduzido.</p>
+        </div>
+      {% else %}
+        <div class="discovery-empty">
+          <p>Ainda não há veículos publicados. Que tal anunciar o seu?</p>
+          <a href="{% url 'core:veiculo' %}">Anunciar carro</a>
+        </div>
+      {% endif %}
     </section>
     <section id="como-funciona" class="discovery-section" aria-labelledby="como-title">
       <div class="discovery-heading"><h2 id="como-title">Como funciona</h2><span>Simples, do início ao fim</span></div>
@@ -64,6 +90,7 @@
   </div>
 {% endblock %}
 {% block scripts %}
+  <script src="{% static 'js/discovery-carousel.js' %}"></script>
   <script>
     (() => {
       const retirada = document.getElementById("retirada");

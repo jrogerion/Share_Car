@@ -64,6 +64,8 @@ class PWAPublicaTests(SimpleTestCase):
                 response = self.client.post(reverse(f"core:{rota}"))
                 self.assertEqual(response.status_code, 405)
 
+
+class PWAIndependenteDaContaTests(TestCase):
     def test_paginas_incluem_manifesto_e_registro_uma_vez(self):
         for rota in ("core:home", "core:entrar"):
             response = self.client.get(reverse(rota))
@@ -71,8 +73,6 @@ class PWAPublicaTests(SimpleTestCase):
             self.assertContains(response, 'js/pwa.js', count=1)
             self.assertContains(response, 'data-service-worker-url=', count=1)
 
-
-class PWAIndependenteDaContaTests(TestCase):
     def test_conteudo_cacheavel_nao_muda_apos_login(self):
         rotas = [reverse(f"core:{nome}") for nome in (
             "manifest", "service_worker", "offline",

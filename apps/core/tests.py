@@ -5,7 +5,7 @@ from html.parser import HTMLParser
 from urllib.parse import urlencode
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.contas.models import Usuario
@@ -50,15 +50,15 @@ class NavigationParser(HTMLParser):
             self.form = None
 
 
-class TemplatePagesTests(SimpleTestCase):
-    """As prévias devem renderizar e navegar sem acesso ao banco."""
+class TemplatePagesTests(TestCase):
+    """As páginas devem renderizar e preservar a navegação compartilhada."""
 
     pages = (
         "home", "entrar", "resumo",
         "pagamento", "reservas_exemplo", "checkin", "avaliacao",
     )
 
-    def test_pages_render_without_database(self):
+    def test_pages_render(self):
         for page in self.pages:
             with self.subTest(page=page):
                 response = self.client.get(reverse(f"core:{page}"))
