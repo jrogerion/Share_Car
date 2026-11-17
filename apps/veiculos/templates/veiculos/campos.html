@@ -1,0 +1,20 @@
+<p class="flow-small">Os campos marcados com * são obrigatórios.</p>
+{% for titulo, campos in form.grupos_campos %}
+  <fieldset class="vehicle-form-group">
+    <legend>{{ titulo }}</legend>
+    <div class="vehicle-form-grid">
+      {% for field in campos %}
+        <div{% if field.name == 'caracteristicas' %} class="vehicle-form-wide"{% endif %}>
+          {% if field.field.widget.input_type == 'checkbox' %}
+            <label class="flow-check" for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
+          {% else %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span aria-hidden="true">*</span>{% endif %}</label>
+            {{ field }}
+          {% endif %}
+          {% if field.help_text %}<p class="flow-small" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+    </div>
+  </fieldset>
+{% endfor %}

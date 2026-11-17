@@ -1,4 +1,5 @@
 {% extends "core/page.html" %}
+{% load static %}
 {% block title %}Fotos do veículo — ShareCar{% endblock %}
 {% block back_url %}{% url 'veiculos:meus' %}{% endblock %}
 {% block back_label %}Meus veículos{% endblock %}
@@ -10,12 +11,17 @@
   <section class="flow-panel" aria-labelledby="enviar-foto-title">
     <h2 id="enviar-foto-title">Adicionar foto</h2>
     <p>Use apenas fotos do carro, sem documentos ou dados pessoais: os arquivos das fotos são públicos. Cada envio retorna o anúncio para análise, e ele só reaparece na busca após aprovação.</p>
-    <form method="post" enctype="multipart/form-data" class="flow-fields">
+    <form method="post" enctype="multipart/form-data" class="flow-fields" data-photo-preview-form>
       {% csrf_token %}
       {% if form.errors %}<div class="flow-notice flow-error" role="alert"><p>Não foi possível enviar a foto.</p>{{ form.non_field_errors }}</div>{% endif %}
       {{ form.foto.label_tag }}{{ form.foto }}
       <p class="flow-small" id="id_foto_helptext">{{ form.foto.help_text }}</p>
       {{ form.foto.errors }}
+      <figure class="vehicle-photo-preview" data-photo-preview hidden>
+        <img alt="Prévia da foto selecionada, ainda não enviada" width="640" height="400" data-photo-preview-image>
+        <figcaption class="flow-small" data-photo-preview-caption></figcaption>
+      </figure>
+      <p class="flow-small" role="status" data-photo-preview-status>Selecione uma foto para conferir a prévia antes de enviar.</p>
       <button class="discovery-button" type="submit">Adicionar foto</button>
     </form>
   </section>
@@ -28,4 +34,7 @@
     </div>
     <p><a href="{% url 'veiculos:editar' veiculo.pk %}">Editar dados do veículo</a></p>
   </section>
+{% endblock %}
+{% block scripts %}
+  <script src="{% static 'js/vehicle-photo-preview.js' %}"></script>
 {% endblock %}

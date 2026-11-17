@@ -15,13 +15,7 @@
         {% if form.errors %}
           <div class="flow-notice flow-error" role="alert"><p>Não foi possível cadastrar. Confira os campos abaixo.</p>{{ form.non_field_errors }}</div>
         {% endif %}
-        {% for field in form %}
-          <div>
-            {{ field.label_tag }}{{ field }}
-            {% if field.help_text %}<p class="flow-small" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
-            {{ field.errors }}
-          </div>
-        {% endfor %}
+        {% include "veiculos/campos.html" %}
         <button class="discovery-button" type="submit">Salvar e enviar para análise</button>
       </form>
     </section>

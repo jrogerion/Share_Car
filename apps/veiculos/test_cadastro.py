@@ -58,6 +58,28 @@ class CadastroVeiculoTests(TestCase):
             set(response.context["form"].fields),
             set(CadastroVeiculoForm.Meta.fields),
         )
+
+    def test_grupos_renderizam_todos_os_campos_sem_duplicar(self):
+        response = self.client.get(self.url)
+        for titulo in ("Sobre o carro", "Configuração", "Localização e diária"):
+            self.assertContains(response, f"<legend>{titulo}</legend>")
+        for nome in CadastroVeiculoForm.Meta.fields:
+            self.assertContains(response, f'name="{nome}"', count=1)
+        self.assertContains(response, "Os campos marcados com * são obrigatórios")
+
+    def test_edicao_preserva_controle_de_visibilidade(self):
+        veiculo = self.criar_veiculo()
+        response = self.client.get(reverse("veiculos:editar", args=[veiculo.pk]))
+        self.assertContains(response, "<legend>Visibilidade</legend>")
+        self.assertContains(response, 'name="ativo"', count=1)
+
+    def test_fotos_oferecem_previa_sem_alterar_upload(self):
+        veiculo = self.criar_veiculo()
+        response = self.client.get(reverse("veiculos:fotos", args=[veiculo.pk]))
+        self.assertContains(response, 'enctype="multipart/form-data"')
+        self.assertContains(response, 'data-photo-preview hidden')
+        self.assertContains(response, 'js/vehicle-photo-preview.js', count=1)
+        self.assertContains(response, "Uma foto por envio")
         for campo in ("proprietario", "aprovacao", "bloqueado", "ativo"):
             self.assertNotContains(response, f'name="{campo}"')
 

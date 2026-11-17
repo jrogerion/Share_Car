@@ -13,6 +13,18 @@ from .models import FotoVeiculo, Veiculo
 
 
 class CadastroVeiculoForm(forms.ModelForm):
+    @property
+    def grupos_campos(self):
+        """Agrupamento visual compartilhado pelo cadastro e pela edição."""
+        grupos = [
+            ("Sobre o carro", ("caracteristicas", "categoria")),
+            ("Configuração", ("cambio", "combustivel", "passageiros")),
+            ("Localização e diária", ("cidade", "preco_diaria")),
+        ]
+        if "ativo" in self.fields:
+            grupos.append(("Visibilidade", ("ativo",)))
+        return [(titulo, [self[nome] for nome in nomes]) for titulo, nomes in grupos]
+
     passageiros = forms.IntegerField(
         label="Passageiros", min_value=1, max_value=32767,
     )
