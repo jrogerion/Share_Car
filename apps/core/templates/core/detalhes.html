@@ -14,16 +14,18 @@
   </aside>
 {% endblock %}
 {% block page_content %}
+  <a class="btn btn-outline-secondary detail-period-link" href="#periodo-title">Consultar datas e preço <i class="bi bi-arrow-down" aria-hidden="true"></i></a>
   <div class="flow-columns">
     <div class="flow-stack">
       {% if fotos %}
-        <section class="flow-gallery" aria-label="Fotos do veículo">
+        <section class="flow-gallery" aria-label="Fotos do veículo" data-vehicle-gallery>
           {% for foto in fotos %}
             <figure class="flow-gallery-item">
               <img
                 src="{{ foto.foto.url }}"
                 alt="Foto {{ forloop.counter }} do veículo {{ veiculo.categoria }} em {{ veiculo.cidade }}"
-                loading="lazy"
+                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                decoding="async"
               >
             </figure>
           {% endfor %}
@@ -41,15 +43,15 @@
 
       <section class="flow-panel" aria-labelledby="dados-title">
         <h2 id="dados-title">Dados do anúncio</h2>
-        <dl class="flow-prices">
-          <div><dt>Categoria</dt><dd>{{ veiculo.categoria }}</dd></div>
-          <div><dt>Câmbio</dt><dd>{{ veiculo.cambio }}</dd></div>
-          <div><dt>Combustível</dt><dd>{{ veiculo.combustivel }}</dd></div>
-          <div><dt>Passageiros</dt><dd>{{ veiculo.passageiros }}</dd></div>
+        <dl class="detail-features">
+          <div><dt><i class="bi bi-car-front" aria-hidden="true"></i> Categoria</dt><dd>{{ veiculo.categoria }}</dd></div>
+          <div><dt><i class="bi bi-gear" aria-hidden="true"></i> Câmbio</dt><dd>{{ veiculo.cambio }}</dd></div>
+          <div><dt><i class="bi bi-fuel-pump" aria-hidden="true"></i> Combustível</dt><dd>{{ veiculo.combustivel }}</dd></div>
+          <div><dt><i class="bi bi-people" aria-hidden="true"></i> Passageiros</dt><dd>{{ veiculo.passageiros }}</dd></div>
         </dl>
       </section>
     </div>
-    <aside class="flow-stack">
+    <aside class="flow-stack detail-booking">
       <section class="flow-panel" aria-labelledby="diaria-title">
         <h2 id="diaria-title">Diária</h2>
         <p><strong class="flow-price">R$ {{ veiculo.preco_diaria|floatformat:2 }}</strong> <span class="flow-small">/dia</span></p>
@@ -65,7 +67,7 @@
         {% endif %}
       </section>
 
-      <section class="flow-panel" aria-labelledby="periodo-title">
+      <section class="flow-panel detail-period" aria-labelledby="periodo-title">
         <h2 id="periodo-title">Período da locação</h2>
         <form method="get" action="{% url 'core:detalhes' veiculo.pk %}" class="flow-fields">
           <label for="{{ periodo_form.retirada.id_for_label }}">{{ periodo_form.retirada.label }}</label>
@@ -74,7 +76,7 @@
           <label for="{{ periodo_form.devolucao.id_for_label }}">{{ periodo_form.devolucao.label }}</label>
           {{ periodo_form.devolucao }}
           {{ periodo_form.devolucao.errors }}
-          <button class="btn btn-outline-secondary" type="submit">Verificar disponibilidade</button>
+          <button class="discovery-button" type="submit">Verificar disponibilidade</button>
         </form>
 
         {% if periodo_consultado %}
@@ -131,4 +133,7 @@
       </section>
     </aside>
   </div>
+{% endblock %}
+{% block scripts %}
+  <script src="{% static 'js/vehicle-gallery.js' %}"></script>
 {% endblock %}

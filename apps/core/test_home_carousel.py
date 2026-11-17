@@ -93,7 +93,7 @@ class HomeCarouselTests(TestCase):
         self.assertContains(response, "images/car.svg", count=1)
         self.assertContains(response, "R$ 321,50")
         self.assertContains(response, 'class="discovery-car"', count=1)
-        self.assertContains(response, 'data-carousel-toggle')
+        self.assertNotContains(response, 'data-carousel-toggle')
 
     def test_sem_anuncios_exibe_estado_vazio_sem_carrossel(self):
         with self.assertNumQueries(1):

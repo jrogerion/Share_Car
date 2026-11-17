@@ -160,7 +160,7 @@ class AccountNavigationTests(TestCase):
         self.usuario.save(update_fields=["first_name"])
         self.client.force_login(self.usuario)
         response = self.client.get(reverse("core:home"))
-        self.assertContains(response, ">Minha conta</span>", count=2)
+        self.assertContains(response, ">Usuário</span>", count=2)
         self.assertNotContains(response, self.usuario.email)
         self.assertNotContains(response, self.usuario.username)
 

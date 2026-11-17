@@ -97,6 +97,47 @@ class ReservaBaseTests(TestCase):
         )
 
 
+class JornadaVisualTests(ReservaBaseTests):
+    def test_participantes_exibem_nome_sem_identificador(self):
+        self.locatario.first_name = "Ana"
+        self.locatario.last_name = "Silva"
+        self.locatario.save(update_fields=["first_name", "last_name"])
+        self.proprietario.first_name = "Carlos"
+        self.proprietario.save(update_fields=["first_name"])
+        reserva = self.criar_reserva_direta()
+        self.client.force_login(self.locatario)
+        response = self.client.get(reverse("reservas:detalhe", args=[reserva.pk]))
+        self.assertContains(response, "Locatário: <strong>Ana Silva</strong>")
+        self.assertContains(response, "Proprietário: <strong>Carlos</strong>")
+        self.assertNotContains(response, f"<strong>{self.locatario.username}</strong>")
+        self.assertNotContains(response, f"<strong>{self.proprietario.username}</strong>")
+
+    def test_linha_do_tempo_e_orientacao_por_status(self):
+        reserva = self.criar_reserva_direta()
+        self.client.force_login(self.locatario)
+        for status, etapa in (
+            (Reserva.Status.SOLICITADA, "Aceite"),
+            (Reserva.Status.ACEITA, "Pagamento"),
+            (Reserva.Status.EM_ANDAMENTO, "Devolução"),
+            (Reserva.Status.CONCLUIDA, None),
+        ):
+            with self.subTest(status=status):
+                Reserva.objects.filter(pk=reserva.pk).update(status=status)
+                response = self.client.get(reverse("reservas:detalhe", args=[reserva.pk]))
+                atuais = [item["nome"] for item in response.context["etapas_reserva"] if item["atual"]]
+                self.assertEqual(atuais, [etapa] if etapa else [])
+                self.assertContains(response, "Acompanhe sua reserva")
+                self.assertTrue(response.context["orientacao_etapa"])
+
+    def test_reserva_encerrada_nao_mostra_etapa_pendente(self):
+        reserva = self.criar_reserva_direta(status=Reserva.Status.CANCELADA)
+        self.client.force_login(self.locatario)
+        response = self.client.get(reverse("reservas:detalhe", args=[reserva.pk]))
+        self.assertNotContains(response, 'aria-current="step"')
+        self.assertContains(response, "Esta reserva foi encerrada")
+        self.assertNotContains(response, "Simular pagamento")
+
+
 class DisponibilidadeTests(ReservaBaseTests):
     """A busca deve considerar agenda, reservas e disponibilidade cadastrada."""
 
@@ -449,8 +490,8 @@ class GestaoReservaTests(ReservaBaseTests):
         )
 
         self.assertContains(response, "R$ 450,00")
-        self.assertContains(response, "locatario")
-        self.assertContains(response, "proprietario")
+        self.assertContains(response, "Locatário: <strong>Usuário</strong>")
+        self.assertContains(response, "Proprietário: <strong>Usuário</strong>")
         self.assertNotContains(response, "locatario@example.com")
         self.assertNotContains(response, "proprietario@example.com")
 
@@ -466,7 +507,7 @@ class GestaoReservaTests(ReservaBaseTests):
         self.client.force_login(self.proprietario)
         response = self.client.get(reverse("reservas:minhas"))
         self.assertContains(response, "Como proprietário")
-        self.assertContains(response, "Locatário: locatario")
+        self.assertContains(response, "Locatário: Usuário")
         self.assertContains(response, "Meus veículos")
         self.assertContains(
             response,

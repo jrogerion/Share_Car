@@ -174,6 +174,50 @@ class DetalheReservaView(LoginRequiredMixin, DetailView):
             else None
         )
         context["pode_avaliar"] = pode_avaliar(reserva, usuario)
+        encerrada = reserva.status in (
+            Reserva.Status.CANCELADA, Reserva.Status.RECUSADA,
+        )
+        etapa = 1
+        if reserva.status == Reserva.Status.ACEITA:
+            etapa = 3 if aprovado else 2
+        elif reserva.status == Reserva.Status.EM_ANDAMENTO:
+            etapa = 4
+        elif reserva.status == Reserva.Status.CONCLUIDA:
+            etapa = 5
+        context["jornada_encerrada"] = encerrada
+        context["etapas_reserva"] = [
+            {
+                "nome": nome,
+                "concluida": not encerrada and indice < etapa,
+                "atual": not encerrada and indice == etapa,
+            }
+            for indice, nome in enumerate(
+                ("Solicitação", "Aceite", "Pagamento", "Retirada", "Devolução"),
+            )
+        ]
+        if encerrada:
+            orientacao = "Esta reserva foi encerrada. Consulte os valores e o pagamento abaixo."
+        elif context["pode_aceitar"]:
+            orientacao = "Analise o período e os valores para aceitar ou recusar a solicitação."
+        elif reserva.status == Reserva.Status.SOLICITADA:
+            orientacao = "A solicitação aguarda a análise do proprietário."
+        elif context["pode_pagar"]:
+            orientacao = "A reserva foi aceita. Simule o pagamento para liberar a retirada."
+        elif context["pode_checkin"]:
+            orientacao = "Pagamento aprovado. Registre a vistoria de retirada para iniciar a locação."
+        elif context["pode_checkout"]:
+            orientacao = "A locação está em andamento. Registre a vistoria de devolução ao finalizar."
+        elif context["pode_avaliar"]:
+            orientacao = "Locação concluída. Conte como foi sua experiência na avaliação."
+        elif reserva.status == Reserva.Status.CONCLUIDA:
+            orientacao = "Locação concluída. Os registros e valores estão disponíveis abaixo."
+        elif reserva.status == Reserva.Status.EM_ANDAMENTO:
+            orientacao = "A locação está em andamento. Aguarde o registro da devolução pelo locatário."
+        elif aprovado:
+            orientacao = "Pagamento aprovado. Aguarde a vistoria de retirada pelo locatário."
+        else:
+            orientacao = "A reserva foi aceita. Aguarde o pagamento do locatário."
+        context["orientacao_etapa"] = orientacao
         return context
 
 

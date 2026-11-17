@@ -66,7 +66,7 @@ class PerfilUsuarioTests(TestCase):
         }, follow=True)
         self.assertRedirects(response, self.url)
         self.assertContains(response, "Perfil atualizado com sucesso.")
-        self.assertContains(response, ">Nome novo</span>", count=2)
+        self.assertContains(response, ">Nome novo Teste</span>", count=2)
         self.usuario.refresh_from_db()
         self.assertEqual(self.usuario.first_name, "Nome novo")
         self.assertTrue(self.usuario.locatario)
@@ -240,6 +240,6 @@ class PerfilUsuarioTests(TestCase):
     def test_menu_destaca_minha_conta(self):
         response = self.client.get(self.url)
         self.assertContains(
-            response, 'aria-label="Minha conta: Pessoa" aria-current="page"',
+            response, 'aria-label="Minha conta: Pessoa Teste" aria-current="page"',
             count=2,
         )

@@ -92,6 +92,10 @@ class ResultadosView(ListView):
             return Veiculo.objects.none()
 
         dados = self.filtro.cleaned_data
+        ordenacao = {
+            "menor_diaria": ("preco_diaria", "-id"),
+            "maior_diaria": ("-preco_diaria", "-id"),
+        }.get(dados.get("ordenar"), ("-id",))
         return com_fotos_ordenadas(buscar_veiculos(
             cidade=dados.get("cidade", ""),
             categoria=dados.get("categoria", ""),
@@ -102,7 +106,7 @@ class ResultadosView(ListView):
             diaria_max=dados.get("diaria_max"),
             inicio=dados.get("retirada"),
             fim=dados.get("devolucao"),
-        ))
+        ).order_by(*ordenacao))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -113,5 +117,30 @@ class ResultadosView(ListView):
         context["total_veiculos"] = context["paginator"].count
         context["cidade_busca"] = dados.get("cidade", "")
         context["filtro_invalido"] = not valido
-        context["busca_ativa"] = True if not valido else any(dados.values())
+        context["busca_ativa"] = not valido or any(
+            valor for campo, valor in dados.items() if campo != "ordenar"
+        )
+        filtros_ativos = []
+        for nome, campo in self.filtro.fields.items():
+            if nome in ("ordenar", "devolucao"):
+                continue
+            valor = self.request.GET.get(nome, "").strip()
+            remover = [nome]
+            rotulo = f"{campo.label}: {valor}"
+            if nome == "retirada":
+                devolucao = self.request.GET.get("devolucao", "").strip()
+                if not valor and not devolucao:
+                    continue
+                rotulo = f"Período: {valor or '—'} até {devolucao or '—'}"
+                remover = ["retirada", "devolucao"]
+            elif not valor:
+                continue
+            parametros = self.request.GET.copy()
+            for chave in [*remover, "page"]:
+                parametros.pop(chave, None)
+            filtros_ativos.append({
+                "rotulo": rotulo,
+                "url": f"{self.request.path}?{parametros.urlencode()}",
+            })
+        context["filtros_ativos"] = filtros_ativos
         return context

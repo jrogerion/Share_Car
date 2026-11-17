@@ -4,21 +4,12 @@
 
   const track = carousel.querySelector(".discovery-cars");
   const cards = [...track.querySelectorAll(".discovery-car")];
-  const controls = carousel.querySelector(".discovery-carousel-controls");
-  const toggle = carousel.querySelector("[data-carousel-toggle]");
-  const motionNote = carousel.querySelector("[data-carousel-motion-note]");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let paused = reducedMotion.matches;
   let hovering = false;
   let timer;
 
   const hasOverflow = () => cards.length > 1 && track.scrollWidth > track.clientWidth + 2;
-  const updateToggle = () => {
-    toggle.textContent = paused ? "Retomar carrossel" : "Pausar carrossel";
-    toggle.setAttribute("aria-pressed", String(paused));
-    toggle.hidden = reducedMotion.matches;
-    motionNote.hidden = !reducedMotion.matches;
-  };
   const schedule = () => {
     window.clearTimeout(timer);
     if (paused || hovering || document.hidden || reducedMotion.matches ||
@@ -30,7 +21,6 @@
   };
   const pause = () => {
     paused = true;
-    updateToggle();
     schedule();
   };
   const move = (direction) => {
@@ -48,13 +38,6 @@
     pause();
     move(direction);
   };
-  carousel.querySelector("[data-carousel-prev]").addEventListener("click", () => manualMove(-1));
-  carousel.querySelector("[data-carousel-next]").addEventListener("click", () => manualMove(1));
-  toggle.addEventListener("click", () => {
-    paused = !paused;
-    updateToggle();
-    schedule();
-  });
   carousel.addEventListener("pointerenter", (event) => {
     if (event.pointerType !== "mouse") return;
     hovering = true;
@@ -75,15 +58,12 @@
   document.addEventListener("visibilitychange", schedule);
   reducedMotion.addEventListener("change", () => {
     if (reducedMotion.matches) paused = true;
-    updateToggle();
     schedule();
   });
   const resize = () => {
-    controls.hidden = !hasOverflow();
     schedule();
   };
   window.addEventListener("resize", resize);
   if ("ResizeObserver" in window) new ResizeObserver(resize).observe(track);
-  updateToggle();
   resize();
 })();

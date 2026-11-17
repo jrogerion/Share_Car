@@ -267,6 +267,50 @@ class ResultadosTests(TestCase):
     def buscar(self, **filtros):
         return self.client.get(reverse("core:resultados"), filtros)
 
+    def test_ordena_diarias_preservando_filtros_e_publicacao(self):
+        for ordenar, esperados in (
+            ("menor_diaria", [self.sp_hatch, self.rio_suv, self.sp_suv]),
+            ("maior_diaria", [self.sp_suv, self.rio_suv, self.sp_hatch]),
+            ("", [self.rio_suv, self.sp_suv, self.sp_hatch]),
+        ):
+            with self.subTest(ordenar=ordenar):
+                response = self.buscar(ordenar=ordenar)
+                self.assertEqual(list(response.context["veiculos"]), esperados)
+        response = self.buscar(ordenar="menor_diaria", cidade="São Paulo")
+        self.assertEqual(
+            list(response.context["veiculos"]), [self.sp_hatch, self.sp_suv],
+        )
+
+    def test_ordenacao_invalida_exibe_erro(self):
+        response = self.buscar(ordenar="proprietario__email")
+        self.assertIn("ordenar", response.context["filtro"].errors)
+        self.assertEqual(response.context["total_veiculos"], 0)
+
+    def test_remover_filtro_preserva_demais_e_reinicia_paginacao(self):
+        from urllib.parse import parse_qs, urlsplit
+
+        response = self.buscar(
+            cidade="São Paulo", categoria="SUV", ordenar="menor_diaria", page=1,
+        )
+        itens = response.context["filtros_ativos"]
+        self.assertEqual(len(itens), 2)
+        parametros = parse_qs(urlsplit(itens[0]["url"]).query)
+        self.assertEqual(parametros, {
+            "categoria": ["SUV"], "ordenar": ["menor_diaria"],
+        })
+        removido = self.client.get(itens[0]["url"])
+        self.assertEqual(
+            list(removido.context["veiculos"]), [self.rio_suv, self.sp_suv],
+        )
+
+    def test_etiqueta_periodo_remove_as_duas_datas_inclusive_invalidas(self):
+        response = self.buscar(retirada="invalida", devolucao="invalida")
+        itens = response.context["filtros_ativos"]
+        self.assertEqual(len(itens), 1)
+        removido = self.client.get(itens[0]["url"])
+        self.assertFalse(removido.context["filtro_invalido"])
+        self.assertEqual(removido.context["total_veiculos"], 3)
+
     def criar_veiculos_campinas(self, quantidade: int):
         for indice in range(1, quantidade + 1):
             Veiculo.objects.create(

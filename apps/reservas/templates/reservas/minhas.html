@@ -11,6 +11,11 @@
   </aside>
 {% endblock %}
 {% block page_content %}
+  <nav class="reservation-shortcuts" aria-label="Seções das reservas">
+    <a href="#locatario-title"><i class="bi bi-key" aria-hidden="true"></i> Como locatário</a>
+    <a href="#proprietario-title"><i class="bi bi-car-front" aria-hidden="true"></i> Como proprietário</a>
+    <a href="#veiculos-title"><i class="bi bi-calendar3" aria-hidden="true"></i> Meus veículos</a>
+  </nav>
   <section aria-labelledby="locatario-title">
     <div class="flow-section-heading">
       <h2 id="locatario-title">Como locatário</h2>
@@ -53,7 +58,7 @@
         <article class="flow-panel">
           <span class="flow-status {% if reserva.status == 'solicitada' %}flow-status-pending{% elif reserva.status == 'aceita' or reserva.status == 'em_andamento' %}flow-status-info{% elif reserva.status == 'recusada' or reserva.status == 'cancelada' %}flow-status-danger{% endif %}">{{ reserva.get_status_display }}</span>
           <h2>{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}</h2>
-          <p>Locatário: {{ reserva.locatario.username }}</p>
+          <p>Locatário: {{ reserva.locatario.nome_exibicao }}</p>
           <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diária{{ reserva.dias|pluralize }}</p>
           <p><strong>R$ {{ reserva.total|floatformat:2 }}</strong></p>
           <a class="discovery-button" href="{% url 'reservas:detalhe' reserva.pk %}">Analisar reserva</a>

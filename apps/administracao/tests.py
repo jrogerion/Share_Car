@@ -238,4 +238,5 @@ class ComissaoTests(AdministracaoBaseTests):
 
         self.assertContains(response, "Documentos pendentes")
         self.assertContains(response, "Veículos pendentes")
-        self.assertContains(response, self.usuario.username)
+        self.assertContains(response, self.usuario.nome_exibicao)
+        self.assertNotContains(response, f"<td>{self.usuario.username}</td>")

@@ -42,6 +42,13 @@ VEICULOS = (
     ("fiat-argo", "Fiat Argo", "Hatch", "Belo Horizonte", "160.00", 2),
     ("honda-city", "Honda City", "Sedã", "Rio de Janeiro", "190.00", 2),
 )
+DESCRICOES = {
+    "fiat-argo": "Fiat Argo: hatch compacto e versátil para os trajetos do dia a dia e passeios pela cidade.",
+    "honda-city": "Honda City: sedã de linhas elegantes para viagens, passeios em família e compromissos do dia a dia.",
+    "jeep-renegade": "Jeep Renegade: SUV de visual marcante para quem procura um carro com personalidade nos passeios e deslocamentos urbanos.",
+    "fiat-toro": "Fiat Toro: picape de cabine dupla que combina espaço para passageiros e caçamba para diferentes necessidades de viagem.",
+}
+
 CREDITOS = {
     "fiat-argo": (
         "Maxi-Napo-99", "CC BY 4.0", "by",
@@ -197,13 +204,15 @@ class Command(BaseCommand):
                 passageiros=5, preco_diaria=diaria,
                 aprovacao=Veiculo.Aprovacao.APROVADO,
                 caracteristicas=(
-                    f"{modelo} — DEMONSTRAÇÃO FICTÍCIA, não disponível para "
+                    f"{DESCRICOES[slug]} Disponível para consulta em {cidade}. "
+                    "Configuração deste anúncio: câmbio manual, gasolina e cinco lugares.\n\n"
+                    "DEMONSTRAÇÃO FICTÍCIA, não disponível para "
                     f"locação real. Foto ilustrativa: {autor} / Wikimedia "
                     f"Commons / {licenca}. Cópia reduzida, sem EXIF. "
                     f"Fonte: https://commons.wikimedia.org/wiki/File:{fonte} "
                     f"Licença: {url_licenca} "
                     "Versão fotografada pode diferir do mercado brasileiro. "
-                    "Características e preços apenas demonstrativos.",
+                    "Características e preços apenas demonstrativos."
                 ),
             )
             foto = FotoVeiculo(veiculo=veiculo)

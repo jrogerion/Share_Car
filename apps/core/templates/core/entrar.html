@@ -8,7 +8,7 @@
     <section class="flow-panel flow-fields" aria-labelledby="entrar-title">
       {% if user.is_authenticated %}
         <h2 id="entrar-title">Conta ativa</h2>
-        <p>Conectado como <strong>{{ user.username }}</strong>.</p>
+        <p>Conectado como <strong>{{ user.nome_exibicao }}</strong>.</p>
         <div class="flow-actions">
           <a class="discovery-button" href="{% url 'contas:painel' %}">Ir para o painel</a>
           <a class="btn btn-outline-secondary" href="{% url 'reservas:minhas' %}">Minhas reservas</a>

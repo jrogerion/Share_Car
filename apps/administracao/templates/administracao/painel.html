@@ -35,7 +35,7 @@
           <tbody>
             {% for usuario in documentos_pendentes %}
               <tr>
-                <td>{{ usuario.username }}</td>
+                <td>{{ usuario.nome_exibicao }}</td>
                 <td>Enviado</td>
                 <td class="flow-table-actions">
                   {% if user.is_superuser %}
@@ -63,7 +63,7 @@
           <tbody>
             {% for usuario in cnhs_pendentes %}
               <tr>
-                <td>{{ usuario.username }}</td>
+                <td>{{ usuario.nome_exibicao }}</td>
                 <td>{{ usuario.cnh_validade|date:"d/m/Y"|default:"não informada" }}</td>
                 <td class="flow-table-actions">
                   {% if user.is_superuser %}
@@ -92,7 +92,7 @@
             {% for veiculo in veiculos_pendentes %}
               <tr>
                 <td><a href="{% url 'administracao:analise_veiculo' veiculo.pk %}">{{ veiculo.categoria }} em {{ veiculo.cidade }}</a></td>
-                <td>{{ veiculo.proprietario.username }}</td>
+                <td>{{ veiculo.proprietario.nome_exibicao }}</td>
                 <td class="flow-table-actions">
                   <form method="post" action="{% url 'administracao:veiculo' veiculo.pk 'aprovar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Aprovar</button></form>
                   <form method="post" action="{% url 'administracao:veiculo' veiculo.pk 'rejeitar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Rejeitar</button></form>
@@ -115,7 +115,7 @@
         <tbody>
           {% for usuario in usuarios_recentes %}
             <tr>
-              <td>{{ usuario.username }}{% if usuario.is_staff %} <span class="flow-small">(staff)</span>{% endif %}</td>
+              <td>{{ usuario.nome_exibicao }}{% if usuario.is_staff %} <span class="flow-small">(staff)</span>{% endif %}</td>
               <td>{{ usuario.get_aprovacao_documento_display }}</td>
               <td>{{ usuario.get_aprovacao_cnh_display }}</td>
               <td>{% if usuario.is_active %}Ativa{% else %}Bloqueada{% endif %}</td>
@@ -143,7 +143,7 @@
           {% for veiculo in veiculos_recentes %}
             <tr>
               <td><a href="{% url 'administracao:analise_veiculo' veiculo.pk %}">{{ veiculo.categoria }} em {{ veiculo.cidade }}</a></td>
-              <td>{{ veiculo.proprietario.username }}</td>
+              <td>{{ veiculo.proprietario.nome_exibicao }}</td>
               <td>{{ veiculo.get_aprovacao_display }}</td>
               <td>{% if veiculo.bloqueado %}Bloqueado{% elif veiculo.ativo %}Ativo{% else %}Inativo{% endif %}</td>
               <td class="flow-table-actions">

@@ -2,7 +2,7 @@
 {% block title %}Painel — ShareCar{% endblock %}
 {% block back_label %}Início{% endblock %}
 {% block page_kicker %}ShareCar · Painel{% endblock %}
-{% block page_title %}Olá, {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}{% endblock %}
+{% block page_title %}Olá, {{ user.nome_exibicao }}{% endblock %}
 {% block page_subtitle %}Acompanhe suas reservas, anúncios e pendências em um só lugar.{% endblock %}
 {% block demo_notice %}
   {% if not perfil_completo %}
@@ -77,7 +77,7 @@
                 {% for reserva in solicitacoes_pendentes %}
                   <article class="flow-panel">
                     <span class="flow-status flow-status-pending">{{ reserva.get_status_display }}</span>
-                    <h3>{{ reserva.veiculo.categoria }} · {{ reserva.locatario.username }}</h3>
+                    <h3>{{ reserva.veiculo.categoria }} · {{ reserva.locatario.nome_exibicao }}</h3>
                     <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }}</p>
                     <a class="discovery-button" href="{% url 'reservas:detalhe' reserva.pk %}">Analisar solicitação</a>
                   </article>
@@ -92,7 +92,7 @@
               {% for reserva in proximas_proprietario %}
                 <article class="flow-panel">
                   <span class="flow-status flow-status-info">{{ reserva.get_status_display }}</span>
-                  <h3>{{ reserva.veiculo.categoria }} para {{ reserva.locatario.username }}</h3>
+                  <h3>{{ reserva.veiculo.categoria }} para {{ reserva.locatario.nome_exibicao }}</h3>
                   <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }}</p>
                   <a class="btn btn-outline-secondary" href="{% url 'reservas:detalhe' reserva.pk %}">Ver reserva</a>
                 </article>
@@ -122,7 +122,7 @@
     <aside class="flow-stack">
       <section class="flow-panel" aria-labelledby="conta-painel-title">
         <h2 id="conta-painel-title">Sua conta</h2>
-        <p class="flow-small">Usuário: <strong>{{ user.username }}</strong></p>
+        <p class="flow-small">Nome: <strong>{{ user.nome_exibicao }}</strong></p>
         <p class="flow-small">E-mail: <strong>{{ user.email|default:"não informado" }}</strong></p>
         <p class="flow-small">Documento: <strong>{{ user.get_aprovacao_documento_display }}</strong>{% if not user.documento_identidade %} · não enviado{% endif %}</p>
         <p class="flow-small">CNH: <strong>{{ user.get_aprovacao_cnh_display }}</strong>{% if not user.cnh_numero %} · não informada{% endif %}</p>

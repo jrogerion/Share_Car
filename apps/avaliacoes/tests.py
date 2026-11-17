@@ -294,7 +294,7 @@ class AvaliarReservaViewTests(AvaliacaoBaseTests):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "avaliacoes/avaliar.html")
-        self.assertContains(response, "Avaliar proprietario")
+        self.assertContains(response, "Avaliar Usuário")
 
     def test_locatario_envia_avaliacao(self):
         reserva = self.criar_reserva()

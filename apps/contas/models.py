@@ -31,6 +31,14 @@ class Usuario(AbstractUser):
         max_length=10, choices=Aprovacao.choices, default=Aprovacao.PENDENTE,
     )
 
+    @property
+    def nome_exibicao(self) -> str:
+        """Nome público da conta, sem expor o identificador de autenticação."""
+        return " ".join(self.get_full_name().split()) or "Usuário"
+
+    def __str__(self) -> str:
+        return self.nome_exibicao
+
     class Meta:
         verbose_name = "usuário"
         verbose_name_plural = "usuários"

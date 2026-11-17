@@ -12,7 +12,7 @@
       <h2 id="dados-title">Dados do anúncio</h2>
       <p>{{ veiculo.caracteristicas|linebreaksbr }}</p>
       <dl>
-        <dt>Proprietário</dt><dd>{{ veiculo.proprietario.get_full_name|default:veiculo.proprietario.username }}</dd>
+        <dt>Proprietário</dt><dd>{{ veiculo.proprietario.nome_exibicao }}</dd>
         <dt>Câmbio</dt><dd>{{ veiculo.cambio }}</dd>
         <dt>Combustível</dt><dd>{{ veiculo.combustivel }}</dd>
         <dt>Passageiros</dt><dd>{{ veiculo.passageiros }}</dd>

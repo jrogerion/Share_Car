@@ -159,6 +159,15 @@ class PeriodoReservaMixin:
 class BuscaVeiculoForm(PeriodoReservaMixin, forms.Form):
     """Filtros públicos da busca de veículos."""
 
+    ordenar = forms.ChoiceField(
+        label="Ordenar por", required=False,
+        choices=[
+            ("", "Mais recentes"),
+            ("menor_diaria", "Menor diária"),
+            ("maior_diaria", "Maior diária"),
+        ],
+    )
+
     retirada = forms.DateField(
         label="Retirada",
         required=False,

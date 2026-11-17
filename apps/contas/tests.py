@@ -590,6 +590,29 @@ class RecuperacaoSenhaTests(TestCase):
         self.assertTrue(self.usuario.check_password(SENHA))
 
 
+class NomeExibicaoTests(TestCase):
+    def test_nome_completo_e_alternativa_sem_identificador(self):
+        usuario = Usuario(username="id-interno", first_name=" Ana ", last_name=" Silva ")
+        self.assertEqual(usuario.nome_exibicao, "Ana Silva")
+        self.assertEqual(str(usuario), "Ana Silva")
+        usuario.first_name = "   "
+        usuario.last_name = ""
+        self.assertEqual(usuario.nome_exibicao, "Usuário")
+        usuario.last_name = "Silva"
+        self.assertEqual(usuario.nome_exibicao, "Silva")
+
+    def test_painel_exibe_nome_escapado_sem_id(self):
+        usuario = Usuario.objects.create_user(
+            username="identificador-privado", email="nome@example.com",
+            first_name="<script>Nome</script>", last_name="Teste",
+        )
+        self.client.force_login(usuario)
+        response = self.client.get(reverse("contas:painel"))
+        self.assertContains(response, "&lt;script&gt;Nome&lt;/script&gt; Teste")
+        self.assertNotContains(response, "<script>Nome</script>")
+        self.assertNotContains(response, usuario.username)
+
+
 class PainelTests(TestCase):
     """O painel deve mostrar indicadores apenas do próprio usuário."""
 
@@ -677,7 +700,8 @@ class PainelTests(TestCase):
         )
         self.assertEqual(response.context["resumo_veiculos"]["total"], 1)
         self.assertEqual(response.context["resumo_veiculos"]["publicados"], 1)
-        self.assertContains(response, "locatario-painel")
+        self.assertContains(response, self.locatario.nome_exibicao)
+        self.assertNotContains(response, "locatario-painel")
         self.assertContains(response, "Hatch do painel")
         self.assertNotContains(response, "Veículo de outro dono")
         self.assertNotContains(response, "outro-painel")

@@ -62,12 +62,6 @@
               </a>
             {% endfor %}
           </div>
-          <div class="discovery-carousel-controls" hidden>
-            <button type="button" class="discovery-carousel-button" data-carousel-prev aria-controls="discovery-cars" aria-label="Ver anúncio anterior">← <span>Anterior</span></button>
-            <button type="button" class="discovery-carousel-button" data-carousel-toggle aria-controls="discovery-cars" aria-pressed="false">Pausar carrossel</button>
-            <button type="button" class="discovery-carousel-button" data-carousel-next aria-controls="discovery-cars" aria-label="Ver próximo anúncio"><span>Próximo</span> →</button>
-          </div>
-          <p class="discovery-note" data-carousel-motion-note hidden>Avanço automático desativado pela preferência de movimento reduzido.</p>
         </div>
       {% else %}
         <div class="discovery-empty">
@@ -85,7 +79,7 @@
       </ol>
     </section>
     <section id="para-proprietarios" class="discovery-owner" aria-labelledby="owner-title">
-      <i class="bi bi-car-front" aria-hidden="true"></i><div><h2 id="owner-title">Tem um carro parado?</h2><p>Anuncie e ganhe uma renda extra, com preço e agenda sob seu controle.</p></div><a class="discovery-button" href="{% url 'core:veiculo' %}">Conhecer cadastro</a>
+      <i class="bi bi-car-front" aria-hidden="true"></i><div><h2 id="owner-title">Tem um carro parado?</h2><p>Anuncie e ganhe uma renda extra, com preço e agenda sob seu controle.</p></div><a class="discovery-button" href="{% url 'core:veiculo' %}">Anunciar meu carro</a>
     </section>
   </div>
 {% endblock %}
