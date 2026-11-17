@@ -1,0 +1,27 @@
+{% load static %}
+<article class="flow-panel reservation-card{% if como_proprietario and reserva.status == 'solicitada' %} reservation-card-pending{% endif %}">
+  {% with capa=reserva.veiculo.fotos.all|first %}
+    <div class="reservation-card-photo{% if not capa %} reservation-card-placeholder{% endif %}">
+      {% if capa %}
+        <img src="{{ capa.foto.url }}" alt="" width="480" height="270" loading="lazy" decoding="async">
+      {% else %}
+        <img src="{% static 'images/car.svg' %}" alt="" width="480" height="270">
+      {% endif %}
+    </div>
+  {% endwith %}
+  <div class="reservation-card-body">
+    <span class="flow-status {% if reserva.status == 'solicitada' %}flow-status-pending{% elif reserva.status == 'aceita' or reserva.status == 'em_andamento' %}flow-status-info{% elif reserva.status == 'recusada' or reserva.status == 'cancelada' %}flow-status-danger{% endif %}">{{ reserva.get_status_display }}</span>
+    <h3>{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}</h3>
+    {% if como_proprietario %}<p>Locatário: {{ reserva.locatario.nome_exibicao }}</p>{% else %}<p>Proprietário: {{ reserva.veiculo.proprietario.nome_exibicao }}</p>{% endif %}
+    <dl class="reservation-card-dates">
+      <div><dt><i class="bi bi-calendar-event" aria-hidden="true"></i> Retirada</dt><dd><time datetime="{{ reserva.inicio|date:'Y-m-d' }}">{{ reserva.inicio|date:"d/m/Y" }}</time></dd></div>
+      <div><dt><i class="bi bi-calendar-check" aria-hidden="true"></i> Devolução</dt><dd><time datetime="{{ reserva.fim|date:'Y-m-d' }}">{{ reserva.fim|date:"d/m/Y" }}</time></dd></div>
+    </dl>
+    <p class="flow-small">{{ reserva.dias }} diária{{ reserva.dias|pluralize }}</p>
+    {% if como_proprietario and reserva.status == 'solicitada' %}<p class="reservation-card-attention"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Aguardando sua resposta</p>{% endif %}
+    <div class="reservation-card-footer">
+      <p><span>Total contratado</span><strong>R$ {{ reserva.total|floatformat:2 }}</strong></p>
+      <a class="{% if como_proprietario and reserva.status == 'solicitada' %}discovery-button{% else %}btn btn-outline-secondary{% endif %}" href="{% url 'reservas:detalhe' reserva.pk %}" aria-label="{% if como_proprietario and reserva.status == 'solicitada' %}Analisar{% else %}Ver{% endif %} reserva #{{ reserva.pk }} de {{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}">{% if como_proprietario and reserva.status == 'solicitada' %}Analisar reserva{% else %}Ver reserva{% endif %}</a>
+    </div>
+  </div>
+</article>

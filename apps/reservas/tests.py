@@ -98,6 +98,73 @@ class ReservaBaseTests(TestCase):
 
 
 class JornadaVisualTests(ReservaBaseTests):
+    def test_card_exibe_capa_datas_participante_e_valor(self):
+        from apps.veiculos.models import FotoVeiculo
+
+        reserva = self.criar_reserva_direta()
+        capa = FotoVeiculo.objects.create(veiculo=self.veiculo, foto="veiculos/capa-teste.jpg")
+        lateral = FotoVeiculo.objects.create(veiculo=self.veiculo, foto="veiculos/lateral-teste.jpg")
+        self.client.force_login(self.locatario)
+        response = self.client.get(reverse("reservas:minhas"))
+        self.assertContains(response, capa.foto.url, count=1)
+        self.assertNotContains(response, lateral.foto.url)
+        self.assertContains(response, "Proprietário: Usuário")
+        self.assertContains(response, f'datetime="{reserva.inicio.isoformat()}"')
+        self.assertContains(response, "Total contratado")
+        self.assertContains(response, "R$ 450,00")
+        self.assertNotContains(response, "Aguardando sua resposta")
+
+    def test_cards_carregam_fotos_em_conjunto_e_destacam_pedidos(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        for indice in range(6):
+            inicio = timezone.localdate() + timedelta(days=5 + indice * 5)
+            self.criar_reserva_direta(inicio=inicio, fim=inicio + timedelta(days=2))
+        self.client.force_login(self.proprietario)
+        with CaptureQueriesContext(connection) as consultas:
+            response = self.client.get(reverse("reservas:minhas"))
+        consultas_fotos = [item for item in consultas if 'FROM "veiculos_fotoveiculo"' in item["sql"]]
+        self.assertEqual(len(consultas_fotos), 1)
+        self.assertContains(response, "images/car.svg", count=6)
+        self.assertContains(response, "Aguardando sua resposta", count=6)
+        self.assertContains(response, ">Analisar reserva</a>", count=6)
+
+    def test_lista_separa_status_sem_ocultar_reservas_antigas_ativas(self):
+        antigas = timezone.localdate() - timedelta(days=20)
+        ativa = self.criar_reserva_direta(
+            inicio=antigas, fim=antigas + timedelta(days=2),
+        )
+        encerrada = self.criar_reserva_direta(status=Reserva.Status.CANCELADA)
+        self.criar_reserva_direta(
+            veiculo=self.veiculo2, locatario=self.outro,
+            status=Reserva.Status.RECUSADA,
+        )
+        self.client.force_login(self.locatario)
+        response = self.client.get(reverse("reservas:minhas"))
+        self.assertEqual(list(response.context["como_locatario"]), [ativa])
+        self.assertEqual(response.context["total_ativas"], 1)
+        self.assertEqual(response.context["total_historico"], 1)
+        response = self.client.get(reverse("reservas:minhas"), {"situacao": "historico"})
+        self.assertEqual(list(response.context["como_locatario"]), [encerrada])
+        self.assertContains(response, 'situacao=historico')
+        self.assertFalse(response.context["como_proprietario"])
+
+    def test_historico_paginado_preserva_filtro_e_permissoes(self):
+        for _ in range(11):
+            self.criar_reserva_direta(status=Reserva.Status.RECUSADA)
+        self.client.force_login(self.proprietario)
+        response = self.client.get(reverse("reservas:minhas"), {
+            "situacao": "historico", "proprietario_page": 2,
+        })
+        self.assertEqual(len(response.context["como_proprietario"]), 1)
+        self.assertEqual(response.context["pagina_proprietario"].paginator.count, 11)
+        self.assertContains(response, 'situacao=historico&amp;proprietario_page=1')
+        self.assertNotContains(response, "Analisar reserva")
+        response = self.client.get(reverse("reservas:minhas"), {"situacao": "invalida"})
+        self.assertFalse(response.context["historico"])
+        self.assertFalse(response.context["como_proprietario"])
+
     def test_participantes_exibem_nome_sem_identificador(self):
         self.locatario.first_name = "Ana"
         self.locatario.last_name = "Silva"

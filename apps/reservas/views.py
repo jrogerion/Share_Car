@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import Count, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -18,7 +18,7 @@ from apps.locacoes.services import check_in_da_reserva, check_out_da_reserva
 from apps.pagamentos.models import Pagamento
 from apps.veiculos.consultas import veiculos_publicos
 from apps.veiculos.disponibilidade import STATUS_RESERVA_BLOQUEANTES
-from apps.veiculos.models import PeriodoAgenda, Veiculo
+from apps.veiculos.models import FotoVeiculo, PeriodoAgenda, Veiculo
 
 from .forms import PeriodoAgendaForm, ReservaForm
 from .models import Reserva
@@ -65,6 +65,25 @@ class MinhasReservasView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         reservas = self.object_list
+        status_ativos = (
+            Reserva.Status.SOLICITADA, Reserva.Status.ACEITA,
+            Reserva.Status.EM_ANDAMENTO,
+        )
+        status_historico = (
+            Reserva.Status.CONCLUIDA, Reserva.Status.CANCELADA,
+            Reserva.Status.RECUSADA,
+        )
+        historico = self.request.GET.get("situacao") == "historico"
+        context["historico"] = historico
+        context.update(reservas.aggregate(
+            total_ativas=Count("pk", filter=Q(status__in=status_ativos)),
+            total_historico=Count("pk", filter=Q(status__in=status_historico)),
+        ))
+        reservas = reservas.filter(
+            status__in=status_historico if historico else status_ativos,
+        ).prefetch_related(
+            Prefetch("veiculo__fotos", queryset=FotoVeiculo.objects.order_by("id")),
+        )
         locatario = Paginator(reservas.filter(locatario=self.request.user), 10)
         proprietario = Paginator(reservas.filter(
             veiculo__proprietario=self.request.user,

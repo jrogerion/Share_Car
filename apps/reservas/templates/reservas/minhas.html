@@ -11,6 +11,15 @@
   </aside>
 {% endblock %}
 {% block page_content %}
+  <nav class="reservation-views" aria-label="Situação das reservas">
+    <a href="{% querystring situacao=None locatario_page=None proprietario_page=None %}" {% if not historico %}aria-current="page"{% endif %}>
+      <i class="bi bi-calendar-check" aria-hidden="true"></i> Ativas e próximas <span>{{ total_ativas }}</span>
+    </a>
+    <a href="{% querystring situacao='historico' locatario_page=None proprietario_page=None %}" {% if historico %}aria-current="page"{% endif %}>
+      <i class="bi bi-clock-history" aria-hidden="true"></i> Histórico <span>{{ total_historico }}</span>
+    </a>
+  </nav>
+  <p class="flow-small reservation-view-note">{% if historico %}Reservas concluídas, canceladas e recusadas. Os detalhes e valores continuam disponíveis para consulta.{% else %}Solicitações, reservas aceitas e locações em andamento, inclusive as que ainda precisam ser finalizadas após as datas previstas.{% endif %}</p>
   <nav class="reservation-shortcuts" aria-label="Seções das reservas">
     <a href="#locatario-title"><i class="bi bi-key" aria-hidden="true"></i> Como locatário</a>
     <a href="#proprietario-title"><i class="bi bi-car-front" aria-hidden="true"></i> Como proprietário</a>
@@ -23,17 +32,11 @@
     </div>
     <div class="flow-reservations">
       {% for reserva in como_locatario %}
-        <article class="flow-panel">
-          <span class="flow-status {% if reserva.status == 'solicitada' %}flow-status-pending{% elif reserva.status == 'aceita' or reserva.status == 'em_andamento' %}flow-status-info{% elif reserva.status == 'recusada' or reserva.status == 'cancelada' %}flow-status-danger{% endif %}">{{ reserva.get_status_display }}</span>
-          <h2>{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}</h2>
-          <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diária{{ reserva.dias|pluralize }}</p>
-          <p><strong>R$ {{ reserva.total|floatformat:2 }}</strong></p>
-          <a class="discovery-button" href="{% url 'reservas:detalhe' reserva.pk %}">Ver reserva</a>
-        </article>
+        {% include "reservas/card.html" with como_proprietario=False %}
       {% empty %}
         <div class="flow-panel flow-empty" role="status">
-          <h2>Nenhuma reserva como locatário</h2>
-          <p>Encontre um veículo e informe o período para enviar uma solicitação.</p>
+          <h2>{% if historico %}Nenhuma reserva no histórico como locatário{% else %}Nenhuma reserva como locatário{% endif %}</h2>
+          <p>{% if historico %}As reservas encerradas aparecerão aqui.{% else %}Encontre um veículo e informe o período para enviar uma solicitação.{% endif %}</p>
           <a class="discovery-button" href="{% url 'core:resultados' %}">Buscar veículos</a>
         </div>
       {% endfor %}
@@ -55,18 +58,11 @@
     </div>
     <div class="flow-reservations">
       {% for reserva in como_proprietario %}
-        <article class="flow-panel">
-          <span class="flow-status {% if reserva.status == 'solicitada' %}flow-status-pending{% elif reserva.status == 'aceita' or reserva.status == 'em_andamento' %}flow-status-info{% elif reserva.status == 'recusada' or reserva.status == 'cancelada' %}flow-status-danger{% endif %}">{{ reserva.get_status_display }}</span>
-          <h2>{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}</h2>
-          <p>Locatário: {{ reserva.locatario.nome_exibicao }}</p>
-          <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diária{{ reserva.dias|pluralize }}</p>
-          <p><strong>R$ {{ reserva.total|floatformat:2 }}</strong></p>
-          <a class="discovery-button" href="{% url 'reservas:detalhe' reserva.pk %}">Analisar reserva</a>
-        </article>
+        {% include "reservas/card.html" with como_proprietario=True %}
       {% empty %}
         <div class="flow-panel flow-empty" role="status">
-          <h2>Nenhuma solicitação recebida</h2>
-          <p>Quando alguém solicitar um período para o seu veículo, a reserva aparecerá aqui.</p>
+          <h2>{% if historico %}Nenhuma reserva no histórico como proprietário{% else %}Nenhuma solicitação recebida{% endif %}</h2>
+          <p>{% if historico %}As reservas encerradas dos seus veículos aparecerão aqui.{% else %}Quando alguém solicitar um período para o seu veículo, a reserva aparecerá aqui.{% endif %}</p>
         </div>
       {% endfor %}
     </div>
