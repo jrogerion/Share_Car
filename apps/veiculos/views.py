@@ -8,13 +8,14 @@ from django.views.decorators.cache import never_cache
 from django.views.generic import CreateView, FormView, ListView, UpdateView
 
 from apps.contas.models import Usuario
+from apps.contas.mixins import ContaPessoalMixin
 
 from .forms import CadastroVeiculoForm, EdicaoVeiculoForm, FotoVeiculoForm
 from .models import Veiculo
 
 
 @method_decorator(never_cache, name="dispatch")
-class CadastroVeiculoView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+class CadastroVeiculoView(ContaPessoalMixin, LoginRequiredMixin, UserPassesTestMixin, CreateView):
     template_name = "core/veiculo.html"
     form_class = CadastroVeiculoForm
     success_url = reverse_lazy("veiculos:meus")
@@ -49,7 +50,7 @@ class CadastroVeiculoView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
 
 @method_decorator(never_cache, name="dispatch")
-class MeusVeiculosView(LoginRequiredMixin, ListView):
+class MeusVeiculosView(ContaPessoalMixin, LoginRequiredMixin, ListView):
     template_name = "veiculos/meus.html"
     context_object_name = "veiculos"
     paginate_by = 10
@@ -70,7 +71,7 @@ class MeusVeiculosView(LoginRequiredMixin, ListView):
 
 
 @method_decorator(never_cache, name="dispatch")
-class EditarVeiculoView(LoginRequiredMixin, UpdateView):
+class EditarVeiculoView(ContaPessoalMixin, LoginRequiredMixin, UpdateView):
     template_name = "veiculos/editar.html"
     form_class = EdicaoVeiculoForm
     success_url = reverse_lazy("veiculos:meus")
@@ -85,7 +86,7 @@ class EditarVeiculoView(LoginRequiredMixin, UpdateView):
 
 
 @method_decorator(never_cache, name="dispatch")
-class FotosVeiculoView(LoginRequiredMixin, FormView):
+class FotosVeiculoView(ContaPessoalMixin, LoginRequiredMixin, FormView):
     template_name = "veiculos/fotos.html"
     form_class = FotoVeiculoForm
 

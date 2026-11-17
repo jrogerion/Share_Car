@@ -212,9 +212,11 @@ class JornadaIntegradaTests(TestCase):
                 "reservas:detalhe", "pagamentos:pagar", "locacoes:check_in",
                 "locacoes:check_out", "avaliacoes:avaliar",
             ):
-                self.assertEqual(externo.get(
-                    reverse(rota, args=[reserva.pk]),
-                ).status_code, 404)
+                response = externo.get(reverse(rota, args=[reserva.pk]))
+                if usuario.conta_administrativa:
+                    self.assertRedirects(response, reverse("administracao:painel"))
+                else:
+                    self.assertEqual(response.status_code, 404)
         documento = reverse("contas:documento_identidade", args=[dono.pk])
         self.assertEqual(funcionario.get(documento).status_code, 404)
         response = self.administrador.get(documento)

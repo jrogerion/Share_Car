@@ -6,6 +6,7 @@ from django.views import View
 from django.views.decorators.cache import never_cache
 
 from apps.reservas.models import Reserva
+from apps.contas.mixins import ContaPessoalMixin
 
 from .forms import PagamentoForm
 from .models import Pagamento
@@ -14,7 +15,7 @@ from .calculos import calcular_condicoes
 
 
 @method_decorator(never_cache, name="dispatch")
-class PagarReservaView(LoginRequiredMixin, View):
+class PagarReservaView(ContaPessoalMixin, LoginRequiredMixin, View):
     """Permite ao locatário simular o pagamento de uma reserva aceita."""
 
     template_name = "pagamentos/pagar.html"

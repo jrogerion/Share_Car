@@ -10,8 +10,12 @@
         <h2 id="entrar-title">Conta ativa</h2>
         <p>Conectado como <strong>{{ user.nome_exibicao }}</strong>.</p>
         <div class="flow-actions">
+          {% if user.conta_administrativa %}
+          <a class="discovery-button" href="{% url 'administracao:painel' %}">Abrir administração</a>
+          {% else %}
           <a class="discovery-button" href="{% url 'contas:painel' %}">Ir para o painel</a>
           <a class="btn btn-outline-secondary" href="{% url 'reservas:minhas' %}">Minhas reservas</a>
+          {% endif %}
           <a class="btn btn-outline-secondary" href="{% url 'contas:perfil' %}">Meu perfil</a>
           <form method="post" action="{% url 'core:sair' %}">
             {% csrf_token %}

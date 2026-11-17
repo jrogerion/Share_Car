@@ -23,6 +23,7 @@ from apps.reservas.models import Reserva
 from apps.veiculos.models import Veiculo
 
 from .models import Usuario
+from .mixins import ContaPessoalMixin
 
 
 class LoginEmailView(LoginView):
@@ -34,7 +35,7 @@ class SairView(LogoutView):
     next_page = reverse_lazy("core:entrar")
 
 @method_decorator(never_cache, name="dispatch")
-class EnviarDocumentoView(LoginRequiredMixin, FormView):
+class EnviarDocumentoView(ContaPessoalMixin, LoginRequiredMixin, FormView):
     template_name = "contas/documento.html"
     form_class = DocumentoIdentidadeForm
     success_url = reverse_lazy("contas:perfil")
@@ -130,7 +131,7 @@ class CadastroConcluidoView(TemplateView):
 
 
 @method_decorator(never_cache, name="dispatch")
-class PainelView(LoginRequiredMixin, TemplateView):
+class PainelView(ContaPessoalMixin, LoginRequiredMixin, TemplateView):
     """Resume a atividade do usuário como locatário e/ou proprietário."""
 
     template_name = "contas/painel.html"

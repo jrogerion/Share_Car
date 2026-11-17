@@ -24,6 +24,8 @@ class ReservaInvalida(Exception):
 
 def motivo_impedimento_locatario(usuario, fim=None):
     """Explica a elegibilidade sem expor número ou imagem da CNH."""
+    if usuario.conta_administrativa:
+        return "Contas administrativas não podem alugar veículos. Use uma conta pessoal."
     if not usuario.is_active:
         return "A conta do locatário precisa estar ativa."
     if not usuario.locatario:

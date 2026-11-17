@@ -101,7 +101,7 @@ class AprovacaoTests(AdministracaoBaseTests):
             response = self.client.post(reverse(
                 f"administracao:{rota}", args=[self.usuario.pk, "aprovar"],
             ))
-            self.assertRedirects(response, reverse("contas:painel"))
+            self.assertRedirects(response, reverse("administracao:painel"))
         self.usuario.refresh_from_db()
         self.assertEqual(self.usuario.aprovacao_documento, "pendente")
         self.assertEqual(self.usuario.aprovacao_cnh, "pendente")

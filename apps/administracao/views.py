@@ -15,7 +15,8 @@ from apps.reservas.models import Reserva
 from apps.veiculos.models import Veiculo
 from apps.veiculos.consultas import com_fotos_ordenadas
 
-from .forms import ConfiguracaoComissaoForm
+from .forms import ConfiguracaoComissaoForm, PeriodoDashboardForm
+from .dashboard import indicadores_financeiros
 from .models import ConfiguracaoComissao
 
 DECISOES = {"aprovar", "rejeitar"}
@@ -25,13 +26,28 @@ class AdministradorMixin(LoginRequiredMixin, UserPassesTestMixin):
     """Restringe a área administrativa a usuários staff."""
 
     def test_func(self):
-        return self.request.user.is_staff
+        return self.request.user.conta_administrativa
 
     def handle_no_permission(self):
         if self.request.user.is_authenticated:
             messages.error(self.request, "Acesso restrito à administração.")
+            if self.request.user.conta_administrativa:
+                return redirect("administracao:painel")
             return redirect("contas:painel")
         return super().handle_no_permission()
+
+
+@method_decorator(never_cache, name="dispatch")
+class ConsultaReservaView(AdministradorMixin, DetailView):
+    """Consulta administrativa sem ações de locatário ou proprietário."""
+
+    template_name = "administracao/reserva.html"
+    context_object_name = "reserva"
+
+    def get_queryset(self):
+        return Reserva.objects.select_related(
+            "veiculo", "locatario", "veiculo__proprietario", "pagamento",
+        )
 
 
 @method_decorator(never_cache, name="dispatch")
@@ -42,6 +58,19 @@ class PainelAdministrativoView(AdministradorMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        periodo = PeriodoDashboardForm(self.request.GET)
+        reservas_dashboard = Reserva.objects.all()
+        if periodo.is_valid():
+            if periodo.cleaned_data.get("inicio"):
+                reservas_dashboard = reservas_dashboard.filter(inicio__gte=periodo.cleaned_data["inicio"])
+            if periodo.cleaned_data.get("fim"):
+                reservas_dashboard = reservas_dashboard.filter(inicio__lte=periodo.cleaned_data["fim"])
+        else:
+            # Datas inválidas não podem parecer um relatório válido de todo o período.
+            reservas_dashboard = reservas_dashboard.none()
+        context["periodo_dashboard"] = periodo
+        context.update(indicadores_financeiros(reservas_dashboard))
 
         documentos_pendentes = Usuario.objects.filter(
             aprovacao_documento=Usuario.Aprovacao.PENDENTE,
@@ -61,10 +90,10 @@ class PainelAdministrativoView(AdministradorMixin, TemplateView):
         context["veiculos_recentes"] = Veiculo.objects.select_related(
             "proprietario"
         ).order_by("-id")[:10]
-        context["reservas_recentes"] = Reserva.objects.select_related(
+        context["reservas_recentes"] = reservas_dashboard.select_related(
             "veiculo", "locatario"
         ).order_by("-id")[:10]
-        context["pagamentos_recentes"] = Pagamento.objects.select_related(
+        context["pagamentos_recentes"] = Pagamento.objects.filter(reserva__in=reservas_dashboard).select_related(
             "reserva", "reserva__veiculo"
         ).order_by("-id")[:10]
 
@@ -128,7 +157,7 @@ class DecidirDocumentoView(AnalistaMixin, View):
             registrar_analise(request, usuario, "aprovacao_documento")
             messages.success(
                 request,
-                f"Documento de {usuario.username} "
+                f"Documento de {usuario.nome_exibicao} "
                 f"{'aprovado' if decisao == 'aprovar' else 'rejeitado'}.",
             )
         return redirect("administracao:painel")
@@ -161,7 +190,7 @@ class DecidirCNHView(AnalistaMixin, View):
             registrar_analise(request, usuario, "aprovacao_cnh")
             messages.success(
                 request,
-                f"CNH de {usuario.username} "
+                f"CNH de {usuario.nome_exibicao} "
                 f"{'aprovada' if decisao == 'aprovar' else 'rejeitada'}.",
             )
         return redirect("administracao:painel")
@@ -181,7 +210,7 @@ class AlternarBloqueioUsuarioView(AdministradorMixin, View):
             usuario.save(update_fields=["is_active"])
             messages.success(
                 request,
-                f"Conta de {usuario.username} "
+                f"Conta de {usuario.nome_exibicao} "
                 f"{'reativada' if usuario.is_active else 'bloqueada'}.",
             )
         return redirect("administracao:painel")

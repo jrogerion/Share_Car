@@ -4,7 +4,7 @@
 {% block back_label %}Painel{% endblock %}
 {% block page_kicker %}ShareCar · Sua conta{% endblock %}
 {% block page_title %}Minha conta{% endblock %}
-{% block page_subtitle %}Atualize seu perfil e os dados da sua habilitação.{% endblock %}
+{% block page_subtitle %}{% if user.conta_administrativa %}Conta exclusiva para administração da plataforma.{% else %}Atualize seu perfil e os dados da sua habilitação.{% endif %}{% endblock %}
 {% block demo_notice %}{% endblock %}
 {% block page_content %}
   <div class="flow-columns">
@@ -25,11 +25,12 @@
             {{ field.errors }}
           </div>
         {% endfor %}
-        <p class="flow-small">A CNH é opcional nesta etapa. Para informá-la, preencha número e validade. Não envie dados reais no ambiente de testes.</p>
+        {% if not user.conta_administrativa %}<p class="flow-small">A CNH é opcional nesta etapa. Para informá-la, preencha número e validade. Não envie dados reais no ambiente de testes.</p>{% endif %}
         <button class="discovery-button" type="submit">Salvar alterações</button>
       </form>
     </section>
     <aside class="flow-stack">
+      {% if not user.conta_administrativa %}
       <section class="flow-panel" aria-labelledby="aprovacoes-title">
         <h2 id="aprovacoes-title">Situação das aprovações</h2>
         <dl>
@@ -46,6 +47,7 @@
         <p><a class="btn btn-outline-secondary" href="{% url 'contas:enviar_documento' %}">Enviar ou substituir documento</a></p>
         <p>A análise é manual e realizada por superusuários. Informar dados ou enviar o documento não aprova sua conta automaticamente.</p>
       </section>
+      {% endif %}
       <section class="flow-panel" aria-labelledby="conta-title">
         <h2 id="conta-title">Sua conta</h2>
         <div class="flow-actions">

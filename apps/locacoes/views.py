@@ -6,6 +6,7 @@ from django.views import View
 from django.views.decorators.cache import never_cache
 
 from apps.reservas.models import Reserva
+from apps.contas.mixins import ContaPessoalMixin
 
 from .forms import RegistroLocacaoForm
 from .models import RegistroLocacao
@@ -19,7 +20,7 @@ from .services import (
 
 
 @method_decorator(never_cache, name="dispatch")
-class RegistrarLocacaoView(LoginRequiredMixin, View):
+class RegistrarLocacaoView(ContaPessoalMixin, LoginRequiredMixin, View):
     """Permite ao locatário registrar o check-in ou o check-out."""
 
     template_name = "locacoes/registrar.html"

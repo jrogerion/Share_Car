@@ -3,6 +3,23 @@ from django import forms
 from .models import ConfiguracaoComissao
 
 
+class PeriodoDashboardForm(forms.Form):
+    inicio = forms.DateField(
+        label="Retirada a partir de", required=False,
+        widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+    )
+    fim = forms.DateField(
+        label="Retirada até", required=False,
+        widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+    )
+
+    def clean(self):
+        dados = super().clean()
+        if dados.get("inicio") and dados.get("fim") and dados["inicio"] > dados["fim"]:
+            self.add_error("fim", "A data final deve ser igual ou posterior à inicial.")
+        return dados
+
+
 class ConfiguracaoComissaoForm(forms.ModelForm):
     """Atualiza a comissão global aplicada às novas reservas."""
 

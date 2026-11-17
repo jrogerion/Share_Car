@@ -47,7 +47,7 @@
           <div class="collapse navbar-collapse" id="menuPrincipal">
             <div class="navbar-nav navigation-main mx-lg-auto align-items-lg-center gap-lg-2">
               {% include "core/includes/navigation_links.html" with link_class="nav-link" %}
-              <a class="nav-link" href="{% url 'core:veiculo' %}" {% if request.resolver_match.url_name == 'veiculo' %}aria-current="page"{% endif %}>Anunciar carro</a>
+              {% if not user.conta_administrativa %}<a class="nav-link" href="{% url 'core:veiculo' %}" {% if request.resolver_match.url_name == 'veiculo' %}aria-current="page"{% endif %}>Anunciar carro</a>{% endif %}
             </div>
             <div class="navbar-nav site-account ms-lg-auto align-items-lg-center">
               {% include "core/includes/navigation_account.html" with link_class="nav-link" %}

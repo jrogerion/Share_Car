@@ -93,7 +93,9 @@
               <div class="flow-total"><dt>Total</dt><dd>R$ {{ estimativa.total|floatformat:2 }}</dd></div>
             </dl>
             <p class="flow-small">Comissão de {{ estimativa.percentual|floatformat:2 }}% (R$ {{ estimativa.comissao|floatformat:2 }}) incluída. Repasse ao proprietário: R$ {{ estimativa.repasse|floatformat:2 }}.</p>
-            {% if eh_proprietario %}
+            {% if user.conta_administrativa %}
+              <p class="flow-small">Conta exclusiva de administração. Use uma conta pessoal para solicitar reservas.</p>
+            {% elif eh_proprietario %}
               <p class="flow-small">Este é o seu anúncio; não é possível reservá-lo.</p>
             {% elif user.is_authenticated %}
               {% if impedimento_locatario %}
@@ -120,7 +122,7 @@
           <p class="flow-small">Informe as datas para verificar a disponibilidade e estimar o total.</p>
         {% endif %}
 
-        {% if eh_proprietario %}
+        {% if eh_proprietario and not user.conta_administrativa %}
           <p class="flow-small">Defina os períodos disponíveis e os bloqueios deste veículo.</p>
           <a class="btn btn-outline-secondary" href="{% url 'reservas:agenda' veiculo.pk %}">Gerenciar disponibilidade</a>
         {% endif %}

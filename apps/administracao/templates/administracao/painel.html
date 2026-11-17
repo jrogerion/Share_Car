@@ -1,7 +1,8 @@
 {% extends "core/page.html" %}
 {% block title %}Administração — ShareCar{% endblock %}
-{% block back_url %}{% url 'contas:painel' %}{% endblock %}
-{% block back_label %}Painel{% endblock %}
+{% block back_url %}{% url 'core:home' %}{% endblock %}
+{% block back_label %}Início{% endblock %}
+{% block body_class %}home-page flow-page admin-dashboard{% endblock %}
 {% block page_kicker %}ShareCar · Administração{% endblock %}
 {% block page_title %}Painel administrativo{% endblock %}
 {% block page_subtitle %}Aprovações, bloqueios, pagamentos e configuração da comissão.{% endblock %}
@@ -12,6 +13,45 @@
   </aside>
 {% endblock %}
 {% block page_content %}
+  <section class="flow-panel admin-report-filter" aria-labelledby="periodo-dashboard-title">
+    <h2 id="periodo-dashboard-title">Visão geral da plataforma</h2>
+    <p>Valores exclusivamente simulados, sem receita ou cobrança real.</p>
+    <form method="get" class="flow-fields admin-filter-fields">
+      {% for field in periodo_dashboard %}<div>{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+      <button class="discovery-button" type="submit">Filtrar indicadores</button>
+      <a class="btn btn-outline-secondary" href="{% url 'administracao:painel' %}">Todo o período</a>
+    </form>
+    <p class="flow-small">Filtro pela data de retirada da reserva (inclusive), não pela data do pagamento. Sem datas, considera todo o período. Pendências e indicadores operacionais abaixo são globais.</p>
+  </section>
+  {% if periodo_dashboard.errors %}
+    <p class="flow-notice flow-error" role="alert">Corrija o período. Os totais financeiros e gráficos não representam um relatório válido enquanto houver erros.</p>
+  {% else %}
+    <section class="admin-financial-grid" aria-label="Indicadores financeiros simulados">
+      <article class="flow-panel admin-financial-primary"><i class="bi bi-wallet2" aria-hidden="true"></i><h2>Comissão aprovada</h2><strong>R$ {{ financeiro.comissao|floatformat:2 }}</strong><p>Pagamentos aprovados; estornos excluídos.</p></article>
+      <article class="flow-panel"><i class="bi bi-hourglass-split" aria-hidden="true"></i><h2>Comissão prevista</h2><strong>R$ {{ financeiro.prevista|floatformat:2 }}</strong><p>Reservas aceitas ainda sem pagamento aprovado. Não é ganho realizado.</p></article>
+      <article class="flow-panel"><i class="bi bi-credit-card" aria-hidden="true"></i><h2>Volume aprovado</h2><strong>R$ {{ financeiro.total_aprovado|floatformat:2 }}</strong><p>Totais simulados com juros e descontos.</p></article>
+      <article class="flow-panel"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i><h2>Estornos simulados</h2><strong>R$ {{ financeiro.estornos|floatformat:2 }}</strong><p>Valor final dos pagamentos estornados.</p></article>
+      <article class="flow-panel"><i class="bi bi-percent" aria-hidden="true"></i><h2>Juros e descontos</h2><strong>R$ {{ financeiro.juros|floatformat:2 }} / R$ {{ financeiro.descontos|floatformat:2 }}</strong><p>Juros / descontos dos aprovados. Não integram a comissão.</p></article>
+      <article class="flow-panel"><i class="bi bi-car-front" aria-hidden="true"></i><h2>Repasses contratados</h2><strong>R$ {{ financeiro.repasses|floatformat:2 }}</strong><p>Valores dos proprietários em pagamentos aprovados. Não são lucro da plataforma.</p></article>
+    </section>
+    <div class="flow-columns admin-charts">
+      <section class="flow-panel" aria-labelledby="grafico-reservas-title">
+        <h2 id="grafico-reservas-title">Reservas por status</h2>
+        <p class="flow-small">{{ total_reservas_dashboard }} reservas no período selecionado.</p>
+        <ul class="admin-bar-chart">
+          {% for item in grafico_status %}<li><div><span>{{ item.nome }}</span><strong>{{ item.total }} · {{ item.percentual }}%</strong></div><meter min="0" max="100" value="{{ item.percentual }}" aria-label="{{ item.nome }}: {{ item.total }} reservas">{{ item.percentual }}%</meter></li>{% endfor %}
+        </ul>
+      </section>
+      <section class="flow-panel" aria-labelledby="grafico-meios-title">
+        <h2 id="grafico-meios-title">Formas de pagamento</h2>
+        <p class="flow-small">{{ total_pagamentos_dashboard }} pagamentos aprovados. Recusados e estornados não entram neste gráfico.</p>
+        <ul class="admin-bar-chart">
+          {% for item in grafico_meios %}<li><div><span>{{ item.nome }}</span><strong>{{ item.total }} · {{ item.percentual }}%</strong></div><meter min="0" max="100" value="{{ item.percentual }}" aria-label="{{ item.nome }}: {{ item.total }} pagamentos">{{ item.percentual }}%</meter></li>{% endfor %}
+        </ul>
+      </section>
+    </div>
+  {% endif %}
+  <h2 class="admin-operations-title">Operação e pendências globais</h2>
   <ul class="flow-metrics" aria-label="Indicadores">
     <li><strong>{{ indicadores.usuarios }}</strong><span>usuários</span></li>
     <li><strong>{{ indicadores.usuarios_pendentes }}</strong><span>análises pendentes</span></li>
@@ -22,6 +62,9 @@
   </ul>
 
   <div class="flow-actions flow-admin-actions">
+    <a class="btn btn-outline-secondary" href="#documentos-title">Documentos</a>
+    <a class="btn btn-outline-secondary" href="#cnhs-title">CNHs</a>
+    <a class="btn btn-outline-secondary" href="#veiculos-pendentes-title">Anúncios pendentes</a>
     <a class="btn btn-outline-secondary" href="{% url 'administracao:comissao' %}">Configurar comissão</a>
     <a class="btn btn-outline-secondary" href="{% url 'admin:index' %}">Django admin</a>
   </div>
@@ -172,7 +215,7 @@
           <tbody>
             {% for reserva in reservas_recentes %}
               <tr>
-                <td><a href="{% url 'reservas:detalhe' reserva.pk %}">#{{ reserva.pk }} · {{ reserva.veiculo.categoria }}</a></td>
+                <td><a href="{% url 'administracao:reserva' reserva.pk %}">#{{ reserva.pk }} · {{ reserva.veiculo.categoria }}</a></td>
                 <td>{{ reserva.get_status_display }}</td>
                 <td>R$ {{ reserva.total|floatformat:2 }}</td>
               </tr>

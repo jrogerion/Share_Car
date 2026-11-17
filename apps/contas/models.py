@@ -32,6 +32,10 @@ class Usuario(AbstractUser):
     )
 
     @property
+    def conta_administrativa(self) -> bool:
+        return self.is_staff or self.is_superuser
+
+    @property
     def nome_exibicao(self) -> str:
         """Nome público da conta, sem expor o identificador de autenticação."""
         return " ".join(self.get_full_name().split()) or "Usuário"

@@ -65,8 +65,13 @@
         </div>
       {% else %}
         <div class="discovery-empty">
+          {% if user.conta_administrativa %}
+          <p>Ainda não há veículos publicados. Consulte as pendências no painel administrativo.</p>
+          <a href="{% url 'administracao:painel' %}">Abrir administração</a>
+          {% else %}
           <p>Ainda não há veículos publicados. Que tal anunciar o seu?</p>
           <a href="{% url 'core:veiculo' %}">Anunciar carro</a>
+          {% endif %}
         </div>
       {% endif %}
     </section>
@@ -78,9 +83,11 @@
         <li><span aria-hidden="true">3</span><div><h3>Retire e devolva</h3><p>Registre fotos, quilometragem e combustível em cada etapa.</p></div></li>
       </ol>
     </section>
+    {% if not user.conta_administrativa %}
     <section id="para-proprietarios" class="discovery-owner" aria-labelledby="owner-title">
       <i class="bi bi-car-front" aria-hidden="true"></i><div><h2 id="owner-title">Tem um carro parado?</h2><p>Anuncie e ganhe uma renda extra, com preço e agenda sob seu controle.</p></div><a class="discovery-button" href="{% url 'core:veiculo' %}">Anunciar meu carro</a>
     </section>
+    {% endif %}
   </div>
 {% endblock %}
 {% block scripts %}

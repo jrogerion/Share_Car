@@ -7,6 +7,7 @@ from django.views import View
 from django.views.decorators.cache import never_cache
 
 from apps.reservas.models import Reserva
+from apps.contas.mixins import ContaPessoalMixin
 
 from .forms import AvaliacaoForm
 from .services import (
@@ -19,7 +20,7 @@ from .services import (
 
 
 @method_decorator(never_cache, name="dispatch")
-class AvaliarReservaView(LoginRequiredMixin, View):
+class AvaliarReservaView(ContaPessoalMixin, LoginRequiredMixin, View):
     """Permite que locatário e proprietário avaliem a locação concluída."""
 
     template_name = "avaliacoes/avaliar.html"

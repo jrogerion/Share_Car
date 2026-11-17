@@ -1,0 +1,32 @@
+{% extends "core/page.html" %}
+{% block title %}Consulta da reserva #{{ reserva.pk }} — Administração{% endblock %}
+{% block back_url %}{% url 'administracao:painel' %}{% endblock %}
+{% block back_label %}Administração{% endblock %}
+{% block page_kicker %}ShareCar · Consulta administrativa{% endblock %}
+{% block page_title %}Reserva #{{ reserva.pk }}{% endblock %}
+{% block page_subtitle %}Consulta somente leitura. Nenhuma ação de aluguel está disponível nesta conta.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel" aria-labelledby="reserva-title">
+      <h2 id="reserva-title">{{ reserva.veiculo.categoria }} em {{ reserva.veiculo.cidade }}</h2>
+      <p>Status: <strong>{{ reserva.get_status_display }}</strong></p>
+      <p>Locatário: {{ reserva.locatario.nome_exibicao }}</p>
+      <p>Proprietário: {{ reserva.veiculo.proprietario.nome_exibicao }}</p>
+      <p>{{ reserva.inicio|date:"d/m/Y" }} a {{ reserva.fim|date:"d/m/Y" }} · {{ reserva.dias }} diárias</p>
+      <dl class="flow-prices">
+        <div><dt>Total contratado</dt><dd>R$ {{ reserva.total|floatformat:2 }}</dd></div>
+        <div><dt>Comissão contratada ({{ reserva.percentual_comissao|floatformat:2 }}%)</dt><dd>R$ {{ reserva.comissao|floatformat:2 }}</dd></div>
+        <div><dt>Repasse contratado</dt><dd>R$ {{ reserva.repasse_proprietario|floatformat:2 }}</dd></div>
+      </dl>
+      <a class="btn btn-outline-secondary" href="{% url 'administracao:analise_veiculo' reserva.veiculo.pk %}">Consultar veículo</a>
+    </section>
+    <section class="flow-panel" aria-labelledby="pagamento-title">
+      <h2 id="pagamento-title">Pagamento simulado</h2>
+      {% if reserva.pagamento %}
+        <p>{{ reserva.pagamento.get_status_display }} · {{ reserva.pagamento.get_meio_display }}</p>
+        {% include "pagamentos/condicoes_registradas.html" with pagamento=reserva.pagamento %}
+      {% else %}<p>Nenhum pagamento registrado.</p>{% endif %}
+    </section>
+  </div>
+{% endblock %}

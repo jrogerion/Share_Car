@@ -9,12 +9,14 @@ from .views import (
     DecidirDocumentoView,
     DecidirVeiculoView,
     PainelAdministrativoView,
+    ConsultaReservaView,
 )
 
 app_name = "administracao"
 
 urlpatterns = [
     path("", PainelAdministrativoView.as_view(), name="painel"),
+    path("reservas/<int:pk>/", ConsultaReservaView.as_view(), name="reserva"),
     path("comissao/", ConfiguracaoComissaoView.as_view(), name="comissao"),
     path(
         "veiculos/<int:pk>/", AnaliseVeiculoView.as_view(),

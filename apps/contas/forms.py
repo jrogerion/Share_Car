@@ -113,6 +113,12 @@ class DocumentoIdentidadeForm(forms.ModelForm):
 
 
 class PerfilUsuarioForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.conta_administrativa:
+            for campo in ("locatario", "proprietario", "cnh_numero", "cnh_validade"):
+                self.fields.pop(campo)
+
     first_name = forms.CharField(
         label="Nome", max_length=150,
         widget=forms.TextInput(attrs={"autocomplete": "given-name"}),
@@ -161,6 +167,8 @@ class PerfilUsuarioForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        if self.instance.conta_administrativa:
+            return cleaned_data
         if not (cleaned_data.get("locatario") or
                 cleaned_data.get("proprietario")):
             raise forms.ValidationError("Selecione pelo menos um perfil de uso.")
@@ -174,7 +182,7 @@ class PerfilUsuarioForm(forms.ModelForm):
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
-        campos = list(self.Meta.fields)
+        campos = list(self.fields)
         if {"cnh_numero", "cnh_validade"}.intersection(self.changed_data):
             usuario.aprovacao_cnh = Usuario.Aprovacao.PENDENTE
             campos.append("aprovacao_cnh")

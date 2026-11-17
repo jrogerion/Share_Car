@@ -14,6 +14,7 @@ from django.views.decorators.cache import never_cache
 from django.views.generic import DetailView, ListView
 
 from apps.avaliacoes.services import avaliacoes_da_reserva, pode_avaliar
+from apps.contas.mixins import ContaPessoalMixin
 from apps.locacoes.services import check_in_da_reserva, check_out_da_reserva
 from apps.pagamentos.models import Pagamento
 from apps.veiculos.consultas import veiculos_publicos
@@ -46,7 +47,7 @@ def _executar_acao(request, reserva, acao, mensagem):
 
 
 @method_decorator(never_cache, name="dispatch")
-class MinhasReservasView(LoginRequiredMixin, ListView):
+class MinhasReservasView(ContaPessoalMixin, LoginRequiredMixin, ListView):
     """Lista as reservas em que o usuário é locatário ou proprietário."""
 
     template_name = "reservas/minhas.html"
@@ -109,7 +110,7 @@ class MinhasReservasView(LoginRequiredMixin, ListView):
 
 
 @method_decorator(never_cache, name="dispatch")
-class DetalheReservaView(LoginRequiredMixin, DetailView):
+class DetalheReservaView(ContaPessoalMixin, LoginRequiredMixin, DetailView):
     """Exibe a reserva apenas para o locatário ou o proprietário do veículo."""
 
     template_name = "reservas/detalhe.html"
@@ -240,7 +241,7 @@ class DetalheReservaView(LoginRequiredMixin, DetailView):
         return context
 
 
-class CriarReservaView(LoginRequiredMixin, View):
+class CriarReservaView(ContaPessoalMixin, LoginRequiredMixin, View):
     """Cria uma solicitação de reserva para um veículo público."""
 
     def post(self, request, pk):
@@ -305,7 +306,7 @@ class CriarReservaView(LoginRequiredMixin, View):
         return redirect(f"{url}?{parametros}")
 
 
-class AceitarReservaView(LoginRequiredMixin, View):
+class AceitarReservaView(ContaPessoalMixin, LoginRequiredMixin, View):
     """Permite ao proprietário aceitar uma solicitação pendente."""
 
     def post(self, request, pk):
@@ -321,7 +322,7 @@ class AceitarReservaView(LoginRequiredMixin, View):
         )
 
 
-class RecusarReservaView(LoginRequiredMixin, View):
+class RecusarReservaView(ContaPessoalMixin, LoginRequiredMixin, View):
     """Permite ao proprietário recusar uma solicitação pendente."""
 
     def post(self, request, pk):
@@ -337,7 +338,7 @@ class RecusarReservaView(LoginRequiredMixin, View):
         )
 
 
-class CancelarReservaView(LoginRequiredMixin, View):
+class CancelarReservaView(ContaPessoalMixin, LoginRequiredMixin, View):
     """Permite ao locatário cancelar sua própria reserva."""
 
     def post(self, request, pk):
@@ -354,7 +355,7 @@ class CancelarReservaView(LoginRequiredMixin, View):
 
 
 @method_decorator(never_cache, name="dispatch")
-class AgendaVeiculoView(LoginRequiredMixin, View):
+class AgendaVeiculoView(ContaPessoalMixin, LoginRequiredMixin, View):
     """Permite ao proprietário cadastrar disponibilidade e bloqueios."""
 
     template_name = "reservas/agenda.html"
@@ -405,7 +406,7 @@ class AgendaVeiculoView(LoginRequiredMixin, View):
         )
 
 
-class RemoverPeriodoView(LoginRequiredMixin, View):
+class RemoverPeriodoView(ContaPessoalMixin, LoginRequiredMixin, View):
     """Remove um período da agenda do próprio veículo."""
 
     def post(self, request, pk):
