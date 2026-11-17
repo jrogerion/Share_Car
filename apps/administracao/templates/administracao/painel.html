@@ -194,7 +194,7 @@
               <tr>
                 <td>#{{ pagamento.reserva.pk }} · {{ pagamento.reserva.veiculo.categoria }}</td>
                 <td>{{ pagamento.get_status_display }}</td>
-                <td>R$ {{ pagamento.valor_bruto|floatformat:2 }}</td>
+                <td>R$ {{ pagamento.total_simulado|floatformat:2 }}</td>
               </tr>
             {% empty %}
               <tr><td colspan="3">Nenhum pagamento simulado.</td></tr>

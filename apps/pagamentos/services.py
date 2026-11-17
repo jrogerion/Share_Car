@@ -2,6 +2,7 @@ from django.db import transaction
 
 from apps.reservas.models import Reserva
 
+from .calculos import calcular_condicoes
 from .models import Pagamento
 
 
@@ -15,6 +16,7 @@ def simular_pagamento(
     reserva: Reserva,
     meio: str,
     resultado: str,
+    parcelas: int = 1,
 ) -> Pagamento:
     """Cria ou substitui o pagamento simulado de uma reserva aceita."""
     if meio not in Pagamento.Meio.values:
@@ -25,6 +27,10 @@ def simular_pagamento(
     # Mesmo bloqueio usado no cancelamento e no check-in: o estado e os
     # valores vêm do banco, nunca da instância ou do formulário do cliente.
     atual = Reserva.objects.select_for_update().get(pk=reserva.pk)
+    try:
+        condicoes = calcular_condicoes(atual.total, meio, parcelas)
+    except ValueError as exc:
+        raise PagamentoInvalido(str(exc)) from exc
 
     if atual.status != Reserva.Status.ACEITA:
         raise PagamentoInvalido(
@@ -50,6 +56,9 @@ def simular_pagamento(
             "valor_bruto": atual.total,
             "comissao": atual.comissao,
             "repasse_proprietario": atual.repasse_proprietario,
+            "parcelas": parcelas,
+            "juros": condicoes["juros"],
+            "desconto": condicoes["desconto"],
         },
     )
     return pagamento

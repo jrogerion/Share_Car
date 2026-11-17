@@ -1,4 +1,5 @@
 {% extends "core/page.html" %}
+{% load static %}
 {% block title %}Pagamento simulado — Reserva #{{ reserva.pk }} — ShareCar{% endblock %}
 {% block back_url %}{% url 'reservas:detalhe' reserva.pk %}{% endblock %}
 {% block back_label %}Voltar à reserva{% endblock %}
@@ -18,13 +19,19 @@
       {% if form.non_field_errors %}
         <div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>
       {% endif %}
-      <form method="post" action="{% url 'pagamentos:pagar' reserva.pk %}" class="flow-fields" novalidate>
+      <form method="post" action="{% url 'pagamentos:pagar' reserva.pk %}" class="flow-fields" novalidate data-payment-form>
         {% csrf_token %}
         <fieldset class="flow-fields">
           <legend>{{ form.meio.label }}</legend>
           {{ form.meio }}
           {{ form.meio.errors }}
         </fieldset>
+        <div data-payment-installments>
+          <label for="{{ form.parcelas.id_for_label }}">{{ form.parcelas.label }}</label>
+          {{ form.parcelas }}
+          <p class="flow-small" id="{{ form.parcelas.auto_id }}_helptext">{{ form.parcelas.help_text }}</p>
+          {{ form.parcelas.errors }}
+        </div>
         <fieldset class="flow-fields">
           <legend>{{ form.resultado.label }}</legend>
           {{ form.resultado }}
@@ -43,8 +50,24 @@
         <dl class="flow-prices">
           <div><dt>Diárias</dt><dd>R$ {{ reserva.valor_diarias|floatformat:2 }}</dd></div>
           <div><dt>Taxas</dt><dd>R$ {{ reserva.taxas|floatformat:2 }}</dd></div>
-          <div class="flow-total"><dt>Total</dt><dd>R$ {{ reserva.total|floatformat:2 }}</dd></div>
+          <div class="flow-total"><dt>Valor original da reserva</dt><dd>R$ {{ reserva.total|floatformat:2 }}</dd></div>
         </dl>
+        <h3>Condições da simulação</h3>
+        <div aria-live="polite" aria-atomic="true" data-payment-options>
+          {% for opcao in opcoes_pagamento %}
+            <section class="payment-option" data-payment-option data-meio="{{ opcao.meio }}" data-parcelas="{{ opcao.parcelas }}">
+              <h4>{% if opcao.meio == 'pix' %}Pix à vista · 5% de desconto{% else %}Cartão · {{ opcao.parcelas }}x {% if opcao.taxa %}com {{ opcao.taxa }}% de acréscimo{% else %}sem juros{% endif %}{% endif %}</h4>
+              <dl class="flow-prices">
+                <div><dt>Desconto{% if opcao.meio == 'pix' %} (5%){% endif %}</dt><dd>R$ {{ opcao.desconto|floatformat:2 }}</dd></div>
+                <div><dt>Juros fictícios{% if opcao.taxa %} ({{ opcao.taxa }}%){% endif %}</dt><dd>R$ {{ opcao.juros|floatformat:2 }}</dd></div>
+                <div class="flow-total"><dt>Total simulado</dt><dd>R$ {{ opcao.total|floatformat:2 }}</dd></div>
+              </dl>
+              <p>{{ opcao.resumo }}</p>
+            </section>
+          {% endfor %}
+        </div>
+        <p class="flow-small">Juros de 7% em 7x ou 8% em 8x são acréscimos únicos sobre o valor original, não taxas mensais. Diferenças de centavos são distribuídas entre as parcelas.</p>
+        <p class="flow-small">Desconto e juros são fictícios e não alteram a comissão nem o repasse contratado. Nenhuma cobrança real será realizada.</p>
       </section>
 
       {% if pagamento %}
@@ -52,9 +75,12 @@
           <h2 id="ultimo-pagamento-title">Última tentativa</h2>
           <span class="flow-status {% if pagamento.status == 'aprovado' %}flow-status-info{% elif pagamento.status == 'recusado' or pagamento.status == 'estornado' %}flow-status-danger{% else %}flow-status-pending{% endif %}">{{ pagamento.get_status_display }}</span>
           <p class="flow-small">Meio: {{ pagamento.get_meio_display }}.</p>
-          <p class="flow-small">Valor registrado: R$ {{ pagamento.valor_bruto|floatformat:2 }}.</p>
+          {% include "pagamentos/condicoes_registradas.html" %}
         </section>
       {% endif %}
     </aside>
   </div>
+{% endblock %}
+{% block scripts %}
+  <script src="{% static 'js/payment-options.js' %}"></script>
 {% endblock %}

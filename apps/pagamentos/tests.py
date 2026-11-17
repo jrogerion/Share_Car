@@ -66,6 +66,110 @@ class PagamentoBaseTests(TestCase):
 
 
 class SimulacaoPagamentoTests(PagamentoBaseTests):
+    def test_condicoes_cartao_e_pix_preservam_reserva_e_repasses(self):
+        from .calculos import calcular_condicoes
+
+        for meio, parcelas, juros, desconto, total in (
+            ("cartao", 1, "0.00", "0.00", "450.00"),
+            ("cartao", 6, "0.00", "0.00", "450.00"),
+            ("cartao", 7, "31.50", "0.00", "481.50"),
+            ("cartao", 8, "36.00", "0.00", "486.00"),
+            ("pix", 1, "0.00", "22.50", "427.50"),
+        ):
+            with self.subTest(meio=meio, parcelas=parcelas):
+                reserva = self.criar_reserva(inicio_dias=5 + parcelas * 5)
+                pagamento = simular_pagamento(
+                    reserva=reserva, meio=meio, parcelas=parcelas, resultado="recusado",
+                )
+                pagamento.refresh_from_db()
+                self.assertEqual(pagamento.juros, Decimal(juros))
+                self.assertEqual(pagamento.desconto, Decimal(desconto))
+                self.assertEqual(pagamento.total_simulado, Decimal(total))
+                self.assertEqual(sum(pagamento.valores_parcelas), Decimal(total))
+                self.assertEqual(len(pagamento.valores_parcelas), parcelas)
+                self.assertEqual(calcular_condicoes(reserva.total, meio, parcelas)["total"], pagamento.total_simulado)
+                reserva.refresh_from_db()
+                self.assertEqual(reserva.total, Decimal("450.00"))
+                self.assertEqual(pagamento.comissao, reserva.comissao)
+                self.assertEqual(pagamento.repasse_proprietario, reserva.repasse_proprietario)
+                # As tentativas recusadas não ocupam outro período de teste.
+                Reserva.objects.filter(pk=reserva.pk).update(status=Reserva.Status.CANCELADA)
+
+    def test_arredondamento_das_parcelas_e_desconto(self):
+        from .calculos import calcular_condicoes
+
+        for quantidade in range(1, 9):
+            condicoes = calcular_condicoes(Decimal("1000.01"), "cartao", quantidade)
+            pagamento = Pagamento(valor_bruto=Decimal("1000.01"), juros=condicoes["juros"], desconto=0, parcelas=quantidade)
+            valores = pagamento.valores_parcelas
+            self.assertEqual(sum(valores), condicoes["total"])
+            self.assertLessEqual(max(valores) - min(valores), Decimal("0.01"))
+        self.assertEqual(calcular_condicoes(Decimal("0.10"), "pix")["desconto"], Decimal("0.01"))
+
+    def test_servico_rejeita_parcelamento_forjado(self):
+        reserva = self.criar_reserva()
+        for meio, parcelas in (("pix", 2), ("cartao", 0), ("cartao", 9), ("cartao", True), ("cartao", "7"), ("cartao", None)):
+            with self.subTest(meio=meio, parcelas=parcelas):
+                with self.assertRaises(PagamentoInvalido):
+                    simular_pagamento(reserva=reserva, meio=meio, parcelas=parcelas, resultado="aprovado")
+                self.assertFalse(Pagamento.objects.exists())
+
+    def test_troca_de_tentativa_substitui_desconto_por_juros(self):
+        reserva = self.criar_reserva()
+        tentativa = simular_pagamento(reserva=reserva, meio="pix", resultado="recusado")
+        pagamento = simular_pagamento(reserva=reserva, meio="cartao", parcelas=8, resultado="aprovado")
+        self.assertEqual(pagamento.pk, tentativa.pk)
+        self.assertEqual(pagamento.desconto, 0)
+        self.assertEqual(pagamento.juros, Decimal("36.00"))
+        cancelar_reserva(reserva)
+        pagamento.refresh_from_db()
+        self.assertEqual(pagamento.status, "estornado")
+        self.assertEqual(pagamento.total_simulado, Decimal("486.00"))
+
+    def test_estorno_pix_preserva_total_descontado(self):
+        reserva = self.criar_reserva()
+        pagamento = simular_pagamento(reserva=reserva, meio="pix", resultado="aprovado")
+        cancelar_reserva(reserva)
+        pagamento.refresh_from_db()
+        self.assertEqual(pagamento.total_simulado, Decimal("427.50"))
+        self.assertEqual(pagamento.status, "estornado")
+
+    def test_post_recalcula_totais_e_registra_parcelas(self):
+        reserva = self.criar_reserva()
+        self.client.force_login(self.locatario)
+        url = reverse("pagamentos:pagar", args=[reserva.pk])
+        response = self.client.post(url, {
+            "meio": "cartao", "parcelas": "7", "resultado": "aprovado",
+            "juros": "0", "desconto": "449", "total_simulado": "1",
+        })
+        self.assertEqual(response.status_code, 302)
+        pagamento = Pagamento.objects.get(reserva=reserva)
+        self.assertEqual(pagamento.parcelas, 7)
+        self.assertEqual(pagamento.total_simulado, Decimal("481.50"))
+        response = self.client.get(reverse("reservas:detalhe", args=[reserva.pk]))
+        self.assertContains(response, "481,50")
+        self.assertContains(response, "31,50")
+
+    def test_formulario_rejeita_pix_parcelado_e_preserva_erros(self):
+        reserva = self.criar_reserva()
+        self.client.force_login(self.locatario)
+        response = self.client.post(reverse("pagamentos:pagar", args=[reserva.pk]), {
+            "meio": "pix", "parcelas": "8", "resultado": "aprovado",
+        })
+        self.assertContains(response, "O Pix deve ser pago à vista")
+        self.assertFalse(Pagamento.objects.exists())
+        self.assertEqual(len(response.context["opcoes_pagamento"]), 9)
+
+    def test_registro_antigo_nao_recebe_desconto_retroativo(self):
+        reserva = self.criar_reserva()
+        pagamento = Pagamento.objects.create(
+            reserva=reserva, meio="pix", status="aprovado",
+            valor_bruto=reserva.total, comissao=reserva.comissao,
+            repasse_proprietario=reserva.repasse_proprietario,
+        )
+        self.assertEqual(pagamento.total_simulado, reserva.total)
+        self.assertEqual(pagamento.desconto, 0)
+
     def test_servico_rejeita_meio_e_resultado_invalidos(self):
         reserva = self.criar_reserva()
         for meio, resultado in (
@@ -211,7 +315,7 @@ class PagarReservaViewTests(PagamentoBaseTests):
         self.assertContains(response, "Não informe dados de cartão")
         self.assertIn("no-store", response["Cache-Control"])
         self.assertEqual(
-            set(response.context["form"].fields), {"meio", "resultado"},
+            set(response.context["form"].fields), {"meio", "resultado", "parcelas"},
         )
 
     def test_visitante_precisa_entrar_para_get_e_post(self):

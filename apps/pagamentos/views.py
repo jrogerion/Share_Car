@@ -10,6 +10,7 @@ from apps.reservas.models import Reserva
 from .forms import PagamentoForm
 from .models import Pagamento
 from .services import PagamentoInvalido, simular_pagamento
+from .calculos import calcular_condicoes
 
 
 @method_decorator(never_cache, name="dispatch")
@@ -25,7 +26,7 @@ class PagarReservaView(LoginRequiredMixin, View):
             messages.error(request, bloqueio)
             return redirect("reservas:detalhe", pk=reserva.pk)
 
-        return self._renderizar(request, reserva, PagamentoForm())
+        return self._renderizar(request, reserva, PagamentoForm(initial={"meio": "pix"}))
 
     def post(self, request, reserva_pk):
         reserva = self._reserva(request, reserva_pk)
@@ -43,6 +44,7 @@ class PagarReservaView(LoginRequiredMixin, View):
                 reserva=reserva,
                 meio=form.cleaned_data["meio"],
                 resultado=form.cleaned_data["resultado"],
+                parcelas=form.cleaned_data["parcelas"],
             )
         except PagamentoInvalido as exc:
             messages.error(request, str(exc))
@@ -85,8 +87,10 @@ class PagarReservaView(LoginRequiredMixin, View):
         except Pagamento.DoesNotExist:
             pagamento = None
 
+        opcoes = [calcular_condicoes(reserva.total, "pix")]
+        opcoes.extend(calcular_condicoes(reserva.total, "cartao", n) for n in range(1, 9))
         return render(
             request,
             self.template_name,
-            {"reserva": reserva, "form": form, "pagamento": pagamento},
+            {"reserva": reserva, "form": form, "pagamento": pagamento, "opcoes_pagamento": opcoes},
         )

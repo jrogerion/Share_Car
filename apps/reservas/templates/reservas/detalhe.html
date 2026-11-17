@@ -115,7 +115,8 @@
         <h2 id="pagamento-title">Pagamento</h2>
         {% if pagamento %}
           <span class="flow-status {% if pagamento.status == 'aprovado' %}flow-status-info{% elif pagamento.status == 'recusado' or pagamento.status == 'estornado' %}flow-status-danger{% else %}flow-status-pending{% endif %}">{{ pagamento.get_status_display }}</span>
-          <p class="flow-small">Meio: {{ pagamento.get_meio_display }}. Valor: R$ {{ pagamento.valor_bruto|floatformat:2 }}.</p>
+          <p class="flow-small">Meio: {{ pagamento.get_meio_display }}.</p>
+          {% include "pagamentos/condicoes_registradas.html" %}
           {% if pagamento.status == 'estornado' %}
             <p class="flow-small">O valor foi estornado na simulação por causa do cancelamento.</p>
           {% endif %}

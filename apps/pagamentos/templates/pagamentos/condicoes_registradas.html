@@ -1,0 +1,7 @@
+<dl class="flow-prices">
+  <div><dt>Valor original</dt><dd>R$ {{ pagamento.valor_bruto|floatformat:2 }}</dd></div>
+  <div><dt>Desconto</dt><dd>R$ {{ pagamento.desconto|floatformat:2 }}</dd></div>
+  <div><dt>Juros fictícios</dt><dd>R$ {{ pagamento.juros|floatformat:2 }}</dd></div>
+  <div class="flow-total"><dt>{% if pagamento.status == 'estornado' %}Total estornado (simulado){% else %}Total simulado{% endif %}</dt><dd>R$ {{ pagamento.total_simulado|floatformat:2 }}</dd></div>
+</dl>
+<p class="flow-small">{{ pagamento.resumo_parcelas }}. Nenhuma cobrança real.</p>
