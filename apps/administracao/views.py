@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.admin.models import CHANGE, LogEntry
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -11,6 +12,7 @@ from django.views.generic import DetailView, TemplateView
 
 from apps.contas.models import Usuario
 from apps.pagamentos.models import Pagamento
+from apps.locacoes.models import RegistroLocacao
 from apps.reservas.models import Reserva
 from apps.veiculos.models import Veiculo
 from apps.veiculos.consultas import com_fotos_ordenadas
@@ -47,6 +49,8 @@ class ConsultaReservaView(AdministradorMixin, DetailView):
     def get_queryset(self):
         return Reserva.objects.select_related(
             "veiculo", "locatario", "veiculo__proprietario", "pagamento",
+        ).prefetch_related(
+            Prefetch("registros_locacao", queryset=RegistroLocacao.objects.order_by("pk").prefetch_related("fotos")),
         )
 
 

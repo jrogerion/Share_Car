@@ -20,6 +20,10 @@
         <div><dt>Repasse contratado</dt><dd>R$ {{ reserva.repasse_proprietario|floatformat:2 }}</dd></div>
       </dl>
       <a class="btn btn-outline-secondary" href="{% url 'administracao:analise_veiculo' reserva.veiculo.pk %}">Consultar veículo</a>
+      {% for registro in reserva.registros_locacao.all %}
+        <h3>{{ registro.get_tipo_display }}</h3>
+        {% include "locacoes/fotos_privadas.html" with registro=registro %}
+      {% endfor %}
     </section>
     <section class="flow-panel" aria-labelledby="pagamento-title">
       <h2 id="pagamento-title">Pagamento simulado</h2>

@@ -1,0 +1,5 @@
+<ul class="inspection-private-photos" aria-label="Fotos de {{ registro.get_tipo_display }}">
+  {% for foto in registro.fotos.all %}
+    <li><a href="{% url 'locacoes:foto' foto.pk %}" target="_blank" rel="noopener noreferrer">Ver foto {{ forloop.counter }} <span class="visually-hidden">de {{ registro.get_tipo_display }}</span></a> · <a href="{% url 'locacoes:foto' foto.pk %}?download=1" aria-label="Baixar foto {{ forloop.counter }} de {{ registro.get_tipo_display }}">Baixar</a></li>
+  {% endfor %}
+</ul>

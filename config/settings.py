@@ -103,12 +103,20 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-# Documentos não são publicados por MEDIA_URL; acesso autenticado será implementado depois.
+# Documentos e vistorias ficam fora de MEDIA_ROOT e exigem acesso autenticado.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     "documentos": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
         "OPTIONS": {"location": BASE_DIR / "private_media"},
+    },
+    "vistorias": {
+        "BACKEND": "apps.locacoes.storage.ArmazenamentoVistoriasPrivado",
+        "OPTIONS": {
+            "location": BASE_DIR / "private_media",
+            "file_permissions_mode": 0o600,
+            "directory_permissions_mode": 0o700,
+        },
     },
 }

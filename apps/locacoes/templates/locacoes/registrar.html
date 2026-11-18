@@ -48,7 +48,7 @@
           {{ form.fotos }}
           {{ form.fotos.errors }}
           <p class="flow-small" id="{{ form.fotos.auto_id }}_helptext">{{ form.fotos.help_text }}</p>
-          <p class="flow-small" id="inspection-photo-notice">Fotografe somente o veículo, sem documentos ou pessoas. Neste ambiente, os arquivos de vistoria ainda são públicos.</p>
+          <p class="flow-small" id="inspection-photo-notice">Fotografe somente o veículo, sem documentos ou pessoas. As fotos ficam em área privada, acessíveis aos participantes da reserva e à administração.</p>
           <p class="flow-small inspection-photo-status" role="status" data-inspection-photo-status>Selecione as fotos para conferir as prévias antes do envio.</p>
           <div class="inspection-previews" data-inspection-previews hidden></div>
         </fieldset>
@@ -77,6 +77,7 @@
             <div><dt>Combustível</dt><dd>{{ check_in.nivel_combustivel }}%</dd></div>
             <div><dt>Fotos</dt><dd>{{ check_in.fotos.all|length }}</dd></div>
           </dl>
+          {% include "locacoes/fotos_privadas.html" with registro=check_in %}
         {% else %}
           <p class="flow-small">Check-in ainda não registrado.</p>
         {% endif %}
@@ -88,6 +89,7 @@
             <div><dt>Combustível</dt><dd>{{ check_out.nivel_combustivel }}%</dd></div>
             <div><dt>Fotos</dt><dd>{{ check_out.fotos.all|length }}</dd></div>
           </dl>
+          {% include "locacoes/fotos_privadas.html" with registro=check_out %}
         {% endif %}
       </section>
 

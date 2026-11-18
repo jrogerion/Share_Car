@@ -1,10 +1,11 @@
 from django.urls import path
 
-from .views import RegistrarLocacaoView
+from .views import FotoVistoriaView, RegistrarLocacaoView
 
 app_name = "locacoes"
 
 urlpatterns = [
+    path("fotos/<int:pk>/", FotoVistoriaView.as_view(), name="foto"),
     path(
         "<int:reserva_pk>/check-in/",
         RegistrarLocacaoView.as_view(),

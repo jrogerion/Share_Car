@@ -1,4 +1,6 @@
 /* Telas demonstrativas baseadas em docs/prototipo, sem moldura de celular. */
+.inspection-private-photos { padding-left: 20px; margin: 12px 0; font-size: .85rem; }
+.inspection-private-photos li { padding: 8px 0; }
 .inspection-group { min-width: 0; padding: 18px 0 0; margin: 8px 0; border: 0; border-top: 1px solid var(--sc-line); }
 .flow-fields .inspection-group legend { float: none; width: auto; color: var(--sc-ink); font-size: 1rem; font-weight: 700; margin-bottom: 16px; }
 .inspection-group legend i { color: var(--sc-teal); margin-right: 6px; }

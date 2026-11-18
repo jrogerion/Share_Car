@@ -1,15 +1,18 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.cache import never_cache
+from django.utils.cache import patch_vary_headers
 
 from apps.reservas.models import Reserva
 from apps.contas.mixins import ContaPessoalMixin
 
 from .forms import RegistroLocacaoForm
-from .models import RegistroLocacao
+from .models import FotoRegistroLocacao, RegistroLocacao
 from .services import (
     LocacaoInvalida,
     check_in_da_reserva,
@@ -17,6 +20,41 @@ from .services import (
     motivo_impedimento_registro,
     registrar_locacao,
 )
+
+
+@method_decorator(never_cache, name="dispatch")
+class FotoVistoriaView(LoginRequiredMixin, View):
+    """Entrega a foto somente aos participantes da reserva e à administração."""
+
+    http_method_names = ["get", "head", "options"]
+
+    def get(self, request, pk):
+        fotos = FotoRegistroLocacao.objects.all()
+        if not request.user.conta_administrativa:
+            fotos = fotos.filter(
+                Q(registro__reserva__locatario=request.user)
+                | Q(registro__reserva__veiculo__proprietario=request.user),
+            )
+        foto = get_object_or_404(fotos, pk=pk)
+        extensao = foto.foto.name.rsplit(".", 1)[-1].lower()
+        tipos = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png"}
+        if extensao not in tipos:
+            raise Http404("Foto não encontrada.")
+        try:
+            arquivo = foto.foto.open("rb")
+        except (OSError, ValueError):
+            raise Http404("Foto não encontrada.") from None
+        response = FileResponse(
+            arquivo, content_type=tipos[extensao],
+            as_attachment=request.GET.get("download") == "1",
+            filename=f"vistoria-{foto.pk}.{extensao}",
+        )
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Cross-Origin-Resource-Policy"] = "same-origin"
+        response["Referrer-Policy"] = "no-referrer"
+        response["Content-Security-Policy"] = "default-src 'none'; sandbox"
+        patch_vary_headers(response, ("Cookie",))
+        return response
 
 
 @method_decorator(never_cache, name="dispatch")

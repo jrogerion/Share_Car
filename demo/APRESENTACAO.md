@@ -76,5 +76,22 @@ reservas, fotos e documentos. Não sobrescreva o banco nem os volumes atuais.
 A criação desse ambiente e a restauração exigem autorização específica; os
 comandos acima não comprovam, sozinhos, que um backup é restaurável.
 
-As fotos de vistoria continuam públicas por decisão anterior. Use somente dados
-fictícios na apresentação; esta PWA não resolve a pendência do armazenamento.
+## Fotos de vistoria privadas
+
+Novas vistorias usam `private_media/locacoes/`, no volume privado já existente.
+Somente participantes da reserva e contas administrativas acessam as fotos pela
+rota autenticada. Não publique `private_media` por servidor HTTP/CDN.
+
+Para os arquivos antigos, o comando `python manage.py proteger_fotos_vistoria`
+faz apenas uma conferência, sem alterar arquivos ou registros. Com uploads
+parados e backup conferido, `--executar` copia os arquivos referenciados e verifica
+SHA-256, sem sobrescrever conflitos. `--executar --remover-originais` também
+remove os originais públicos após conferir todas as cópias. Essa remoção e a
+aplicação da migration `locacoes/0002_fotos_privadas` exigem autorização específica.
+O comando pode ser repetido e não altera IDs nem nomes registrados no banco.
+Arquivos órfãos não são removidos automaticamente.
+
+O servidor Django de desenvolvimento publica apenas `media/veiculos/`. Em uma
+hospedagem futura, configure o servidor de arquivos para essa mesma restrição,
+inclusive bloqueando antigos caminhos `media/locacoes/`. Cópias antigas em CDNs
+ou backups precisam de revisão separada. Use somente dados fictícios na demo.

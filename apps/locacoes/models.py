@@ -1,6 +1,8 @@
 from django.db import models
 from django.db.models import Q
 
+from .storage import armazenamento_vistorias
+
 
 class RegistroLocacao(models.Model):
     class Tipo(models.TextChoices):
@@ -24,7 +26,7 @@ class RegistroLocacao(models.Model):
 
 class FotoRegistroLocacao(models.Model):
     registro = models.ForeignKey(RegistroLocacao, on_delete=models.CASCADE, related_name="fotos")
-    foto = models.ImageField(upload_to="locacoes/")
+    foto = models.ImageField(upload_to="locacoes/", storage=armazenamento_vistorias)
 
     class Meta:
         verbose_name = "foto do registro de locação"

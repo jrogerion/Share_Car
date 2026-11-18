@@ -66,6 +66,7 @@
               <div><dt>Combustível</dt><dd>{{ check_in.nivel_combustivel }}%</dd></div>
               <div><dt>Fotos</dt><dd>{{ check_in.fotos.all|length }}</dd></div>
             </dl>
+            {% include "locacoes/fotos_privadas.html" with registro=check_in %}
           {% endif %}
           {% if check_out %}
             <h3>Check-out</h3>
@@ -74,6 +75,7 @@
               <div><dt>Combustível</dt><dd>{{ check_out.nivel_combustivel }}%</dd></div>
               <div><dt>Fotos</dt><dd>{{ check_out.fotos.all|length }}</dd></div>
             </dl>
+            {% include "locacoes/fotos_privadas.html" with registro=check_out %}
           {% endif %}
         </section>
       {% endif %}
