@@ -203,10 +203,13 @@ class DecidirCNHView(AnalistaMixin, View):
 class AlternarBloqueioUsuarioView(AdministradorMixin, View):
     """Bloqueia ou reativa a conta de um usuário."""
 
+    @transaction.atomic
     def post(self, request, pk):
-        usuario = get_object_or_404(Usuario, pk=pk)
+        usuario = get_object_or_404(Usuario.objects.select_for_update(), pk=pk)
         if usuario.pk == request.user.pk:
             messages.error(request, "Você não pode bloquear a própria conta.")
+        elif usuario.conta_administrativa and not request.user.is_superuser:
+            messages.error(request, "Somente superusuários podem alterar contas administrativas.")
         elif usuario.is_superuser and usuario.is_active:
             messages.error(request, "Não é permitido bloquear um superusuário.")
         else:

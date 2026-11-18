@@ -157,13 +157,20 @@ class DocumentoIdentidadeTests(TestCase):
         conteudo = arquivo.read()
         arquivo.seek(0)
         self.enviar(arquivo)
+        self.usuario.refresh_from_db()
+        with self.usuario.documento_identidade.open("rb") as salvo:
+            normalizado = salvo.read()
+        with Image.open(BytesIO(conteudo)) as original, Image.open(BytesIO(normalizado)) as imagem:
+            self.assertEqual(imagem.convert("RGB").tobytes(), original.convert("RGB").tobytes())
         response = self.client.get(self.baixar_url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(b"".join(response.streaming_content), conteudo)
+        self.assertEqual(b"".join(response.streaming_content), normalizado)
         self.assertEqual(response["Content-Type"], "application/octet-stream")
         self.assertIn("attachment", response["Content-Disposition"])
         self.assertIn("no-store", response["Cache-Control"])
         self.assertEqual(response["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(response["Cross-Origin-Resource-Policy"], "same-origin")
+        self.assertEqual(response["Referrer-Policy"], "no-referrer")
 
     def test_superusuario_pode_baixar_documento(self):
         self.enviar()

@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from apps.pagamentos.models import Pagamento
+from apps.core.imagens import preparar_imagem_privada
 from apps.reservas.models import Reserva
 
 from .models import FotoRegistroLocacao, RegistroLocacao
@@ -75,6 +76,12 @@ def registrar_locacao(
                 f"({check_in.quilometragem} km)."
             )
         novo_status = Reserva.Status.CONCLUIDA
+
+    try:
+        # Normaliza todas as fotos antes de criar registros ou salvar arquivos.
+        fotos = [preparar_imagem_privada(foto) for foto in fotos]
+    except ValidationError as exc:
+        raise LocacaoInvalida(" ".join(exc.messages)) from exc
 
     registro = RegistroLocacao.objects.create(
         reserva=atual,

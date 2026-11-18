@@ -64,7 +64,7 @@ class DocumentoIdentidadeView(LoginRequiredMixin, View):
             raise Http404("Documento não encontrado.")
         try:
             arquivo = usuario.documento_identidade.open("rb")
-        except FileNotFoundError:
+        except OSError:
             raise Http404("Documento não encontrado.") from None
         # O download não executa conteúdo enviado pelo usuário no navegador.
         extensao = usuario.documento_identidade.name.rsplit(".", 1)[-1].lower()
@@ -76,6 +76,8 @@ class DocumentoIdentidadeView(LoginRequiredMixin, View):
             content_type="application/octet-stream",
         )
         response["X-Content-Type-Options"] = "nosniff"
+        response["Cross-Origin-Resource-Policy"] = "same-origin"
+        response["Referrer-Policy"] = "no-referrer"
         return response
 
 

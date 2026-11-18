@@ -13,6 +13,7 @@ from django.utils import timezone
 from PIL import Image
 
 from .models import Usuario
+from apps.core.imagens import preparar_imagem_privada
 
 
 class EmailUnicoAdminMixin:
@@ -74,6 +75,8 @@ class ImagemDocumentoField(forms.ImageField):
             arquivo = super().to_python(data)
         if arquivo and arquivo.image.format not in ("JPEG", "PNG"):
             raise forms.ValidationError("Envie uma imagem JPEG ou PNG válida.")
+        if arquivo and arquivo.image.width * arquivo.image.height > 20_000_000:
+            raise forms.ValidationError("A imagem deve ter até 20 megapixels.")
         return arquivo
 
 
@@ -81,7 +84,7 @@ class DocumentoIdentidadeForm(forms.ModelForm):
     documento_identidade = ImagemDocumentoField(
         label="Documento de identidade",
         help_text=(
-            "JPEG ou PNG, até 5 MB. "
+            "JPEG ou PNG, até 5 MB e 20 megapixels. Imagens reprocessadas sem metadados. "
             "Use somente documentos fictícios nos testes."
         ),
         widget=forms.FileInput(attrs={"accept": "image/jpeg,image/png"}),
@@ -96,11 +99,7 @@ class DocumentoIdentidadeForm(forms.ModelForm):
             raise forms.ValidationError(
                 "Selecione uma nova imagem para enviar.",
             )
-        arquivo = self.cleaned_data["documento_identidade"]
-        extensao = "jpg" if arquivo.image.format == "JPEG" else "png"
-        # Não inclui nomes pessoais nem caminhos fornecidos pelo cliente.
-        arquivo.name = f"{uuid4().hex}.{extensao}"
-        return arquivo
+        return preparar_imagem_privada(self.cleaned_data["documento_identidade"])
 
     def save(self, commit=True):
         usuario = super().save(commit=False)

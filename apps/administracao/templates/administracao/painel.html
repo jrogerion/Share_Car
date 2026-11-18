@@ -163,10 +163,14 @@
               <td>{{ usuario.get_aprovacao_cnh_display }}</td>
               <td>{% if usuario.is_active %}Ativa{% else %}Bloqueada{% endif %}</td>
               <td class="flow-table-actions">
+                {% if usuario.conta_administrativa and not user.is_superuser %}
+                <span class="flow-small">Conta administrativa protegida.</span>
+                {% else %}
                 <form method="post" action="{% url 'administracao:bloqueio_usuario' usuario.pk %}">
                   {% csrf_token %}
                   <button class="btn btn-outline-secondary" type="submit">{% if usuario.is_active %}Bloquear{% else %}Reativar{% endif %}</button>
                 </form>
+                {% endif %}
               </td>
             </tr>
           {% empty %}
