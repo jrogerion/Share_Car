@@ -48,6 +48,10 @@
 .discovery-car h3 { margin: 0 0 8px; font-size: .95rem; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
 .discovery-car-body > p { margin: 0 0 16px; color: var(--home-muted); font-size: .8rem; line-height: 1.6; overflow-wrap: anywhere; }
 .discovery-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; font-size: .8rem; }
+.discovery-rating { margin: auto 0 12px; color: var(--home-muted); font-size: .8rem; }
+.discovery-rating i { color: #a15c00; margin-right: 4px; }
+.discovery-rating small { font-size: inherit; }
+.discovery-rating + .discovery-meta { margin-top: 0; }
 .discovery-card-link { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--home-line); color: var(--home-brand); font-size: .8rem; font-weight: 600; }
 .discovery-meta i { color: #a15c00; }
 .discovery-meta strong { font-size: 1.2rem; letter-spacing: -.03em; }

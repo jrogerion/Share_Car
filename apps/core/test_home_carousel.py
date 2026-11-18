@@ -1,4 +1,5 @@
 from io import BytesIO
+from datetime import date, timedelta
 from unittest.mock import patch
 
 from django.core.files.storage import InMemoryStorage
@@ -8,6 +9,8 @@ from django.urls import reverse
 from PIL import Image
 
 from apps.contas.models import Usuario
+from apps.avaliacoes.models import Avaliacao
+from apps.reservas.models import Reserva
 from apps.veiculos.models import FotoVeiculo, Veiculo
 
 
@@ -41,6 +44,46 @@ class HomeCarouselTests(TestCase):
                 nome, buffer.getvalue(), content_type="image/png",
             ),
         )
+
+    def avaliar(self, carro, indice, nota, reciproca=True, status="concluida"):
+        locatario = Usuario.objects.create_user(f"loc-home-{carro.pk}-{indice}")
+        inicio = date(2026, 1, 1) + timedelta(days=indice * 3)
+        reserva = Reserva.objects.create(
+            veiculo=carro, locatario=locatario, inicio=inicio,
+            fim=inicio + timedelta(days=1), status=status,
+            preco_diaria="150.00", valor_diarias="150.00", total="150.00",
+            taxas=0, percentual_comissao="15.00",
+        )
+        Avaliacao.objects.create(reserva=reserva, autor=locatario, avaliado=self.dono, nota=nota)
+        if reciproca:
+            Avaliacao.objects.create(reserva=reserva, autor=self.dono, avaliado=locatario, nota=1)
+
+    def test_carrossel_mostra_media_publica_e_total_iguais_aos_detalhes(self):
+        carro = self.carro()
+        self.avaliar(carro, 0, 5)
+        self.avaliar(carro, 1, 4)
+        self.avaliar(carro, 2, 1, reciproca=False)
+        self.avaliar(carro, 3, 1, status="aceita")
+        outro = self.carro()
+        self.avaliar(outro, 0, 2)
+        with self.assertNumQueries(2):
+            response = self.client.get(reverse("core:home"))
+        destaque = next(item for item in response.context["destaques"] if item.pk == carro.pk)
+        self.assertEqual(destaque.media_avaliacoes, 4.5)
+        self.assertEqual(destaque.total_avaliacoes, 2)
+        self.assertContains(response, "Avaliação média: 4,5 de 5, com 2 avaliações")
+        detalhes = self.client.get(reverse("core:detalhes", args=[carro.pk]))
+        self.assertEqual(detalhes.context["avaliacoes"], {"media": 4.5, "total": 2})
+
+    def test_avaliacao_unilateral_nao_libera_nota_no_carrossel(self):
+        carro = self.carro()
+        self.avaliar(carro, 0, 5, reciproca=False)
+        response = self.client.get(reverse("core:home"))
+        destaque = response.context["destaques"][0]
+        self.assertEqual(destaque.total_avaliacoes, 0)
+        self.assertIsNone(destaque.media_avaliacoes)
+        self.assertContains(response, "Sem avaliações")
+        self.assertNotContains(response, "Avaliação média:")
 
     def test_exibe_apenas_anuncios_publicos_com_links_reais(self):
         publicado = self.carro()

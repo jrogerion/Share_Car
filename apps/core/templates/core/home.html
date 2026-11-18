@@ -56,6 +56,11 @@
                 <div class="discovery-car-body">
                   <h3>{{ veiculo.categoria }} em {{ veiculo.cidade }}</h3>
                   <p>{{ veiculo.caracteristicas|truncatechars:70 }}</p>
+                  <div class="discovery-rating">
+                    {% if veiculo.total_avaliacoes %}
+                      <span aria-label="Avaliação média: {{ veiculo.media_avaliacoes|floatformat:1 }} de 5, com {{ veiculo.total_avaliacoes }} {{ veiculo.total_avaliacoes|pluralize:'avaliação,avaliações' }}"><i class="bi bi-star-fill" aria-hidden="true"></i> {{ veiculo.media_avaliacoes|floatformat:1 }} <small>({{ veiculo.total_avaliacoes }})</small></span>
+                    {% else %}<span>Sem avaliações</span>{% endif %}
+                  </div>
                   <div class="discovery-meta"><strong>R$ {{ veiculo.preco_diaria|floatformat:2 }}<small>/dia</small></strong></div>
                   <span class="discovery-card-link">Ver anúncio <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
                 </div>

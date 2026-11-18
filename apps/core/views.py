@@ -2,7 +2,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.generic import DetailView, ListView, TemplateView
 
-from apps.avaliacoes.services import resumo_avaliacoes_veiculo
+from apps.avaliacoes.services import com_resumo_avaliacoes, resumo_avaliacoes_veiculo
 from apps.reservas.forms import ReservaForm
 from apps.reservas.services import (
     ReservaInvalida, estimar_reserva, motivo_impedimento_locatario,
@@ -25,7 +25,7 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["destaques"] = list(com_fotos_ordenadas(
-            veiculos_publicos().order_by("-pk"),
+            com_resumo_avaliacoes(veiculos_publicos()).order_by("-pk"),
         )[:8])
         return context
 

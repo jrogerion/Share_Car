@@ -1,5 +1,6 @@
 from django.db import transaction
-from django.db.models import Avg, Count, Exists, F, OuterRef
+from django.db.models import Avg, Count, Exists, F, IntegerField, OuterRef, Subquery
+from django.db.models.functions import Coalesce
 
 from apps.reservas.models import Reserva
 
@@ -65,16 +66,37 @@ def avaliacoes_da_reserva(reserva: Reserva):
     return reserva.avaliacoes.select_related("autor", "avaliado").order_by("id")
 
 
-def resumo_avaliacoes_veiculo(veiculo) -> dict:
-    """Agrega só notas de locatários já liberadas pela avaliação recíproca."""
+def _avaliacoes_publicas_de_locatarios():
+    """Consulta comum para não divergir a regra de sigilo entre telas."""
     contraparte = Avaliacao.objects.filter(
         reserva_id=OuterRef("reserva_id"),
         autor_id=OuterRef("avaliado_id"),
         avaliado_id=OuterRef("autor_id"),
     )
     return Avaliacao.objects.filter(
-        reserva__veiculo=veiculo,
         reserva__status=Reserva.Status.CONCLUIDA,
         autor=F("reserva__locatario"),
         avaliado=F("reserva__veiculo__proprietario"),
-    ).filter(Exists(contraparte)).aggregate(media=Avg("nota"), total=Count("pk"))
+    ).filter(Exists(contraparte))
+
+
+def resumo_avaliacoes_veiculo(veiculo) -> dict:
+    """Agrega só notas de locatários já liberadas pela avaliação recíproca."""
+    return _avaliacoes_publicas_de_locatarios().filter(
+        reserva__veiculo=veiculo,
+    ).aggregate(media=Avg("nota"), total=Count("pk"))
+
+
+def com_resumo_avaliacoes(veiculos):
+    """Anota notas públicas sem uma consulta extra por veículo."""
+    resumo = _avaliacoes_publicas_de_locatarios().filter(
+        reserva__veiculo_id=OuterRef("pk"),
+    ).order_by().values("reserva__veiculo_id").annotate(
+        media=Avg("nota"), total=Count("pk"),
+    )
+    return veiculos.annotate(
+        media_avaliacoes=Subquery(resumo.values("media")[:1]),
+        total_avaliacoes=Coalesce(
+            Subquery(resumo.values("total")[:1]), 0, output_field=IntegerField(),
+        ),
+    )
