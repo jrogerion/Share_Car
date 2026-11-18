@@ -196,6 +196,7 @@ class TemplatePagesTests(TestCase):
                 self.assertContains(response, "family=Inter", count=1)
                 self.assertContains(response, "bootstrap-icons.min.css", count=1)
                 self.assertContains(response, "js/search-loading.js", count=1)
+                self.assertContains(response, "js/form-feedback.js", count=1)
 
 
 class ResultadosTests(TestCase):

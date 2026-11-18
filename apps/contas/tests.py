@@ -84,6 +84,7 @@ class CadastroTests(TestCase):
         self.assertContains(response, 'value="Nova"')
         self.assertContains(response, 'value="invalido"')
         self.assertContains(response, 'role="alert"')
+        self.assertContains(response, 'tabindex="-1" data-form-errors')
         self.assertFalse(Usuario.objects.exists())
 
     def dados(self, **alteracoes):

@@ -13,7 +13,7 @@
   --sc-radius-control: .875rem;
   --sc-shadow: 0 6px 20px rgba(15, 23, 42, .04);
   --sc-shadow-hover: 0 12px 28px rgba(15, 23, 42, .09);
-  --sc-control-line: #cbd5e1;
+  --sc-control-line: #7b8798;
   --sc-focus: #0f766e;
   --sc-disabled-bg: #f1f5f9;
   --sc-space-1: .5rem;
@@ -62,6 +62,32 @@ a {
 
 .skip-link:focus {
   top: 1rem;
+}
+
+.flow-panel p.form-submit-status, p.form-submit-status {
+  margin: 0;
+  color: var(--sc-teal-dark);
+  font-size: .85rem;
+  line-height: 1.6;
+}
+
+.form-submit-status:empty {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+form [aria-disabled="true"] { cursor: progress; }
+.form-submit-spinner { flex-shrink: 0; }
+
+input[id], select[id], textarea[id], [data-form-errors] {
+  scroll-margin-top: 100px;
+  scroll-margin-bottom: 140px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-submit-spinner { animation: none; }
 }
 
 /* Navegação */

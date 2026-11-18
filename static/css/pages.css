@@ -170,6 +170,7 @@
 .flow-filter-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; grid-column: 1 / -1; }
 .flow-filter-actions .btn { min-height: 48px; }
 .flow-fields .errorlist { margin: 6px 0 0; padding-left: 1.1rem; color: #b91c1c; font-size: .78rem; }
+.flow-fields input[aria-invalid="true"], .flow-fields select[aria-invalid="true"], .flow-fields textarea[aria-invalid="true"] { border-color: #b91c1c; border-width: 2px; }
 .flow-error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
 .flow-error p { color: inherit; }
 .flow-success { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
