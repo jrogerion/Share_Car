@@ -43,6 +43,26 @@ class PerfilUsuarioTests(TestCase):
         self.usuario.refresh_from_db()
         self.assertEqual(self.usuario.first_name, "Pessoa")
 
+    def test_grupos_do_perfil_e_resumo_de_erros(self):
+        response = self.client.get(self.url)
+        for titulo in ("Seus dados", "Como você usa o ShareCar", "Habilitação para alugar"):
+            self.assertContains(response, f"<legend>{titulo}</legend>")
+        for nome in PerfilUsuarioForm.Meta.fields:
+            self.assertContains(response, f'name="{nome}"', count=1)
+        response = self.client.post(self.url, {**self.dados, "cnh_validade": ""})
+        self.assertContains(response, 'href="#id_cnh_validade"')
+        self.assertContains(response, f'value="{self.usuario.cnh_numero}"')
+
+    def test_admin_exibe_apenas_grupo_de_identificacao(self):
+        self.usuario.is_staff = True
+        self.usuario.save(update_fields=["is_staff"])
+        response = self.client.get(self.url)
+        self.assertContains(response, "<legend>Seus dados</legend>")
+        self.assertNotContains(response, "Habilitação para alugar")
+        self.assertNotContains(response, 'name="proprietario"')
+        self.assertNotContains(response, 'name="locatario"')
+        self.assertContains(response, reverse("administracao:painel"))
+
     def test_formulario_exibe_apenas_dados_proprios_e_aprovacoes(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)

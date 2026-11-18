@@ -201,6 +201,34 @@ class TemplatePagesTests(TestCase):
 class ResultadosTests(TestCase):
     """A busca deve consultar apenas veículos públicos e combinar filtros."""
 
+    def test_busca_inicial_e_por_cidade_mantem_filtros_recolhidos(self):
+        for filtros in ({}, {"cidade": "São Paulo"}, {"cidade": "São Paulo", "page": "1"}):
+            response = self.client.get(reverse("core:resultados"), filtros)
+            self.assertFalse(response.context["filtros_expandidos"])
+            self.assertContains(response, '<details class="catalog-advanced">')
+            self.assertContains(response, "Mais filtros")
+            self.assertContains(response, 'name="cidade"', count=1)
+
+    def test_filtros_avancados_ou_erros_abrem_painel(self):
+        for filtros in (
+            {"categoria": "SUV"}, {"ordenar": "menor_diaria"},
+            {"devolucao": "invalida"}, {"diaria_min": "-1"},
+            {"cidade": "x" * 151},
+        ):
+            response = self.client.get(reverse("core:resultados"), filtros)
+            self.assertTrue(response.context["filtros_expandidos"])
+            self.assertContains(response, '<details class="catalog-advanced" open>')
+
+    def test_recolher_nao_remove_campos_nem_filtros_aplicados(self):
+        response = self.client.get(reverse("core:resultados"), {
+            "cidade": "São Paulo", "categoria": "SUV", "ordenar": "menor_diaria",
+        })
+        for nome in response.context["filtro"].fields:
+            self.assertContains(response, f'name="{nome}"', count=1)
+        self.assertEqual(list(response.context["veiculos"]), [self.sp_suv])
+        self.assertContains(response, 'aria-label="Filtros aplicados"')
+        self.assertContains(response, 'value="São Paulo"')
+
     @classmethod
     def setUpTestData(cls):
         proprietario = Usuario.objects.create_user(

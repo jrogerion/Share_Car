@@ -12,14 +12,23 @@
 {% endblock %}
 {% block page_content %}
   <section class="flow-panel flow-filter" aria-labelledby="filtros-title">
-    <form method="get" action="{% url 'core:resultados' %}" role="search" aria-labelledby="filtros-title" data-search-form>
-      <h2 id="filtros-title">Filtros da busca</h2>
-      <div class="flow-filter-fields flow-fields">
+    <h2 id="filtros-title">Busque por cidade</h2>
+    <form method="get" action="{% url 'core:resultados' %}" class="catalog-search-form" role="search" aria-labelledby="filtros-title" data-search-form>
+      <div class="catalog-search-main flow-fields">
         <div class="flow-filter-city">
-          <label for="{{ filtro.cidade.id_for_label }}">{{ filtro.cidade.label }}</label>
+          <label class="visually-hidden" for="{{ filtro.cidade.id_for_label }}">{{ filtro.cidade.label }}</label>
           {{ filtro.cidade }}
           {{ filtro.cidade.errors }}
         </div>
+        <button class="discovery-button" type="submit" data-search-submit>
+          <span class="spinner-border spinner-border-sm" aria-hidden="true" data-search-spinner hidden></span>
+          <i class="bi bi-search" aria-hidden="true" data-search-icon></i>
+          <span data-search-label>Buscar carros</span>
+        </button>
+      </div>
+      <details class="catalog-advanced"{% if filtros_expandidos %} open{% endif %}>
+        <summary><i class="bi bi-sliders" aria-hidden="true"></i> Mais filtros</summary>
+        <div class="flow-filter-fields flow-fields catalog-advanced-fields">
         <div>
           <label for="{{ filtro.retirada.id_for_label }}">{{ filtro.retirada.label }}</label>
           {{ filtro.retirada }}
@@ -66,15 +75,12 @@
           {{ filtro.ordenar.errors }}
         </div>
         <div class="flow-filter-actions">
-          <button class="discovery-button" type="submit" data-search-submit>
-            <span class="spinner-border spinner-border-sm" aria-hidden="true" data-search-spinner hidden></span>
-            <i class="bi bi-funnel" aria-hidden="true" data-search-icon></i>
-            <span data-search-label>Aplicar filtros</span>
-          </button>
+          <button class="discovery-button" type="submit">Aplicar filtros</button>
           <a class="btn btn-outline-secondary" href="{% url 'core:resultados' %}">Limpar filtros</a>
         </div>
       </div>
       <p class="flow-small">Combine os filtros, inclusive a faixa de diária e o período, para refinar a busca. Apenas veículos publicados e disponíveis no período são exibidos.</p>
+      </details>
       <p class="visually-hidden" role="status" data-search-status></p>
     </form>
   </section>

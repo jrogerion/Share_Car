@@ -341,6 +341,44 @@ class RegistroLocacaoFormTests(LocacaoBaseTests):
 
 
 class RegistrarLocacaoViewTests(LocacaoBaseTests):
+    def test_formulario_organizado_com_previa_sem_envio_automatico(self):
+        reserva = self.criar_reserva()
+        self.aprovar_pagamento(reserva)
+        self.client.force_login(self.locatario)
+        response = self.client.get(reverse("locacoes:check_in", args=[reserva.pk]))
+        self.assertContains(response, "1. Dados do painel")
+        self.assertContains(response, "2. Fotos da vistoria")
+        self.assertContains(response, 'enctype="multipart/form-data"')
+        self.assertContains(response, 'data-inspection-previews hidden')
+        self.assertContains(response, 'js/inspection-photo-preview.js', count=1)
+        self.assertContains(response, 'id="id_fotos_helptext"')
+        for nome in ("quilometragem", "nivel_combustivel", "fotos"):
+            self.assertContains(response, f'name="{nome}"', count=1)
+        self.assertFalse(RegistroLocacao.objects.exists())
+
+    def test_erros_apontam_para_campos_e_preservam_numeros(self):
+        reserva = self.criar_reserva()
+        self.aprovar_pagamento(reserva)
+        self.client.force_login(self.locatario)
+        response = self.client.post(reverse("locacoes:check_in", args=[reserva.pk]), {
+            "quilometragem": "12345", "nivel_combustivel": "60",
+        })
+        self.assertContains(response, 'href="#id_fotos"')
+        self.assertContains(response, 'value="12345"')
+        self.assertContains(response, 'value="60"')
+        self.assertContains(response, "selecione novamente as fotos")
+        self.assertFalse(RegistroLocacao.objects.exists())
+
+    def test_devolucao_mostra_referencia_da_retirada(self):
+        reserva = self.criar_reserva()
+        self.aprovar_pagamento(reserva)
+        self.registrar(reserva, "check_in", quilometragem=1000)
+        self.client.force_login(self.locatario)
+        response = self.client.get(reverse("locacoes:check_out", args=[reserva.pk]))
+        self.assertContains(response, "Quilometragem final (km)")
+        self.assertContains(response, "1000 km")
+        self.assertContains(response, "a locação será concluída")
+
     def test_bloqueia_formulario_e_post_sem_pagamento_ou_check_in(self):
         reserva = self.criar_reserva()
         self.client.force_login(self.locatario)

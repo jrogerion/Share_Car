@@ -117,6 +117,10 @@ class ResultadosView(ListView):
         context["total_veiculos"] = context["paginator"].count
         context["cidade_busca"] = dados.get("cidade", "")
         context["filtro_invalido"] = not valido
+        context["filtros_expandidos"] = not valido or any(
+            self.request.GET.get(nome, "").strip()
+            for nome in self.filtro.fields if nome != "cidade"
+        )
         context["busca_ativa"] = not valido or any(
             valor for campo, valor in dados.items() if campo != "ordenar"
         )

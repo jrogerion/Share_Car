@@ -6,7 +6,7 @@
   }
 
   const setLoading = (form, loading) => {
-    const button = form.querySelector("[data-search-submit]");
+    const buttons = form.querySelectorAll('button[type="submit"]');
     const status = form.querySelector("[data-search-status]");
     const icon = form.querySelector("[data-search-icon]");
     const spinner = form.querySelector("[data-search-spinner]");
@@ -18,14 +18,14 @@
       form.removeAttribute("aria-busy");
     }
 
-    if (button) {
+    buttons.forEach((button) => {
       button.disabled = loading;
       if (loading) {
         button.setAttribute("aria-disabled", "true");
       } else {
         button.removeAttribute("aria-disabled");
       }
-    }
+    });
 
     if (icon) {
       icon.hidden = loading;

@@ -1,4 +1,5 @@
 {% extends "core/page.html" %}
+{% load static %}
 {% block title %}{% if eh_check_out %}Check-out{% else %}Check-in{% endif %} — Reserva #{{ reserva.pk }} — ShareCar{% endblock %}
 {% block back_url %}{% url 'reservas:detalhe' reserva.pk %}{% endblock %}
 {% block back_label %}Voltar à reserva{% endblock %}
@@ -13,32 +14,45 @@
 {% endblock %}
 {% block page_content %}
   <div class="flow-columns">
-    <section class="flow-panel flow-fields" aria-labelledby="registro-title">
+    <section class="flow-panel" aria-labelledby="registro-title">
       <h2 id="registro-title">{% if eh_check_out %}Dados da devolução{% else %}Dados da retirada{% endif %}</h2>
-      {% if form.non_field_errors %}
-        <div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>
-      {% endif %}
+      {% include "contas/erros_formulario.html" %}
       {% if form.errors %}
         <p class="flow-small" role="status">Corrija os dados indicados e selecione novamente as fotos antes de enviar.</p>
       {% endif %}
-      <form method="post" action="{% if eh_check_out %}{% url 'locacoes:check_out' reserva.pk %}{% else %}{% url 'locacoes:check_in' reserva.pk %}{% endif %}" enctype="multipart/form-data" class="flow-fields" novalidate>
+      <p class="flow-small">Confira os dados antes de confirmar. Todos os campos desta vistoria são obrigatórios.</p>
+      <form method="post" action="{% if eh_check_out %}{% url 'locacoes:check_out' reserva.pk %}{% else %}{% url 'locacoes:check_in' reserva.pk %}{% endif %}" enctype="multipart/form-data" class="flow-fields" novalidate data-inspection-form>
         {% csrf_token %}
-        <label for="{{ form.quilometragem.id_for_label }}">{{ form.quilometragem.label }}</label>
-        {{ form.quilometragem }}
-        {{ form.quilometragem.errors }}
-        {% if eh_check_out and check_in %}
-          <p class="flow-small">Quilometragem registrada no check-in: <strong>{{ check_in.quilometragem }} km</strong>.</p>
-        {% endif %}
-
-        <label for="{{ form.nivel_combustivel.id_for_label }}">{{ form.nivel_combustivel.label }}</label>
-        {{ form.nivel_combustivel }}
-        {{ form.nivel_combustivel.errors }}
-
-        <label for="{{ form.fotos.id_for_label }}">{{ form.fotos.label }}</label>
-        {{ form.fotos }}
-        {{ form.fotos.errors }}
-        <p class="flow-small">{{ form.fotos.help_text }}</p>
-
+        <fieldset class="inspection-group">
+          <legend><i class="bi bi-speedometer2" aria-hidden="true"></i> 1. Dados do painel</legend>
+          <div class="inspection-fields">
+            <div>
+              <label for="{{ form.quilometragem.id_for_label }}">{{ form.quilometragem.label }} (km)</label>
+              {{ form.quilometragem }}
+              {{ form.quilometragem.errors }}
+              {% if eh_check_out and check_in %}
+                <p class="flow-small">Quilometragem registrada no check-in: <strong>{{ check_in.quilometragem }} km</strong>. A quilometragem final não pode ser menor.</p>
+              {% else %}<p class="flow-small">Informe o valor total do hodômetro, não a distância da viagem.</p>{% endif %}
+            </div>
+            <div>
+              <label for="{{ form.nivel_combustivel.id_for_label }}">{{ form.nivel_combustivel.label }}</label>
+              {{ form.nivel_combustivel }}
+              {{ form.nivel_combustivel.errors }}
+              <p class="flow-small">Use um valor de 0 a 100: 0 para vazio, 50 para metade e 100 para cheio.</p>
+            </div>
+          </div>
+        </fieldset>
+        <fieldset class="inspection-group" aria-describedby="{{ form.fotos.auto_id }}_helptext inspection-photo-notice">
+          <legend><i class="bi bi-camera" aria-hidden="true"></i> 2. Fotos da vistoria</legend>
+          <label for="{{ form.fotos.id_for_label }}">{{ form.fotos.label }}</label>
+          {{ form.fotos }}
+          {{ form.fotos.errors }}
+          <p class="flow-small" id="{{ form.fotos.auto_id }}_helptext">{{ form.fotos.help_text }}</p>
+          <p class="flow-small" id="inspection-photo-notice">Fotografe somente o veículo, sem documentos ou pessoas. Neste ambiente, os arquivos de vistoria ainda são públicos.</p>
+          <p class="flow-small inspection-photo-status" role="status" data-inspection-photo-status>Selecione as fotos para conferir as prévias antes do envio.</p>
+          <div class="inspection-previews" data-inspection-previews hidden></div>
+        </fieldset>
+        <p class="flow-small">{% if eh_check_out %}Ao registrar o check-out, a locação será concluída e as avaliações serão liberadas.{% else %}Ao registrar o check-in, a locação será iniciada e a vistoria ficará vinculada a esta reserva.{% endif %}</p>
         <button class="discovery-button" type="submit">
           {% if eh_check_out %}Registrar check-out{% else %}Registrar check-in{% endif %}
         </button>
@@ -46,6 +60,14 @@
     </section>
 
     <aside class="flow-stack">
+      <section class="flow-panel" aria-labelledby="conferencia-title">
+        <h2 id="conferencia-title">Antes de confirmar</h2>
+        <ul class="inspection-checklist">
+          <li><i class="bi bi-check2-circle" aria-hidden="true"></i> Confira o hodômetro e o combustível no painel.</li>
+          <li><i class="bi bi-check2-circle" aria-hidden="true"></i> Registre o estado externo, interno e eventuais avarias.</li>
+          <li><i class="bi bi-check2-circle" aria-hidden="true"></i> Revise as fotos selecionadas. As prévias não enviam arquivos automaticamente.</li>
+        </ul>
+      </section>
       <section class="flow-panel" aria-labelledby="vistoria-title">
         <h2 id="vistoria-title">Vistoria registrada</h2>
         {% if check_in %}
@@ -72,4 +94,7 @@
       <a class="btn btn-outline-secondary" href="{% url 'reservas:detalhe' reserva.pk %}">Cancelar e voltar</a>
     </aside>
   </div>
+{% endblock %}
+{% block scripts %}
+  <script src="{% static 'js/inspection-photo-preview.js' %}"></script>
 {% endblock %}

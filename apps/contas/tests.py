@@ -69,6 +69,23 @@ def criar_reserva(veiculo, locatario, **dados):
 class CadastroTests(TestCase):
     """O cadastro usa e-mail, define perfis e não autentica automaticamente."""
 
+    def test_formulario_agrupado_e_ajuda_de_senha_associada(self):
+        response = self.client.get(reverse("contas:cadastro"))
+        for legenda in ("Seus dados", "Como você vai usar o ShareCar?", "Proteja seu acesso"):
+            self.assertContains(response, f"<legend>{legenda}</legend>")
+        for nome in ("first_name", "last_name", "email", "locatario", "proprietario", "password1", "password2"):
+            self.assertContains(response, f'name="{nome}"', count=1)
+        self.assertContains(response, 'id="id_password1_helptext"', count=1)
+        self.assertContains(response, 'aria-describedby="id_password1_helptext"')
+
+    def test_resumo_de_erros_aponta_para_campo_e_preserva_dados(self):
+        response = self.client.post(reverse("contas:cadastro"), self.dados(email="invalido"))
+        self.assertContains(response, 'href="#id_email"')
+        self.assertContains(response, 'value="Nova"')
+        self.assertContains(response, 'value="invalido"')
+        self.assertContains(response, 'role="alert"')
+        self.assertFalse(Usuario.objects.exists())
+
     def dados(self, **alteracoes):
         dados = {
             "first_name": "Nova",
