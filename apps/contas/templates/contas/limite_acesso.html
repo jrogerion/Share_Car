@@ -1,0 +1,12 @@
+{% extends "core/page.html" %}
+{% block title %}Aguarde para tentar novamente — ShareCar{% endblock %}
+{% block page_title %}Muitas tentativas{% endblock %}
+{% block page_subtitle %}Por segurança, aguarde antes de tentar novamente.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <section class="flow-panel" role="alert">
+    <h2>Limite temporário de acesso</h2>
+    <p>Tente novamente em {{ espera }} segundos. O limite não informa se uma conta existe e não bloqueia permanentemente seu cadastro.</p>
+    <a class="discovery-button" href="{% url 'core:entrar' %}">Voltar para o login</a>
+  </section>
+{% endblock %}

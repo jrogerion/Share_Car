@@ -8,6 +8,14 @@ def armazenamento_documentos():
     return storages["documentos"]
 
 
+class LimiteAcesso(models.Model):
+    """Contador compartilhado; a chave HMAC não armazena IP ou e-mail em claro."""
+
+    chave = models.CharField(max_length=64, primary_key=True)
+    tentativas = models.PositiveIntegerField(default=0)
+    expira_em = models.DateTimeField(db_index=True)
+
+
 class Usuario(AbstractUser):
     class Aprovacao(models.TextChoices):
         PENDENTE = "pendente", "Pendente"
