@@ -96,7 +96,7 @@ class ResultadosView(ListView):
             "menor_diaria": ("preco_diaria", "-id"),
             "maior_diaria": ("-preco_diaria", "-id"),
         }.get(dados.get("ordenar"), ("-id",))
-        return com_fotos_ordenadas(buscar_veiculos(
+        return com_resumo_avaliacoes(com_fotos_ordenadas(buscar_veiculos(
             cidade=dados.get("cidade", ""),
             categoria=dados.get("categoria", ""),
             cambio=dados.get("cambio", ""),
@@ -106,7 +106,7 @@ class ResultadosView(ListView):
             diaria_max=dados.get("diaria_max"),
             inicio=dados.get("retirada"),
             fim=dados.get("devolucao"),
-        ).order_by(*ordenacao))
+        ).order_by(*ordenacao)))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

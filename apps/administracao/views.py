@@ -276,6 +276,7 @@ class AlternarBloqueioVeiculoView(AdministradorMixin, View):
         return redirect("administracao:painel")
 
 
+@method_decorator(never_cache, name="dispatch")
 class ConfiguracaoComissaoView(AdministradorMixin, View):
     """Permite ajustar o percentual de comissão das novas reservas."""
 

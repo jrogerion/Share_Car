@@ -1,5 +1,6 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
+from django.views.decorators.cache import never_cache
 
 from .views import (
     CadastroConcluidoView, CadastroUsuarioView, DocumentoIdentidadeView,
@@ -59,17 +60,17 @@ urlpatterns = [
     ),
     path(
         "senha/alterar/",
-        auth_views.PasswordChangeView.as_view(
+        never_cache(auth_views.PasswordChangeView.as_view(
             template_name="contas/alterar_senha.html",
             success_url=reverse_lazy("contas:alterar_senha_concluido"),
-        ),
+        )),
         name="alterar_senha",
     ),
     path(
         "senha/alterar/concluido/",
-        auth_views.PasswordChangeDoneView.as_view(
+        never_cache(auth_views.PasswordChangeDoneView.as_view(
             template_name="contas/alterar_senha_concluido.html",
-        ),
+        )),
         name="alterar_senha_concluido",
     ),
 ]

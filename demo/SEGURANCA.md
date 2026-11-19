@@ -21,6 +21,9 @@ testes destrutivos contra os dados locais, nem testes em serviços de terceiros.
   inesperado, não evidência de execução de código nos downloads anteriores.
 - Downloads de documentos recebem proteção de origem e de referrer e tratam
   erros de leitura sem apresentar caminhos internos.
+- Alteração de senha, confirmação da alteração e configuração de comissão
+  não enviavam `Cache-Control: no-store`. As três telas agora usam `never_cache`,
+  alinhando sua proteção de cache às demais páginas privadas.
 
 Os arquivos antigos **não foram reprocessados**. Limites e validações de imagem
 continuam no servidor, mesmo que o navegador seja manipulado.
@@ -28,12 +31,18 @@ continuam no servidor, mesmo que o navegador seja manipulado.
 ## Verificações
 
 - Os testes de reprodução falharam antes das correções e passaram depois.
-- Suíte completa: **496 testes passaram**; `manage.py check` sem problemas e
+- Suíte completa: **512 testes passaram**; `manage.py check` sem problemas e
   `makemigrations --check --dry-run` sem mudanças pendentes no modelo.
 - Cobertura adicional: CSRF no bloqueio administrativo, injeção de privilégios
   no perfil, redirecionamento externo no login, resolução e metadados de uploads.
 - A suíte também cobre acessos entre contas, documentos/vistorias privados,
   snapshots financeiros, repetição, transições e concorrência dos fluxos.
+- A bateria integrada em `apps/core/test_seguranca_integrada.py` verifica
+  permissões pelas URLs reais, CSRF em 23 operações, origem externa com token
+  válido, GET sem transições e cache privado. Também cobre downloads com
+  parâmetros e cabeçalhos forjados, logout, bloqueio de conta com sessão existente,
+  campos públicos e escrita proibida na API, valores financeiros adulterados
+  e payload SQL tratado como texto. Usa banco e arquivos isolados.
 - Nenhum `.env`, certificado ou arquivo de chave privada foi encontrado entre
   os arquivos rastreados consultados. Isso não equivale a varrer todo o histórico
   Git ou comprovar ausência de segredos em qualquer formato.

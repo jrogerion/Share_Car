@@ -85,6 +85,24 @@ class HomeCarouselTests(TestCase):
         self.assertContains(response, "Sem avaliações")
         self.assertNotContains(response, "Avaliação média:")
 
+    def test_busca_exibe_a_mesma_media_publica_sem_vazar_avaliacao_unilateral(self):
+        carro = self.carro()
+        self.avaliar(carro, 0, 5)
+        self.avaliar(carro, 1, 4)
+        self.avaliar(carro, 2, 1, reciproca=False)
+        response = self.client.get(reverse("core:resultados"), {"cidade": "Campinas"})
+        veiculo = response.context["veiculos"][0]
+        self.assertEqual(veiculo.media_avaliacoes, 4.5)
+        self.assertEqual(veiculo.total_avaliacoes, 2)
+        self.assertContains(response, "Avaliação média: 4,5 de 5, com 2 avaliações")
+
+    def test_busca_sem_avaliacoes_publicas_nao_mostra_nota(self):
+        carro = self.carro()
+        self.avaliar(carro, 0, 5, reciproca=False)
+        response = self.client.get(reverse("core:resultados"))
+        self.assertContains(response, "Sem avaliações")
+        self.assertNotContains(response, "Avaliação média:")
+
     def test_exibe_apenas_anuncios_publicos_com_links_reais(self):
         publicado = self.carro()
         privados = [

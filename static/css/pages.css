@@ -1,4 +1,7 @@
 /* Telas demonstrativas baseadas em docs/prototipo, sem moldura de celular. */
+.catalog-rating { margin-top: 14px; color: var(--sc-muted); font-size: .85rem; }
+.catalog-rating i { color: #a15c00; margin-right: 4px; }
+.catalog-rating small { font-size: inherit; }
 .inspection-private-photos { padding-left: 20px; margin: 12px 0; font-size: .85rem; }
 .inspection-private-photos li { padding: 8px 0; }
 .inspection-group { min-width: 0; padding: 18px 0 0; margin: 8px 0; border: 0; border-top: 1px solid var(--sc-line); }
