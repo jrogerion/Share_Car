@@ -49,32 +49,87 @@ Application/Aplicativo → Service Workers e Cache Storage. O cache
 `sharecar-pwa-v1` deve conter apenas `/offline/`. A limpeza de versões antigas
 remove somente caches com prefixo `sharecar-pwa-`, nunca os de outros aplicativos.
 
-## Backup local (procedimento manual, não executado automaticamente)
+## Backup local
 
-Faça backup do banco **e** dos arquivos. Pare temporariamente o serviço web para
-evitar que uploads e dados mudem durante a cópia; mantenha o PostgreSQL ligado.
+Faça backup do banco **e** dos arquivos. Suspenda temporariamente o serviço web
+para evitar que uploads e dados mudem durante a cópia; mantenha o PostgreSQL
+ligado. Evite também alterações no banco por outros terminais durante a cópia.
 Exemplo para os nomes atuais dos containers Podman, em um terminal Linux:
 
 ```sh
+(
+set -eu
 umask 077
-BACKUP="$HOME/.local/share/sharecar-backups/$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$BACKUP"
-podman stop share_car_web_1
+mkdir -p "$HOME/.local/share/sharecar-backups"
+BACKUP="$(mktemp -d "$HOME/.local/share/sharecar-backups/$(date +%Y%m%d-%H%M%S)-XXXXXX")"
+IMAGEM="$(podman inspect share_car_web_1 --format '{{.Image}}')"
+podman pause share_car_web_1
+trap 'podman unpause share_car_web_1 >/dev/null' EXIT
 podman exec share_car_db_1 sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$BACKUP/banco.dump"
-podman cp share_car_web_1:/app/media "$BACKUP/media"
-podman cp share_car_web_1:/app/private_media "$BACKUP/private_media"
+podman run --rm --pull=never --network none --user 0 \
+  --volumes-from share_car_web_1:ro --entrypoint tar "$IMAGEM" \
+  -C /app -cf - media private_media > "$BACKUP/midias.tar"
+test -s "$BACKUP/banco.dump"
+test -s "$BACKUP/midias.tar"
+cd "$BACKUP"
+sha256sum banco.dump midias.tar > SHA256SUMS
+printf 'Cópia capturada em: %s\n' "$BACKUP"
+)
 ```
 
-Confira se todos os comandos terminaram sem erro. Ao religar o web, considere a
-regra do entrypoint sobre migrations. Guarde configurações e acessos privados
-separadamente, com acesso restrito, fora do Git e de pastas compartilhadas.
+O subshell retoma o processo web ao terminar, inclusive em caso de erro, sem
+reiniciar seu entrypoint ou executar migrations. Se o terminal for interrompido
+de forma que o trap não execute, confira o estado e use `podman unpause
+share_car_web_1`. Não use o procedimento se o container já estiver pausado.
+
+Na validação de 22/11/2026, `podman cp` retornou sucesso, mas não trouxe os
+arquivos dos volumes. Por isso, o exemplo usa os volumes explicitamente em modo
+somente leitura. Um dump/tar não vazio ou um comando com código zero **não
+comprova um backup completo**: confira inventário, hashes e restauração.
+
+Guarde configurações e acessos privados separadamente, com acesso restrito,
+fora do Git e de pastas compartilhadas. O exemplo não copia `.env` nem credenciais
+e não criptografa o backup. As permissões restritas não substituem criptografia
+ou uma segunda cópia em outro dispositivo.
 
 Para validar uma restauração, use **outro banco e outros diretórios/volumes**:
-crie um banco vazio com nome novo, restaure o dump com `pg_restore`, copie as
-pastas de mídia e aponte uma instância de teste para esse ambiente. Confira login,
-reservas, fotos e documentos. Não sobrescreva o banco nem os volumes atuais.
-A criação desse ambiente e a restauração exigem autorização específica; os
-comandos acima não comprovam, sozinhos, que um backup é restaurável.
+crie um banco vazio com nome novo e restaure com `pg_restore --exit-on-error
+--single-transaction --no-owner --no-privileges`. Esses dois últimos argumentos
+usam o proprietário isolado; não reproduzem permissões e papéis do servidor
+original. Não use `--clean` nem a conexão do banco original.
+
+Extraia `midias.tar` somente em diretório vazio isolado, rejeitando links,
+arquivos especiais e caminhos fora de `media/` e `private_media/`. Configure a
+instância de teste para esse banco e essas mídias; não envie e-mails reais.
+Confira sessões autenticadas, reservas, fotos e documentos. Não sobrescreva o
+banco nem os volumes atuais. A criação e a restauração desse ambiente exigem
+autorização específica.
+
+### Restauração validada em 22/11/2026
+
+- Backup local realizado e restaurado com autorização, usando PostgreSQL 18.6
+  descartável em memória, sem rede externa ou portas publicadas.
+- Conteúdo de 20 tabelas e valores/estado de 17 sequências iguais à captura;
+  estrutura de colunas, índices e restrições conferida pelo catálogo. Posições
+  físicas de colunas removidas e casts equivalentes não foram tratados como
+  divergências lógicas de esquema.
+- SHA-256 dos 25 arquivos conferido entre origem, backup e restauração:
+  7 públicos e 18 privados. Todas as 25 referências do banco foram abertas.
+- Homepage, busca, sessões autenticadas e consulta de reservas funcionaram.
+  Downloads privados autorizados funcionaram, com `no-store`; acesso anônimo
+  e acesso de terceiros às fotos de vistoria foram bloqueados.
+- A restrição de sobreposição rejeitou duplicatas nos quatro status que ocupam
+  agenda; uma reserva cancelada não ocupou a agenda. Esses testes modificaram
+  somente o banco descartável, não o original.
+- `manage.py check` sem problemas e nenhuma migration pendente na restauração.
+  Sessões foram criadas na cópia; nenhuma senha real foi solicitada ou testada.
+- O backup aceito tem `manifesto.json` e `validacao.json` com resultado
+  `VALIDADO`, em pasta restrita fora do repositório. As tentativas intermediárias
+  sem esse resultado não devem ser consideradas backups validados.
+
+A validação não cobre perda do computador, recuperação de segredos, restauração
+de papéis PostgreSQL ou um backup criado depois dessa data. Nenhum segredo foi
+copiado e o ambiente descartável foi encerrado após os testes.
 
 ## Fotos de vistoria privadas
 

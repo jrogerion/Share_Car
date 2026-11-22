@@ -1,11 +1,16 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
-from threading import Barrier
+from http.client import HTTPConnection
+from threading import Barrier, Thread
 from unittest.mock import patch
+from wsgiref.simple_server import WSGIRequestHandler, make_server
 
 from django.core import mail
+from django.core.handlers.wsgi import WSGIRequest
 from django.db import close_old_connections, connections
-from django.test import Client, TestCase, TransactionTestCase, override_settings
+from django.test import (
+    Client, SimpleTestCase, TestCase, TransactionTestCase, override_settings,
+)
 from django.urls import reverse
 from django.utils import timezone
 
@@ -76,7 +81,30 @@ class LimitesAcessoTests(TestCase):
         self.assertEqual(self.login(
             HTTP_X_FORWARDED_FOR="192.0.2.99", HTTP_X_REAL_IP="192.0.2.100",
             HTTP_FORWARDED="for=192.0.2.101",
+            HTTP_CF_CONNECTING_IP="192.0.2.102",
         ).status_code, 429)
+
+    def test_clientes_atras_do_mesmo_proxy_compartilham_limite(self):
+        url = reverse("contas:recuperar_senha")
+        # Simula um proxy sem restauração confiável do IP: muda só o header.
+        for indice in range(5):
+            response = self.client.post(
+                url, {"email": f"inexistente-{indice}@example.com"},
+                REMOTE_ADDR="192.0.2.10",
+                HTTP_CF_CONNECTING_IP=f"192.0.2.{indice + 20}",
+            )
+            self.assertEqual(response.status_code, 302)
+        response = self.client.post(
+            url, {"email": "outro@example.com"}, REMOTE_ADDR="192.0.2.10",
+            HTTP_CF_CONNECTING_IP="192.0.2.99",
+        )
+        self.assertEqual(response.status_code, 429)
+        # Outra conexão real não herda o bloqueio, ainda que repita o header.
+        response = self.client.post(
+            url, {"email": "outro@example.com"}, REMOTE_ADDR="192.0.2.11",
+            HTTP_CF_CONNECTING_IP="192.0.2.99",
+        )
+        self.assertEqual(response.status_code, 302)
 
     def test_recuperacao_compartilha_limite_com_alias_sem_enviar_mais_emails(self):
         for _ in range(3):
@@ -170,6 +198,59 @@ class LimitesAcessoTests(TestCase):
         self.assertEqual(ip_da_conexao(request), "2001:db8::1")
         request.META = {}
         self.assertEqual(ip_da_conexao(request), "desconhecido")
+
+
+class IPConexaoHTTPTests(SimpleTestCase):
+    """Sockets reais, sem banco ou endpoint de diagnóstico no site."""
+
+    def setUp(self):
+        class SemLogs(WSGIRequestHandler):
+            def log_message(self, *args):
+                pass
+
+        def application(environ, start_response):
+            ip = ip_da_conexao(WSGIRequest(environ)).encode("ascii")
+            start_response("200 OK", [
+                ("Content-Type", "text/plain"), ("Content-Length", str(len(ip))),
+            ])
+            return [ip]
+
+        self.server = make_server(
+            "127.0.0.1", 0, application, handler_class=SemLogs,
+        )
+        self.thread = Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        self.addCleanup(self.encerrar)
+
+    def encerrar(self):
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=5)
+
+    def consultar(self, origem="127.0.0.1", headers=None):
+        connection = HTTPConnection(
+            "127.0.0.1", self.server.server_port,
+            source_address=(origem, 0), timeout=5,
+        )
+        try:
+            connection.request("GET", "/", headers=headers or {})
+            response = connection.getresponse()
+            self.assertEqual(response.status, 200)
+            return response.read().decode("ascii")
+        finally:
+            connection.close()
+
+    def test_socket_real_prevalece_sobre_cabecalhos(self):
+        self.assertEqual(self.consultar(headers={
+            "X-Forwarded-For": "192.0.2.1, 192.0.2.2",
+            "X-Real-IP": "192.0.2.3",
+            "Forwarded": "for=192.0.2.4",
+            "CF-Connecting-IP": "192.0.2.5",
+        }), "127.0.0.1")
+
+    def test_origens_distintas_sem_nat_permanecem_distintas(self):
+        self.assertEqual(self.consultar(origem="127.0.0.1"), "127.0.0.1")
+        self.assertEqual(self.consultar(origem="127.0.0.2"), "127.0.0.2")
 
 
 class ConcorrenciaLimitesTests(TransactionTestCase):

@@ -1,4 +1,4 @@
-# Revisão de segurança — 18/11/2026
+# Revisão de segurança — 22/11/2026
 
 ## Escopo desta entrega
 
@@ -31,7 +31,7 @@ continuam no servidor, mesmo que o navegador seja manipulado.
 ## Verificações
 
 - Os testes de reprodução falharam antes das correções e passaram depois.
-- Suíte completa: **529 testes passaram**; `manage.py check` sem problemas e
+- Suíte completa: **532 testes passaram**; `manage.py check` sem problemas e
   `makemigrations --check --dry-run` sem mudanças pendentes no modelo.
 - Cobertura adicional: CSRF no bloqueio administrativo, injeção de privilégios
   no perfil, redirecionamento externo no login, resolução e metadados de uploads.
@@ -63,7 +63,11 @@ Alterar a chave pode invalidar sessões e tokens; exige preparação e autoriza�
   foi conferido no serviço web. Em outro ambiente, criar a tabela antes de
   disponibilizar o novo código.
 - Não foi executado scanner externo de CVEs das dependências nem pentest externo.
-- Backup/restauração em ambiente separado ainda precisa ser validado.
+- Backup/restauração validado em 22/11/2026 em PostgreSQL descartável, com
+  comparação de 20 tabelas, 17 sequências e SHA-256 de 25 arquivos. Sessões,
+  consultas e permissões privadas conferidas somente na cópia; detalhes em
+  `APRESENTACAO.md`. Backup criptografado em outro dispositivo e recuperação
+  das configurações/segredos ainda precisam de preparação própria.
 - Fotos antigas podem conservar metadados; qualquer reprocessamento retroativo
   precisa de autorização própria e plano de preservação.
 - Uma futura hospedagem deve servir apenas fotos públicas de anúncios, nunca
@@ -103,3 +107,49 @@ Esta revisão não é certificação nem garantia de ausência de vulnerabilidad
 - Linhas expiradas são reutilizadas para a mesma chave, mas não removidas
   automaticamente. Definir retenção e limpeza controlada antes de exposição
   prolongada à internet; nenhuma exclusão de registros foi executada nesta entrega.
+
+## Validação de IPs — 22/11/2026
+
+### Resultado local
+
+- O serviço web está publicado somente em `127.0.0.1:8000`. Não foi identificado
+  proxy/túnel entre os containers e processos conhecidos consultados. Nenhum túnel
+  foi instalado ou aberto nesta entrega.
+- O GET de login no serviço real respondeu HTTP 200. O log padrão consultado
+  não informou a origem; não foi adicionado endpoint de diagnóstico ao site.
+- Um servidor WSGI descartável, usando a imagem da aplicação, a mesma rede
+  Podman e publicação de porta restrita a loopback, recebeu conexões originadas
+  em `127.0.0.1` e `127.0.0.2`. Após o encaminhamento, ambas chegaram com o mesmo
+  `REMOTE_ADDR`. Isso demonstra compartilhamento de origem nesse caminho local;
+  não comprova como chegariam visitantes externos por um futuro túnel.
+- Nesse diagnóstico, `ip_da_conexao` permaneceu igual ao `REMOTE_ADDR`, mesmo
+  com `X-Forwarded-For`, `X-Real-IP`, `Forwarded` e `CF-Connecting-IP` forjados.
+  Foram usadas configurações fictícias, sem conexão ao banco real, e o container
+  de diagnóstico foi encerrado.
+- Novos testes com sockets HTTP reais, sem o encaminhamento de porta do Podman,
+  confirmaram que origens distintas são preservadas e que headers não substituem
+  a origem da conexão. Um teste integrado demonstrou o compartilhamento do limite
+  por clientes com o mesmo `REMOTE_ADDR`, mesmo com `CF-Connecting-IP` diferente.
+  POSTs adversariais e contadores ficaram restritos ao PostgreSQL de teste isolado.
+- Não houve mudança na resolução de IP, middleware, publicação, `.env` ou dados
+  locais, nem necessidade de migration ou recriação dos serviços existentes.
+
+### Pendência para publicação
+
+A validação externa **continua pendente** até existir uma topologia real de
+proxy/túnel. Não basta confiar em `CF-Connecting-IP` por estar usando Cloudflare:
+é necessário comprovar quem pode entregar esse header à aplicação.
+
+Antes de liberar acesso externo:
+
+1. Definir o proxy/túnel e verificar o IP da conexão que ele entrega ao backend.
+2. Garantir que somente o intermediário autorizado alcance a origem e que ele
+   remova/substitua cabeçalhos de IP fornecidos pelo visitante.
+3. Se necessário, implementar restauração de IP restrita à origem confiável e
+   ao header realmente controlado por ela, com validação de IPv4/IPv6. Não ativar
+   confiança global em `X-Forwarded-For` ou escolher simplesmente o primeiro IP.
+4. Testar duas redes externas distintas, confirmar contadores separados e testar
+   falsificação de headers, inclusive tentativa de acesso direto à origem.
+
+Até essa validação, clientes que cheguem com o mesmo IP de proxy/NAT compartilharão
+o limite. Os testes locais não representam certificação de uma publicação futura.
