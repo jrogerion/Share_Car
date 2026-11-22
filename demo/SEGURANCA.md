@@ -31,7 +31,7 @@ continuam no servidor, mesmo que o navegador seja manipulado.
 ## Verificações
 
 - Os testes de reprodução falharam antes das correções e passaram depois.
-- Suíte completa: **532 testes passaram**; `manage.py check` sem problemas e
+- Suíte completa: **544 testes passaram**; `manage.py check` sem problemas e
   `makemigrations --check --dry-run` sem mudanças pendentes no modelo.
 - Cobertura adicional: CSRF no bloqueio administrativo, injeção de privilégios
   no perfil, redirecionamento externo no login, resolução e metadados de uploads.
@@ -108,9 +108,30 @@ Esta revisão não é certificação nem garantia de ausência de vulnerabilidad
 - Não há bloqueio global por conta, evitando que um atacante impeça o acesso
   da vítima a partir de outra rede. Como contrapartida, ataques distribuídos
   precisam de proteção adicional no proxy/borda e monitoramento na publicação.
-- Linhas expiradas são reutilizadas para a mesma chave, mas não removidas
-  automaticamente. Definir retenção e limpeza controlada antes de exposição
-  prolongada à internet; nenhuma exclusão de registros foi executada nesta entrega.
+- Linhas expiradas continuam sendo reutilizadas para a mesma chave. O comando
+  `limpar_limites_acesso` implementa limpeza manual, com conferência por padrão
+  e retenção padrão de 24 horas após a expiração. A exclusão exige `--executar`
+  e autorização para o banco alvo; nenhuma exclusão foi executada no banco local.
+  Não há limpeza automática nem agendamento. Veja o uso em `APRESENTACAO.md`.
+
+### Limpeza controlada dos contadores — 22/11/2026
+
+- Mantém contadores ativos e expirados dentro da retenção. O corte é fixado no
+  início da execução; só registros com expiração anterior ou igual a esse corte
+  são elegíveis. A retenção pode ser configurada, com mínimo de uma hora.
+- Limita cada execução a 1000 contadores por padrão, configurável de 1 a 10000,
+  com transações em lotes de até 100. A conferência também respeita o limite.
+- Usa `select_for_update(skip_locked=True)` no PostgreSQL, ignora linhas em uso
+  e mantém a condição de expiração no DELETE. Não reinicia bloqueios ativos nem
+  apaga um contador que está sendo renovado por outra transação.
+- Mostra somente corte, retenção e quantidades; não imprime chaves, IPs ou e-mails.
+  Os contadores não substituem um registro de auditoria das tentativas de login.
+- Doze testes adicionais cobrem conferência, corte exato e precisão, retenção,
+  limites, repetição, múltiplos lotes, argumentos inválidos, tabela vazia,
+  preservação de usuários e bloqueios ativos, além de concorrência real no banco.
+- Testes executados somente em PostgreSQL e arquivos isolados. Nenhuma migration,
+  configuração ou dependência foi alterada. A imagem web local não foi atualizada;
+  o comando precisa estar incluído na imagem antes de ser chamado pelo container.
 
 ## Validação de IPs — 22/11/2026
 

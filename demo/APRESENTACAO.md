@@ -131,6 +131,45 @@ A validação não cobre perda do computador, recuperação de segredos, restaur
 de papéis PostgreSQL ou um backup criado depois dessa data. Nenhum segredo foi
 copiado e o ambiente descartável foi encerrado após os testes.
 
+## Manutenção dos contadores de acesso
+
+O comando `limpar_limites_acesso` confere contadores de login/recuperação que
+expiraram há pelo menos 24 horas. Por padrão, **não exclui nada**. A retenção
+não é um prazo de bloqueio de conta: os limites de acesso continuam expirando
+nas suas janelas normais de 5 ou 15 minutos.
+
+Antes de usar no container, confira se sua imagem inclui esse comando. A entrega
+de 22/11/2026 não atualizou a imagem web em execução nem agendou limpeza. Atualizar
+o container continua exigindo revisão de migrations e preservação dos volumes.
+
+Conferência, sem alteração de registros:
+
+```sh
+podman exec share_car_web_1 python manage.py limpar_limites_acesso
+```
+
+Para conferir uma retenção maior e limitar a quantidade:
+
+```sh
+podman exec share_car_web_1 python manage.py limpar_limites_acesso --retencao-horas 48 --limite 500
+```
+
+Somente após autorização específica para excluir contadores no banco alvo,
+adicione `--executar` ao comando escolhido. Não é necessário parar o web:
+linhas em uso são ignoradas para preservar a renovação de contadores.
+
+- Retenção padrão: 24 horas após a expiração, configurável com mínimo de 1 hora.
+- Limite padrão: 1000 registros, configurável de 1 a 10000. O total da conferência
+  é limitado a esse valor e não representa necessariamente todo o acervo elegível.
+- Exclusão em lotes de até 100, cada um com sua própria transação. Em caso de
+  falha posterior, lotes já concluídos permanecem removidos; o comando pode ser
+  repetido após conferir a causa.
+- Pode haver registros elegíveis remanescentes por causa do limite ou de locks.
+  Uma nova conferência permite decidir sobre outra execução autorizada.
+- Nenhum usuário, reserva, pagamento, arquivo ou contador ativo deve ser removido.
+  A saída não lista chaves, IPs ou e-mails. Não se trata de limpeza de logs gerais.
+- O comando não é executado automaticamente no startup, em requisições ou por cron.
+
 ## Fotos de vistoria privadas
 
 Novas vistorias usam `private_media/locacoes/`, no volume privado já existente.
