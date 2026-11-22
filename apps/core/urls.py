@@ -15,6 +15,7 @@ urlpatterns = [
     path("service-worker.js", pwa.service_worker, name="service_worker"),
     path("offline/", pwa.offline, name="offline"),
     path("", HomeView.as_view(), name="home"),
+    path("sobre/", TemplateView.as_view(template_name="core/sobre.html"), name="sobre"),
     path(
         "entrar/",
         auth_views.LoginView.as_view(

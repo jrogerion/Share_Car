@@ -71,6 +71,10 @@
           <a class="btn btn-outline-secondary" href="{% if user.conta_administrativa %}{% url 'administracao:painel' %}{% else %}{% url 'contas:painel' %}{% endif %}">Voltar ao painel</a>
         </div>
         <p class="flow-small">Seu documento não é exibido em anúncios, buscas ou reservas.</p>
+        {% if not user.conta_administrativa %}
+          <p><a class="btn btn-outline-danger" href="{% url 'contas:encerrar' %}">Encerrar minha conta</a></p>
+          <p class="flow-small">O encerramento impede novos acessos, mas não apaga dados pessoais nem históricos.</p>
+        {% endif %}
       </section>
     </aside>
   </div>

@@ -13,6 +13,7 @@ def veiculos_publicos() -> QuerySet[Veiculo]:
         ativo=True,
         aprovacao=Veiculo.Aprovacao.APROVADO,
         bloqueado=False,
+        proprietario__encerrada_em__isnull=True,
     )
 
 

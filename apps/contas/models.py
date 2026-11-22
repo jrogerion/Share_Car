@@ -26,6 +26,7 @@ class Usuario(AbstractUser):
     # is_staff/permissões representam administração; is_active=False bloqueia a conta.
     proprietario = models.BooleanField(default=False)
     locatario = models.BooleanField(default=False)
+    encerrada_em = models.DateTimeField(null=True, blank=True, editable=False)
     documento_identidade = models.FileField(
         upload_to="identidades/", storage=armazenamento_documentos, blank=True,
     )
@@ -55,6 +56,12 @@ class Usuario(AbstractUser):
         verbose_name = "usuário"
         verbose_name_plural = "usuários"
         constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(encerrada_em__isnull=True) | models.Q(is_active=False)
+                ),
+                name="contas_encerrada_inativa",
+            ),
             # Contas antigas sem e-mail continuam válidas até serem atualizadas.
             models.UniqueConstraint(
                 Lower("email"),

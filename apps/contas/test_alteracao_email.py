@@ -281,12 +281,60 @@ class AlteracaoEmailTests(TestCase):
 
     def test_protecoes_de_cache_e_referrer(self):
         self.solicitar()
-        for url in (reverse("contas:alterar_email"), self.link(), reverse("contas:confirmar_email")):
+        for url, politica in (
+            (reverse("contas:alterar_email"), "same-origin"),
+            (self.link(), "no-referrer"),
+            (reverse("contas:confirmar_email"), "same-origin"),
+        ):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertIn("no-store", response["Cache-Control"])
-                self.assertEqual(response["Referrer-Policy"], "no-referrer")
+                self.assertEqual(response["Referrer-Policy"], politica)
                 self.assertIn("Cookie", response["Vary"])
+
+    def test_link_invalido_tambem_nao_envia_referrer(self):
+        response = self.client.get(reverse("contas:confirmar_email_link", args=["A" * 43]))
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response["Referrer-Policy"], "no-referrer")
+
+    def test_solicitacao_e_confirmacao_aceitam_origem_do_proprio_site(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.usuario)
+        client.get(reverse("contas:alterar_email"))
+        csrf = client.cookies["csrftoken"].value
+        response = client.post(reverse("contas:alterar_email"), {
+            "csrfmiddlewaretoken": csrf,
+            "novo_email": "novo@example.com", "senha_atual": self.senha,
+        }, HTTP_ORIGIN="http://testserver")
+        self.assertEqual(response.status_code, 302)
+        self.abrir_confirmacao(client)
+        response = client.post(reverse("contas:confirmar_email"), {
+            "csrfmiddlewaretoken": csrf,
+        }, HTTP_ORIGIN="http://testserver")
+        self.assertEqual(response.status_code, 302)
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.email, "novo@example.com")
+
+    def test_origem_null_permanece_rejeitada_nas_duas_operacoes(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.usuario)
+        client.get(reverse("contas:alterar_email"))
+        csrf = client.cookies["csrftoken"].value
+        response = client.post(reverse("contas:alterar_email"), {
+            "csrfmiddlewaretoken": csrf,
+            "novo_email": "novo@example.com", "senha_atual": self.senha,
+        }, HTTP_ORIGIN="null")
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(AlteracaoEmail.objects.exists())
+        self.solicitar()
+        self.abrir_confirmacao(client)
+        response = client.post(reverse("contas:confirmar_email"), {
+            "csrfmiddlewaretoken": csrf,
+        }, HTTP_ORIGIN="null")
+        self.assertEqual(response.status_code, 403)
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.email, "atual@example.com")
+        self.assertTrue(AlteracaoEmail.objects.exists())
 
     def test_csrf_exigido_para_solicitar_e_confirmar(self):
         client = Client(enforce_csrf_checks=True)

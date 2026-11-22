@@ -4,6 +4,8 @@ Aplicação acadêmica para aluguel de veículos entre pessoas, desenvolvida com
 Python, Django e PostgreSQL. Proprietários anunciam seus carros e gerenciam a
 disponibilidade; locatários buscam veículos e acompanham suas reservas.
 
+Desenvolvido por José Rogério Do Nascimento , Luana Corrêa e Pablo Silva.
+
 ## Objetivos e funcionalidades
 
 - Organizar o fluxo de anúncio, aprovação, reserva e acompanhamento do aluguel.

@@ -31,7 +31,7 @@ continuam no servidor, mesmo que o navegador seja manipulado.
 ## Verificações
 
 - Os testes de reprodução falharam antes das correções e passaram depois.
-- Suíte completa: **578 testes passaram**; `manage.py check` sem problemas e
+- Suíte completa: **609 testes passaram**; `manage.py check` sem problemas e
   `makemigrations --check --dry-run` sem mudanças pendentes no modelo.
 - Cobertura adicional: CSRF no bloqueio administrativo, injeção de privilégios
   no perfil, redirecionamento externo no login, resolução e metadados de uploads.
@@ -143,8 +143,8 @@ Esta revisão não é certificação nem garantia de ausência de vulnerabilidad
 ## Alteração de e-mail — primeira entrega, 22/11/2026
 
 Disponível em **Minha conta → Alterar e-mail**, inclusive para contas
-administrativas. Encerramento de conta é uma entrega separada e ainda não foi
-implementado.
+administrativas. O encerramento de conta foi implementado na segunda entrega,
+documentada abaixo.
 
 ### Fluxo de uso
 
@@ -176,7 +176,8 @@ separadamente; nenhuma configuração de e-mail foi alterada nesta entrega.
   por outra conta não é transferido nem sobrescrito.
 - O GET inicial valida o token e o guarda na sessão autenticada, redirecionando
   para a página de confirmação sem token na URL, como no fluxo de redefinição de
-  senha do Django. As páginas têm `no-store`, `Vary: Cookie` e `no-referrer`.
+  senha do Django. As páginas têm `no-store` e `Vary: Cookie`. Os formulários
+  usam `same-origin`; a rota com token mantém `no-referrer` no redirecionamento.
 - Solicitações limitadas a 5 por IP e 3 por combinação IP/conta em 15 minutos,
   incluindo tentativas inválidas. O alias `/contas/` compartilha a contagem;
   trocar o novo endereço ou enviar outro identificador não contorna esse limite.
@@ -200,7 +201,8 @@ separadamente; nenhuma configuração de e-mail foi alterada nesta entrega.
 - Usuários, anúncios, reservas, pagamentos, registros/fotos de vistoria, fotos
   de anúncios e avaliações existentes foram comparados por assinatura antes e
   depois, sem alterações. Nenhum e-mail de conta local foi trocado nos testes.
-- 34 regressões adicionais; suíte completa com **578 testes aprovados** em banco
+- 34 regressões na primeira entrega e 3 na correção de CSRF; suíte completa com
+  **581 testes aprovados** em banco
   e arquivos isolados, incluindo concorrência real no PostgreSQL, expiração,
   repetição, CSRF, origem externa, erro de envio, limites e preservação de reserva.
 - Perfil e formulário novos renderizados no serviço atualizado usando conexão
@@ -209,6 +211,104 @@ separadamente; nenhuma configuração de e-mail foi alterada nesta entrega.
 - O backup validado anteriormente é anterior a esta migration. Sua restauração
   com o código atual requer conferir e autorizar a migration pendente; o backup
   original não foi substituído nem um novo backup foi criado automaticamente.
+
+### Correção de CSRF em navegador real
+
+- Reproduzido no Firefox, com conta e banco descartáveis: o formulário servido
+  com `no-referrer` gerou `Origin: null` no POST de confirmação, resultando em
+  HTTP 403. A tentativa rejeitada não mudou o e-mail fictício.
+- O mixin passou a usar `same-origin` nos formulários. A rota inicial que recebe
+  o token mantém `no-referrer`, retirando o segredo da URL antes de exibir o
+  formulário. Referers continuam não sendo enviados a terceiros.
+- Ensaio após a correção no Firefox: solicitação pelo formulário, abertura do
+  link recebido e confirmação concluídas, com origem correta nos dois POSTs,
+  HTTP 302 e novo e-mail registrado exclusivamente na conta fictícia isolada.
+- Regressões verificam a política por rota, POSTs da própria origem aceitos e
+  `Origin: null` rejeitado nas duas operações. Origens externas continuam sendo
+  rejeitadas, mesmo com token CSRF válido. Não foi adicionado `csrf_exempt` nem
+  alterada a lista de origens confiáveis.
+- Os testes anteriores usavam o cliente Django, que não reproduz a decisão do
+  navegador de enviar `Origin: null` conforme a política de referrer. A validação
+  real complementa esses testes; não equivale a testar todos os navegadores.
+- Correção disponibilizada no web local, sem aplicar migrations ou reiniciar o
+  PostgreSQL. Usuários, históricos e pedidos de alteração pendentes foram
+  comparados antes e depois, sem alterações. Políticas conferidas no serviço
+  ativo em conexão somente leitura, sem consumir confirmações de contas locais.
+- Para retestar após um 403, abrir novamente a página de confirmação por GET ou
+  o link ainda válido, carregando a nova política antes de enviar. Não reenviar
+  simplesmente a página de erro. Se o link expirou, solicitar uma nova alteração.
+- Referência: [efeito de Referrer-Policy sobre Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy#effect_on_the_origin_header).
+
+## Encerramento de conta — segunda entrega, 22/11/2026
+
+Disponível em **Minha conta → Encerrar minha conta**, somente para contas
+pessoais. O formulário exige senha atual, checkbox de ciência e confirmação por
+POST com CSRF. **Não é exclusão definitiva nem anonimização de dados pessoais.**
+Contas administrativas não podem usar esse fluxo, inclusive por POST direto.
+
+### Regras e preservação dos dados
+
+- Impede encerramento com reservas solicitadas, aceitas ou em andamento, tanto
+  como locatário quanto como proprietário. Compromissos antigos ainda não
+  finalizados também bloqueiam; não basta a data ter passado.
+- Reservas concluídas, canceladas e recusadas permitem encerrar. Histórico,
+  pagamentos, avaliações, documentos e fotos não são apagados ou anonimizados.
+  O usuário e seu identificador permanecem no banco; o e-mail fica reservado.
+- Marca `is_active=False`, registra `encerrada_em`, torna a senha inutilizável e
+  faz logout da sessão atual. Outros dispositivos perdem acesso autenticado na
+  próxima requisição, sem uma exclusão em massa dos registros de sessões.
+- Invalida links anteriores de redefinição de senha e cancela somente a
+  confirmação de alteração de e-mail pendente da conta. A recuperação de senha
+  não envia mensagem nem reativa conta encerrada.
+- Desativa os anúncios existentes. Catálogo, detalhes públicos e API excluem
+  proprietários encerrados, mesmo se um anúncio for marcado como ativo por outro
+  caminho. Novas reservas revalidam a disponibilidade do proprietário.
+- O serviço trava veículos antes da conta, respeitando a ordem já usada nas
+  reservas. Se aparecer um anúncio antes do lock da conta, refaz a seleção em
+  nova transação, no máximo três vezes. O cadastro de anúncio revalida a conta
+  sob lock; não confia em uma autenticação antiga carregada antes do encerramento.
+- Alterações são atômicas: falha no salvamento desfaz desativação de anúncios e
+  cancelamento da confirmação. Não há alteração de arquivos no armazenamento.
+
+### Administração e proteção do fluxo
+
+- Data de encerramento não é editável nos formulários. A restrição
+  `contas_encerrada_inativa` impede uma conta encerrada de permanecer ativa.
+- O bloqueio administrativo comum não reativa contas encerradas. O Django Admin
+  permite somente leitura desses usuários, inclusive para superusuários, e não
+  permite troca de senha por essa tela. Contas apenas bloqueadas, sem data de
+  encerramento, mantêm o comportamento administrativo anterior.
+- O painel distingue “Encerrada” de “Bloqueada” e não oferece reativação para
+  conta encerrada. Documentos, CNHs e anúncios de titulares encerrados saem das
+  filas de pendências, preservando os históricos financeiros e de reservas.
+- Backend de autenticação verifica a data de encerramento. Não existe reativação
+  automática ou fluxo de recuperação de conta encerrada no site.
+- Limite de 5 tentativas por IP e 3 por combinação IP/conta em 15 minutos, incluindo
+  o alias `/contas/`. Senhas incorretas e confirmação ausente não encerram a conta.
+- Formulário com `same-origin`, `no-store` e senha sensível ocultada nos relatórios
+  de erro. `Origin: null`, origem externa, GET e métodos não permitidos não
+  efetivam encerramento. A página pública de resultado não altera contas por GET.
+
+### Verificação e ativação
+
+- 28 novos testes, com suíte completa de **609 testes aprovados** em PostgreSQL
+  e arquivos isolados. Cobrem os dois papéis, históricos, armazenamento, sessões,
+  recuperação, administração, CSRF, limites, rollback e concorrência real com
+  reservas, criação de anúncio e encerramentos simultâneos.
+- Ensaio no Firefox com conta fictícia isolada: POST com origem correta, HTTP 302,
+  logout, usuário mantido/inativo, confirmação pendente cancelada e novo login
+  recusado. Nenhuma conta ou senha real foi usada nesse ensaio.
+- Migration `contas/0005_usuario_encerramento` aplicada ao banco local com
+  autorização específica. Adiciona data nullable e restrição; não encerra,
+  reativa ou exclui usuários. O plano continha somente essa migration.
+- Somente o web foi atualizado, sem reinício do PostgreSQL e preservando rede,
+  aliases, porta, ambiente e volumes. Os campos anteriores dos usuários e os
+  demais registros de negócio foram comparados por assinatura, sem alterações.
+- Perfil, formulário e presença da restrição conferidos no web em conexão
+  somente leitura. Nenhuma conta local foi encerrada para teste; não havia
+  migrations pendentes e `manage.py check` não encontrou problemas.
+- O backup anterior não foi substituído. Ao restaurá-lo com o código atual,
+  conferir migrations pendentes e autorizar a atualização antes de usar o site.
 
 ## Validação de IPs — 22/11/2026
 

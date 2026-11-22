@@ -3,6 +3,7 @@ from smtplib import SMTPException
 
 from django import forms
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.exceptions import ValidationError
@@ -22,7 +23,8 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import FormView, TemplateView, UpdateView
 
 from .forms import (
-    AlterarEmailForm, CadastroUsuarioForm, DocumentoIdentidadeForm, LoginEmailForm,
+    AlterarEmailForm, CadastroUsuarioForm, DocumentoIdentidadeForm,
+    EncerrarContaForm, LoginEmailForm,
     PerfilUsuarioForm,
 )
 
@@ -33,7 +35,7 @@ from .models import Usuario
 from .mixins import ContaPessoalMixin
 from .services import (
     confirmar_alteracao_email, obter_alteracao_email_valida,
-    solicitar_alteracao_email,
+    solicitar_alteracao_email, encerrar_conta, reservas_impedem_encerramento,
 )
 
 
@@ -41,10 +43,14 @@ _TOKEN_EMAIL_SESSION = "confirmacao_alteracao_email"
 
 
 class EmailPrivadoMixin:
+    # no-referrer em formulários pode fazer o navegador enviar Origin: null
+    # no POST nativo. same-origin mantém CSRF e não envia Referer a terceiros.
+    referrer_policy = "same-origin"
+
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)
-        response["Referrer-Policy"] = "no-referrer"
+        response["Referrer-Policy"] = self.referrer_policy
         patch_vary_headers(response, ["Cookie"])
         return response
 
@@ -93,6 +99,7 @@ class AlterarEmailView(EmailPrivadoMixin, LoginRequiredMixin, FormView):
 
 
 class ConfirmarEmailLinkView(EmailPrivadoMixin, LoginRequiredMixin, View):
+    referrer_policy = "no-referrer"
     http_method_names = ["get", "head", "options"]
 
     def get(self, request, token):
@@ -147,6 +154,43 @@ class ConfirmarEmailView(EmailPrivadoMixin, LoginRequiredMixin, FormView):
             "E-mail alterado. Use o novo endereço para entrar no site.",
         )
         return super().form_valid(form)
+
+
+@method_decorator(sensitive_post_parameters("senha_atual"), name="dispatch")
+class EncerrarContaView(
+    EmailPrivadoMixin, ContaPessoalMixin, LoginRequiredMixin, FormView,
+):
+    http_method_names = ["get", "post", "head", "options"]
+    template_name = "contas/encerrar.html"
+    form_class = EncerrarContaForm
+    success_url = reverse_lazy("contas:encerrada")
+
+    def get_form_kwargs(self):
+        return {**super().get_form_kwargs(), "usuario": self.request.user}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["reservas_pendentes"] = reservas_impedem_encerramento(
+            self.request.user,
+        ).count()
+        return context
+
+    def form_valid(self, form):
+        try:
+            encerrar_conta(
+                usuario=self.request.user,
+                senha_atual=form.cleaned_data["senha_atual"],
+            )
+        except ValidationError as error:
+            form.add_error(None, error)
+            return self.form_invalid(form)
+        logout(self.request)
+        return super().form_valid(form)
+
+
+@method_decorator(never_cache, name="dispatch")
+class ContaEncerradaView(TemplateView):
+    template_name = "contas/encerrada.html"
 
 
 class LoginEmailView(LoginView):

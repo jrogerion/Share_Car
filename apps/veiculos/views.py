@@ -23,6 +23,7 @@ class CadastroVeiculoView(ContaPessoalMixin, LoginRequiredMixin, UserPassesTestM
     def test_func(self):
         usuario = self.request.user
         return (
+            usuario.is_active and usuario.encerrada_em is None and
             usuario.proprietario and
             usuario.aprovacao_documento == Usuario.Aprovacao.APROVADO
         )
@@ -38,11 +39,22 @@ class CadastroVeiculoView(ContaPessoalMixin, LoginRequiredMixin, UserPassesTestM
         return super().handle_no_permission()
 
     def form_valid(self, form):
-        form.instance.proprietario = self.request.user
-        form.instance.aprovacao = Veiculo.Aprovacao.PENDENTE
-        form.instance.bloqueado = False
-        form.instance.ativo = True
-        response = super().form_valid(form)
+        with transaction.atomic():
+            usuario = Usuario.objects.select_for_update().get(
+                pk=self.request.user.pk,
+            )
+            if (
+                not usuario.is_active or usuario.encerrada_em is not None
+                or usuario.conta_administrativa or not usuario.proprietario
+                or usuario.aprovacao_documento != Usuario.Aprovacao.APROVADO
+            ):
+                messages.error(self.request, "Esta conta não pode cadastrar anúncios.")
+                return redirect("contas:perfil")
+            form.instance.proprietario = usuario
+            form.instance.aprovacao = Veiculo.Aprovacao.PENDENTE
+            form.instance.bloqueado = False
+            form.instance.ativo = True
+            response = super().form_valid(form)
         messages.success(
             self.request, "Veículo cadastrado e enviado para análise.",
         )
@@ -58,7 +70,7 @@ class MeusVeiculosView(ContaPessoalMixin, LoginRequiredMixin, ListView):
     def get_queryset(self):
         return Veiculo.objects.filter(
             proprietario=self.request.user,
-        ).order_by("-pk")
+        ).select_related("proprietario").order_by("-pk")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

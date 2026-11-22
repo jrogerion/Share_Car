@@ -137,6 +137,27 @@ class AlterarEmailForm(forms.Form):
         return senha
 
 
+class EncerrarContaForm(forms.Form):
+    senha_atual = forms.CharField(
+        label="Senha atual", strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    )
+    confirmacao = forms.BooleanField(
+        label="Entendo as consequências e quero encerrar minha conta.",
+        error_messages={"required": "Confirme que deseja encerrar sua conta."},
+    )
+
+    def __init__(self, *args, usuario, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.usuario = usuario
+
+    def clean_senha_atual(self):
+        senha = self.cleaned_data["senha_atual"]
+        if not check_password(senha, self.usuario.password):
+            raise forms.ValidationError("A senha atual não foi confirmada.")
+        return senha
+
+
 class PerfilUsuarioForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

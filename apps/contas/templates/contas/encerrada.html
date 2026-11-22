@@ -1,0 +1,12 @@
+{% extends "core/page.html" %}
+{% block title %}Conta encerrada — ShareCar{% endblock %}
+{% block page_title %}Conta encerrada{% endblock %}
+{% block page_subtitle %}O acesso à conta foi desativado.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <section class="flow-panel">
+    <p>Após confirmar o encerramento, você é desconectado e seus anúncios saem do catálogo. Seus dados e históricos não são apagados, e seu e-mail permanece reservado.</p>
+    <p>Não há reativação automática. Esta página não executa encerramento por si só.</p>
+    <a class="discovery-button" href="{% url 'core:home' %}">Voltar ao início</a>
+  </section>
+{% endblock %}

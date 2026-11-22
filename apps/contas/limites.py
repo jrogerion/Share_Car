@@ -15,6 +15,7 @@ LIMITES = {
     "login": (20, 5, timedelta(minutes=5)),
     "recuperacao": (5, 3, timedelta(minutes=15)),
     "alteracao_email": (5, 3, timedelta(minutes=15)),
+    "encerramento": (5, 3, timedelta(minutes=15)),
 }
 
 

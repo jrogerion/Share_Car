@@ -78,9 +78,11 @@ class PainelAdministrativoView(AdministradorMixin, TemplateView):
 
         documentos_pendentes = Usuario.objects.filter(
             aprovacao_documento=Usuario.Aprovacao.PENDENTE,
+            encerrada_em__isnull=True,
         ).exclude(documento_identidade="")
         cnhs_pendentes = Usuario.objects.filter(
             aprovacao_cnh=Usuario.Aprovacao.PENDENTE,
+            encerrada_em__isnull=True,
         ).exclude(cnh_numero="")
 
         context["documentos_pendentes"] = documentos_pendentes.order_by(
@@ -88,7 +90,8 @@ class PainelAdministrativoView(AdministradorMixin, TemplateView):
         )[:10]
         context["cnhs_pendentes"] = cnhs_pendentes.order_by("username")[:10]
         context["veiculos_pendentes"] = Veiculo.objects.filter(
-            aprovacao=Veiculo.Aprovacao.PENDENTE
+            aprovacao=Veiculo.Aprovacao.PENDENTE,
+            proprietario__encerrada_em__isnull=True,
         ).select_related("proprietario").order_by("id")[:10]
         context["usuarios_recentes"] = Usuario.objects.order_by("-id")[:10]
         context["veiculos_recentes"] = Veiculo.objects.select_related(
@@ -106,7 +109,8 @@ class PainelAdministrativoView(AdministradorMixin, TemplateView):
             "usuarios_pendentes": documentos_pendentes.count()
             + cnhs_pendentes.count(),
             "veiculos_pendentes": Veiculo.objects.filter(
-                aprovacao=Veiculo.Aprovacao.PENDENTE
+                aprovacao=Veiculo.Aprovacao.PENDENTE,
+                proprietario__encerrada_em__isnull=True,
             ).count(),
             "veiculos_bloqueados": Veiculo.objects.filter(bloqueado=True).count(),
             "reservas_ativas": Reserva.objects.filter(
@@ -208,6 +212,8 @@ class AlternarBloqueioUsuarioView(AdministradorMixin, View):
         usuario = get_object_or_404(Usuario.objects.select_for_update(), pk=pk)
         if usuario.pk == request.user.pk:
             messages.error(request, "Você não pode bloquear a própria conta.")
+        elif usuario.encerrada_em is not None:
+            messages.error(request, "Uma conta encerrada pelo titular não pode ser reativada.")
         elif usuario.conta_administrativa and not request.user.is_superuser:
             messages.error(request, "Somente superusuários podem alterar contas administrativas.")
         elif usuario.is_superuser and usuario.is_active:

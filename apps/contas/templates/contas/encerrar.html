@@ -1,0 +1,38 @@
+{% extends "core/page.html" %}
+{% block title %}Encerrar conta — ShareCar{% endblock %}
+{% block back_url %}{% url 'contas:perfil' %}{% endblock %}
+{% block back_label %}Minha conta{% endblock %}
+{% block page_kicker %}ShareCar · Segurança da conta{% endblock %}
+{% block page_title %}Encerrar minha conta{% endblock %}
+{% block page_subtitle %}Leia as consequências antes de confirmar.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="encerrar-title">
+      <h2 id="encerrar-title">Confirmar encerramento</h2>
+      {% if reservas_pendentes %}
+        <p class="flow-notice flow-error" role="alert">Existem {{ reservas_pendentes }} reservas não finalizadas vinculadas à sua conta. Resolva as solicitações, cancelamentos ou devoluções antes de encerrar, mesmo que as datas já tenham passado.</p>
+        <a href="{% url 'reservas:minhas' %}">Ver minhas reservas</a>
+      {% endif %}
+      <form method="post" action="{% url 'contas:encerrar' %}" class="flow-fields" novalidate>
+        {% csrf_token %}
+        {% include "contas/erros_formulario.html" %}
+        {% include "contas/campo.html" with field=form.senha_atual %}
+        {% include "contas/campo.html" with field=form.confirmacao %}
+        <button class="btn btn-danger" type="submit">Confirmar encerramento da conta</button>
+      </form>
+      <a href="{% url 'contas:perfil' %}">Cancelar e voltar à minha conta</a>
+    </section>
+    <aside class="flow-panel" aria-labelledby="consequencias-title">
+      <h2 id="consequencias-title">O que acontecerá</h2>
+      <ul>
+        <li>Você será desconectado e não poderá entrar novamente. Outras sessões perderão o acesso às áreas autenticadas.</li>
+        <li>Seus anúncios deixarão de aparecer no catálogo e não aceitarão novas reservas.</li>
+        <li>Confirmações pendentes de alteração de e-mail serão canceladas.</li>
+        <li>O e-mail continuará reservado e não poderá ser usado para criar outra conta.</li>
+        <li>Reservas, pagamentos simulados, avaliações, documentos e fotos serão preservados. O encerramento não é exclusão definitiva nem anonimização dos dados.</li>
+        <li>Não há reativação pelo site ou pelo bloqueio administrativo comum.</li>
+      </ul>
+    </aside>
+  </div>
+{% endblock %}

@@ -26,6 +26,8 @@ class Veiculo(models.Model):
     def motivos_nao_publicacao(self):
         """Explica as mesmas condições usadas pela consulta pública."""
         motivos = []
+        if self.proprietario.encerrada_em is not None:
+            motivos.append("O proprietário encerrou a conta.")
         if self.aprovacao != self.Aprovacao.APROVADO:
             motivos.append(
                 "Anúncio rejeitado. Revise os dados e envie novamente para análise."

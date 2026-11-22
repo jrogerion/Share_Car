@@ -78,23 +78,22 @@
           <div class="col-6 col-lg-3">
             <h2 class="footer-title">Navegação</h2>
             <ul class="list-unstyled footer-links mb-0">
-              <li><a href="{% url 'core:home' %}#como-funciona">Como funciona</a></li>
-              <li><a href="{% url 'core:home' %}#vantagens">Vantagens</a></li>
-              <li><a href="{% url 'core:home' %}#para-proprietarios">Para proprietários</a></li>
+              <li><a href="{% url 'core:sobre' %}#como-funciona">Como funciona</a></li>
+              <li><a href="{% url 'core:sobre' %}#vantagens">Vantagens</a></li>
+              <li><a href="{% url 'core:sobre' %}#para-proprietarios">Para proprietários</a></li>
             </ul>
           </div>
 
           <div class="col-6 col-lg-4">
             <h2 class="footer-title">Sobre o projeto</h2>
             <p class="footer-text mb-0">
-              Projeto acadêmico inspirado em plataformas de aluguel de carros
-              entre particulares.
+              Projeto desenvolvido por José Rogerio, Luana Corrêa e Pablo Silva.
             </p>
           </div>
         </div>
 
         <div class="footer-bottom d-flex flex-column flex-md-row justify-content-between gap-2">
-          <span>&copy; {% now "Y" %} ShareCar. Projeto acadêmico.</span>
+          <span>&copy; {% now "Y" %} ShareCar.</span>
           <span>Django · PostgreSQL · Bootstrap 5</span>
         </div>
       </div>

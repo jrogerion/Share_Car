@@ -1,0 +1,96 @@
+{% extends "core/page.html" %}
+{% load static %}
+{% block title %}Conheça o ShareCar — Como funciona e vantagens{% endblock %}
+{% block meta_description %}Conheça o ShareCar: encontre carros, acompanhe suas reservas e descubra como anunciar seu veículo.{% endblock %}
+{% block body_class %}home-page flow-page about-page{% endblock %}
+{% block extra_head %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/sobre.css' %}">
+{% endblock %}
+{% block page_kicker %}Conheça o ShareCar{% endblock %}
+{% block page_title %}Novos caminhos começam com boas conexões.{% endblock %}
+{% block page_subtitle %}Uma maneira de encontrar o carro para seus planos e dar mais possibilidades ao veículo que você já tem.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <nav class="about-navigation" aria-label="Nesta página">
+    <a href="#como-funciona">Como funciona <i class="bi bi-arrow-down-short" aria-hidden="true"></i></a>
+    <a href="#vantagens">Vantagens <i class="bi bi-arrow-down-short" aria-hidden="true"></i></a>
+    <a href="#para-proprietarios">Para proprietários <i class="bi bi-arrow-down-short" aria-hidden="true"></i></a>
+  </nav>
+
+  <section id="como-funciona" class="about-section" aria-labelledby="como-funciona-title" tabindex="-1">
+    <div class="about-section-heading">
+      <p class="flow-kicker">Do primeiro plano à próxima experiência</p>
+      <h2 id="como-funciona-title">Como funciona</h2>
+      <p>Encontre, solicite e acompanhe. Cada etapa tem seu lugar no ShareCar.</p>
+    </div>
+    <ol class="about-steps">
+      <li class="flow-panel">
+        <span class="about-step-number" aria-hidden="true">01</span>
+        <h3>Encontre seu próximo carro</h3>
+        <p>Busque por cidade e datas. Compare fotos, características e diárias para escolher o veículo que combina com sua viagem.</p>
+      </li>
+      <li class="flow-panel">
+        <span class="about-step-number" aria-hidden="true">02</span>
+        <h3>Envie sua solicitação</h3>
+        <p>Confira o anúncio, escolha o período e revise as condições da reserva. O proprietário analisa sua solicitação e decide sobre o aceite.</p>
+      </li>
+      <li class="flow-panel">
+        <span class="about-step-number" aria-hidden="true">03</span>
+        <h3>Acompanhe cada etapa</h3>
+        <p>Depois do aceite, siga as orientações da reserva. Na retirada e na devolução, registre fotos, quilometragem e combustível para organizar a experiência.</p>
+      </li>
+      <li class="flow-panel">
+        <span class="about-step-number" aria-hidden="true">04</span>
+        <h3>Compartilhe sua experiência</h3>
+        <p>Após a conclusão, locatário e proprietário podem se avaliar. As notas são liberadas quando as duas partes enviam suas avaliações.</p>
+      </li>
+    </ol>
+    <a class="discovery-button" href="{% url 'core:resultados' %}">Explorar veículos <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+  </section>
+
+  <section id="vantagens" class="about-section" aria-labelledby="vantagens-title" tabindex="-1">
+    <div class="about-section-heading">
+      <p class="flow-kicker">Mais clareza para decidir</p>
+      <h2 id="vantagens-title">O que faz a diferença</h2>
+      <p>Informações e ferramentas para você cuidar dos detalhes, sem perder de vista seus planos.</p>
+    </div>
+    <div class="about-benefits">
+      <article class="flow-panel">
+        <i class="bi bi-sliders about-icon" aria-hidden="true"></i>
+        <h3>Uma escolha com seu perfil</h3>
+        <p>Filtre por categoria, câmbio, combustível, capacidade e faixa de diária. Encontre opções que façam sentido para o que você precisa.</p>
+      </article>
+      <article class="flow-panel">
+        <i class="bi bi-calendar2-check about-icon" aria-hidden="true"></i>
+        <h3>Seus planos organizados</h3>
+        <p>Acompanhe solicitações, etapas e histórico em sua área de reservas. Consulte os detalhes para saber o que vem a seguir.</p>
+      </article>
+      <article class="flow-panel">
+        <i class="bi bi-star about-icon" aria-hidden="true"></i>
+        <h3>Experiências que ajudam</h3>
+        <p>As avaliações públicas e os detalhes dos anúncios trazem mais contexto para sua próxima escolha.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="para-proprietarios" class="about-section about-owner" aria-labelledby="proprietarios-title" tabindex="-1">
+    <div class="about-owner-intro">
+      <p class="flow-kicker">Para quem tem um carro para compartilhar</p>
+      <h2 id="proprietarios-title">Seu carro pode fazer parte de novos caminhos.</h2>
+      <p>Prepare seu anúncio, organize a disponibilidade e acompanhe as solicitações. Você define a diária e decide quais reservas aceitar.</p>
+      {% if user.conta_administrativa %}
+        <a class="discovery-button" href="{% url 'administracao:painel' %}">Voltar ao painel <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      {% elif user.is_authenticated %}
+        <a class="discovery-button" href="{% url 'core:veiculo' %}">Preparar meu anúncio <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      {% else %}
+        <a class="discovery-button" href="{% url 'contas:cadastro' %}">Criar minha conta <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      {% endif %}
+    </div>
+    <ol class="about-owner-checklist">
+      <li><i class="bi bi-person-check" aria-hidden="true"></i><div><h3>Prepare seu perfil</h3><p>Selecione o perfil de proprietário e envie a documentação solicitada. Acompanhe a aprovação na sua conta.</p></div></li>
+      <li><i class="bi bi-car-front" aria-hidden="true"></i><div><h3>Apresente seu veículo</h3><p>Adicione fotos, características e diária. Envie o anúncio para aprovação antes de aparecer na busca.</p></div></li>
+      <li><i class="bi bi-calendar3" aria-hidden="true"></i><div><h3>Cuide da sua agenda</h3><p>Organize períodos disponíveis e bloqueados, respeitando as reservas já confirmadas. Gerencie solicitações e acompanhe as locações.</p></div></li>
+    </ol>
+  </section>
+{% endblock %}

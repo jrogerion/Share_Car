@@ -24,6 +24,12 @@ class LimiteAutenticacaoMiddleware(MiddlewareMixin):
             if not request.user.is_authenticated:
                 return None
             acao, campo = "alteracao_email", None
+        elif rota in (
+            "contas:encerrar", "contas_legacy:encerrar",
+        ):
+            if not request.user.is_authenticated:
+                return None
+            acao, campo = "encerramento", None
         else:
             return None
         identificador = (

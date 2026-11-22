@@ -4,7 +4,8 @@ from django.views.decorators.cache import never_cache
 
 from .views import (
     AlterarEmailView, CadastroConcluidoView, CadastroUsuarioView,
-    ConfirmarEmailLinkView, ConfirmarEmailView, DocumentoIdentidadeView,
+    ConfirmarEmailLinkView, ConfirmarEmailView, ContaEncerradaView,
+    DocumentoIdentidadeView, EncerrarContaView,
     EnviarDocumentoView, PainelView, PerfilUsuarioView, SairView,
 )
 
@@ -12,6 +13,8 @@ app_name = "contas"
 
 urlpatterns = [
     path("perfil/", PerfilUsuarioView.as_view(), name="perfil"),
+    path("encerrar/", EncerrarContaView.as_view(), name="encerrar"),
+    path("encerrada/", ContaEncerradaView.as_view(), name="encerrada"),
     path("email/alterar/", AlterarEmailView.as_view(), name="alterar_email"),
     path("email/confirmar/", ConfirmarEmailView.as_view(), name="confirmar_email"),
     path(

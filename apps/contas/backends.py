@@ -5,6 +5,9 @@ from django.contrib.auth.backends import ModelBackend
 class EmailBackend(ModelBackend):
     """Autentica o site por e-mail e preserva username para o Django Admin."""
 
+    def user_can_authenticate(self, user):
+        return super().user_can_authenticate(user) and user.encerrada_em is None
+
     def authenticate(
         self, request, username=None, password=None, email=None, **kwargs,
     ):

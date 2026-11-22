@@ -1,0 +1,34 @@
+.about-page .flow-heading { position: relative; isolation: isolate; overflow: hidden; padding: 40px; border: 1px solid #ccebe5; border-radius: 24px; background: linear-gradient(120deg, var(--sc-teal-light), var(--sc-white)); }
+.about-page .flow-heading::after { content: ""; position: absolute; z-index: -1; top: -120px; right: -80px; width: 340px; height: 340px; border: 70px solid rgba(15,118,110,.06); border-radius: 50%; }
+.about-page .flow-heading h1 { max-width: 760px; margin-bottom: 18px; }
+.about-page .flow-heading > p:last-child { max-width: 650px; margin-bottom: 0; line-height: 1.8; }
+.about-navigation { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0 40px; }
+.about-navigation a { display: inline-flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; padding: 10px 16px; border: 1px solid var(--sc-line); border-radius: var(--sc-radius-control); background: var(--sc-white); font-size: .85rem; font-weight: 600; text-decoration: none; }
+.about-navigation a:hover { border-color: var(--sc-teal); background: var(--sc-teal-light); }
+.about-section { margin-top: 48px; scroll-margin-top: 24px; }
+.about-section-heading { margin-bottom: 24px; }
+.about-section-heading h2, .about-owner h2 { font-size: clamp(1.5rem,3vw,2rem); font-weight: 800; letter-spacing: -.03em; }
+.about-section-heading > p:last-child, .about-owner-intro > p:not(.flow-kicker) { max-width: 720px; color: var(--sc-muted); line-height: 1.8; }
+.about-steps { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; padding: 0; margin: 0 0 24px; list-style: none; }
+.about-step-number { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: var(--sc-teal-dark); background: var(--sc-teal-light); font-weight: 800; }
+.about-steps h3, .about-benefits h3 { margin: 18px 0 12px; font-size: 1.05rem; }
+.about-steps p, .about-benefits p { margin-bottom: 0; }
+.about-benefits { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+.about-icon { font-size: 1.65rem; color: var(--sc-teal); }
+.about-owner { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 40px; padding: 32px; border: 1px solid #ccebe5; border-radius: 24px; background: var(--sc-teal-light); }
+.about-owner h2 { margin-bottom: 18px; }
+.about-owner .discovery-button { margin-top: 12px; }
+.about-owner-checklist { display: grid; gap: 24px; padding: 0; margin: 0; list-style: none; }
+.about-owner-checklist li { display: flex; align-items: flex-start; gap: 16px; }
+.about-owner-checklist i { flex-shrink: 0; color: var(--sc-teal-dark); font-size: 1.4rem; }
+.about-owner-checklist h3 { margin: 0 0 8px; font-size: 1rem; font-weight: 700; }
+.about-owner-checklist p { margin: 0; color: var(--sc-muted); font-size: .9rem; line-height: 1.7; }
+@media (max-width: 767.98px) {
+  .about-page .flow-heading { padding: 24px; }
+  .about-benefits, .about-owner { grid-template-columns: minmax(0,1fr); }
+  .about-owner { gap: 28px; padding: 24px; }
+}
+@media (max-width: 575.98px) {
+  .about-navigation { flex-direction: column; }
+  .about-steps { grid-template-columns: minmax(0,1fr); }
+}

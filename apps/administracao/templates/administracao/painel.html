@@ -161,9 +161,11 @@
               <td>{{ usuario.nome_exibicao }}{% if usuario.is_staff %} <span class="flow-small">(staff)</span>{% endif %}</td>
               <td>{{ usuario.get_aprovacao_documento_display }}</td>
               <td>{{ usuario.get_aprovacao_cnh_display }}</td>
-              <td>{% if usuario.is_active %}Ativa{% else %}Bloqueada{% endif %}</td>
+              <td>{% if usuario.encerrada_em %}Encerrada{% elif usuario.is_active %}Ativa{% else %}Bloqueada{% endif %}</td>
               <td class="flow-table-actions">
-                {% if usuario.conta_administrativa and not user.is_superuser %}
+                {% if usuario.encerrada_em %}
+                <span class="flow-small">Encerrada pelo titular.</span>
+                {% elif usuario.conta_administrativa and not user.is_superuser %}
                 <span class="flow-small">Conta administrativa protegida.</span>
                 {% else %}
                 <form method="post" action="{% url 'administracao:bloqueio_usuario' usuario.pk %}">

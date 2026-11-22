@@ -13,7 +13,7 @@ class UsuarioAdmin(UserAdmin):
     add_form = CriacaoUsuarioAdminForm
     list_display = (
         "email", "first_name", "last_name", "proprietario", "locatario",
-        "is_active", "is_staff", "aprovacao_documento", "aprovacao_cnh",
+        "is_active", "encerrada_em", "is_staff", "aprovacao_documento", "aprovacao_cnh",
     )
     list_filter = (
         "proprietario", "locatario", "is_active", "is_staff",
@@ -23,13 +23,13 @@ class UsuarioAdmin(UserAdmin):
     ordering = ("email", "pk")
     readonly_fields = (
         "last_login", "date_joined", "aprovacao_documento", "aprovacao_cnh",
-        "documento_para_analise", "cnh_numero", "cnh_validade",
+        "documento_para_analise", "cnh_numero", "cnh_validade", "encerrada_em",
     )
     fieldsets = (
         ("Acesso", {"fields": ("username", "password")}),
         ("Dados pessoais", {"fields": ("first_name", "last_name", "email")}),
         ("Perfis de uso", {"fields": ("proprietario", "locatario")}),
-        ("Situação da conta", {"fields": ("is_active",)}),
+        ("Situação da conta", {"fields": ("is_active", "encerrada_em")}),
         ("Aprovações (somente consulta)", {
             "fields": ("aprovacao_documento", "aprovacao_cnh"),
         }),
@@ -101,6 +101,8 @@ class UsuarioAdmin(UserAdmin):
         )
 
     def has_change_permission(self, request, obj=None):
+        if obj is not None and obj.encerrada_em is not None:
+            return False
         if obj is not None and not request.user.is_superuser:
             if obj.is_staff or obj.is_superuser:
                 return False
