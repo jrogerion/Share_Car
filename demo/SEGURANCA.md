@@ -62,7 +62,11 @@ Alterar a chave pode invalidar sessões e tokens; exige preparação e autoriza�
   `contas/0003_limiteacesso` foi aplicada com autorização, e o middleware ativo
   foi conferido no serviço web. Em outro ambiente, criar a tabela antes de
   disponibilizar o novo código.
-- Não foi executado scanner externo de CVEs das dependências nem pentest externo.
+- Consulta de vulnerabilidades Python realizada em 22/11/2026 pelas APIs públicas
+  PyPI e OSV: nenhum alerta retornado para os nove pacotes instalados, sem versões
+  ignoradas. O scanner `pip-audit` não concluiu sua execução no container
+  descartável; sua execução automatizada permanece pendente. Bibliotecas nativas,
+  sistema da imagem, Python e PostgreSQL não foram varridos. Não houve pentest externo.
 - Backup/restauração validado em 22/11/2026 em PostgreSQL descartável, com
   comparação de 20 tabelas, 17 sequências e SHA-256 de 25 arquivos. Sessões,
   consultas e permissões privadas conferidas somente na cópia; detalhes em
@@ -153,3 +157,54 @@ Antes de liberar acesso externo:
 
 Até essa validação, clientes que cheguem com o mesmo IP de proxy/NAT compartilharão
 o limite. Os testes locais não representam certificação de uma publicação futura.
+
+## Auditoria de dependências Python — 22/11/2026
+
+O inventário foi obtido com `importlib.metadata` no container web em execução,
+sem carregar configurações ou consultar o banco. As cinco dependências diretas
+coincidem com `requirements.txt`; o inventário inclui também dependências
+transitivas, a distribuição binária do psycopg e o instalador pip.
+
+| Pacote instalado | Versão |
+| --- | --- |
+| Django | 6.1.2 |
+| djangorestframework | 3.18.3 |
+| psycopg | 3.3.6 |
+| psycopg-binary | 3.3.6 |
+| pillow | 13.0.0 |
+| django-environ | 0.14.0 |
+| asgiref | 3.12.1 |
+| sqlparse | 0.6.0 |
+| pip | 26.2.1 |
+
+### Método e resultado
+
+- Para cada pacote/versão, consulta HTTPS a
+  `https://pypi.org/pypi/{pacote}/{versao}/json`: todas as nove versões foram
+  reconhecidas, com `yanked=false` e lista `vulnerabilities` vazia.
+- Consulta HTTPS POST a `https://api.osv.dev/v1/querybatch`, com nove consultas
+  contendo somente nome, versão e ecossistema `PyPI`: nove resultados sem alertas,
+  sem erros ou indicação de paginação adicional.
+- Nenhuma versão foi ignorada. Não foi encontrada indicação de atualização
+  corretiva pelas respostas consultadas. Isso não é garantia de ausência de
+  vulnerabilidades: depende da cobertura e atualização das bases, que podem
+  compartilhar suas fontes de advisories.
+- Nenhuma dependência, imagem de serviço, configuração, chave ou dado local foi
+  alterado. A consulta externa enviou somente nomes e versões de pacotes públicos.
+
+### Limitações e acompanhamento
+
+- A tentativa de executar `pip-audit` em um container descartável não completou
+  a instalação/consulta externa. Portanto, **não houve execução bem-sucedida do
+  scanner**; os resultados acima são das consultas estruturadas às APIs, não um
+  relatório emitido pelo `pip-audit`. A ferramenta não foi instalada no projeto.
+- Não foi verificada a integridade dos artefatos instalados contra os arquivos
+  distribuídos no PyPI, nem feita resolução de novas versões ou atualização.
+- A análise abrange o ambiente Linux do container. Não é uma auditoria de uma
+  instalação Python nativa no Windows ou de pacotes opcionais não instalados.
+- O runtime observado foi Python 3.14.8. A análise dos pacotes PyPI não cobre
+  esse runtime, o PostgreSQL, o sistema Linux da imagem ou bibliotecas nativas
+  embarcadas, como libpq e componentes de processamento de imagens.
+- Repetir as consultas antes de mudanças de dependências e acompanhar avisos dos
+  mantenedores. Automatizar o scanner e avaliar a imagem base são tarefas futuras;
+  correções de versão devem ser entregues com testes e sem atualização indiscriminada.
