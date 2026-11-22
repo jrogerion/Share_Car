@@ -138,9 +138,22 @@ expiraram há pelo menos 24 horas. Por padrão, **não exclui nada**. A retenç�
 não é um prazo de bloqueio de conta: os limites de acesso continuam expirando
 nas suas janelas normais de 5 ou 15 minutos.
 
-Antes de usar no container, confira se sua imagem inclui esse comando. A entrega
-de 22/11/2026 não atualizou a imagem web em execução nem agendou limpeza. Atualizar
-o container continua exigindo revisão de migrations e preservação dos volumes.
+O comando foi disponibilizado no container web local em 22/11/2026. A atualização
+substituiu somente o web, preservando explicitamente pod, rede, aliases, porta
+local, ambiente e volumes. O PostgreSQL não foi recriado ou reiniciado.
+
+Não havia migrations pendentes. Para não executar migrations na atualização,
+a instância atual inicia diretamente com `python manage.py runserver`, sem o
+entrypoint padrão. O Dockerfile original continua com migrations automáticas;
+futuras recriações pelo Compose exigem revisão dessa configuração e do plano de
+migrations, além da preservação dos volumes. Compartilhar o pod, isoladamente,
+não garante a mesma rede ou os aliases necessários para resolver o nome `db`.
+
+A conferência local em modo de conexão somente leitura encontrou 1 contador
+elegível, com retenção padrão de 24 horas e limite de 1000. O histórico de
+migrations e os contadores foram conferidos sem alterações. Nenhuma exclusão
+foi executada nem limpeza agendada. Essa quantidade é a observada na conferência,
+não um total permanente.
 
 Conferência, sem alteração de registros:
 

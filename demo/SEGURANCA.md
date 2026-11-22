@@ -129,9 +129,16 @@ Esta revisão não é certificação nem garantia de ausência de vulnerabilidad
 - Doze testes adicionais cobrem conferência, corte exato e precisão, retenção,
   limites, repetição, múltiplos lotes, argumentos inválidos, tabela vazia,
   preservação de usuários e bloqueios ativos, além de concorrência real no banco.
-- Testes executados somente em PostgreSQL e arquivos isolados. Nenhuma migration,
-  configuração ou dependência foi alterada. A imagem web local não foi atualizada;
-  o comando precisa estar incluído na imagem antes de ser chamado pelo container.
+- Testes de exclusão executados somente em PostgreSQL e arquivos isolados.
+  Posteriormente, em 22/11/2026, a imagem foi disponibilizada no web local,
+  preservando rede, aliases, porta, ambiente e volumes, sem reiniciar o PostgreSQL.
+  Não havia migrations pendentes; o web foi iniciado diretamente sem o entrypoint
+  que aplica migrations. Os arquivos de configuração e dependências não mudaram.
+- Conferência local com `PGOPTIONS=-c default_transaction_read_only=on`, sem
+  `--executar`: 1 contador elegível pelas 24 horas de retenção, nenhum excluído.
+  Histórico de migrations e contadores preservados; `manage.py check` sem
+  problemas e homepage, login e busca respondendo HTTP 200. Nenhum agendamento
+  foi ativado. Detalhes operacionais em `APRESENTACAO.md`.
 
 ## Validação de IPs — 22/11/2026
 
