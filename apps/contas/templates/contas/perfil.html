@@ -11,7 +11,7 @@
     <section class="flow-panel" aria-labelledby="perfil-title">
       <h2 id="perfil-title">Dados do perfil</h2>
       <p><strong>E-mail de acesso:</strong> {{ object.email|default:"Não informado" }}</p>
-      <p class="flow-small">E-mail e senha não podem ser alterados neste formulário.</p>
+      <p class="flow-small">Para trocar o e-mail ou a senha, use as opções na seção “Sua conta”.</p>
       <form method="post" action="{% url 'contas:perfil' %}" class="flow-fields" novalidate>
         {% csrf_token %}
         {% include "contas/erros_formulario.html" %}
@@ -66,6 +66,7 @@
       <section class="flow-panel" aria-labelledby="conta-title">
         <h2 id="conta-title">Sua conta</h2>
         <div class="flow-actions">
+          <a class="btn btn-outline-secondary" href="{% url 'contas:alterar_email' %}">Alterar e-mail</a>
           <a class="btn btn-outline-secondary" href="{% url 'contas:alterar_senha' %}">Alterar senha</a>
           <a class="btn btn-outline-secondary" href="{% if user.conta_administrativa %}{% url 'administracao:painel' %}{% else %}{% url 'contas:painel' %}{% endif %}">Voltar ao painel</a>
         </div>

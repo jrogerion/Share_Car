@@ -3,7 +3,8 @@ from django.urls import path, reverse_lazy
 from django.views.decorators.cache import never_cache
 
 from .views import (
-    CadastroConcluidoView, CadastroUsuarioView, DocumentoIdentidadeView,
+    AlterarEmailView, CadastroConcluidoView, CadastroUsuarioView,
+    ConfirmarEmailLinkView, ConfirmarEmailView, DocumentoIdentidadeView,
     EnviarDocumentoView, PainelView, PerfilUsuarioView, SairView,
 )
 
@@ -11,6 +12,12 @@ app_name = "contas"
 
 urlpatterns = [
     path("perfil/", PerfilUsuarioView.as_view(), name="perfil"),
+    path("email/alterar/", AlterarEmailView.as_view(), name="alterar_email"),
+    path("email/confirmar/", ConfirmarEmailView.as_view(), name="confirmar_email"),
+    path(
+        "email/confirmar/<slug:token>/", ConfirmarEmailLinkView.as_view(),
+        name="confirmar_email_link",
+    ),
     path(
         "documento/enviar/", EnviarDocumentoView.as_view(),
         name="enviar_documento",

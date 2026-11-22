@@ -2,12 +2,18 @@
 
 ## Antes de apresentar
 
-1. Inicie o ambiente com antecedência e abra <http://localhost:8000/>.
-2. Confira os acessos privados e o [roteiro do cenário](CENARIO.md).
-3. Verifique as datas das reservas: repetir `criar_demo` não atualiza datas nem
-   restaura etapas já usadas. Não recrie o banco para contornar isso.
-4. Teste login, busca, fotos e uma reserva fictícia antes da apresentação.
-5. Mantenha os containers ligados e o computador sem suspensão automática.
+1. Inicie o ambiente com antecedência e abra <http://127.0.0.1:8000/>. Use esse
+   mesmo endereço nos perfis de navegador para evitar confusão com sessões.
+2. Siga o roteiro manual abaixo. Cadastre as contas e os anúncios pela interface;
+   não é necessário carregar o gerador de cenário.
+3. Separe administrador, proprietário e locatário em três perfis de navegador
+   ou navegadores diferentes. Duas janelas anônimas do mesmo navegador podem
+   compartilhar a sessão e não garantem isolamento entre contas.
+4. Confira as senhas sem registrá-las neste documento, os nomes dos perfis,
+   aprovações, fotos fictícias e datas disponíveis. Não use documentos pessoais.
+5. Com internet disponível, abra as páginas antes de começar e confira estilos,
+   fontes e ícones carregados por CDN. Teste login, busca e fotos com antecedência.
+6. Mantenha os containers ligados e o computador sem suspensão automática.
 
 O Compose mantém PostgreSQL, fotos e documentos em volumes distintos. Recriar o
 container web não deve apagar esses volumes. **Nunca use `down -v` ou remova
@@ -16,6 +22,90 @@ volumes**, pois isso pode apagar o banco e os arquivos.
 O entrypoint padrão executa migrations ao iniciar. Antes de reconstruir/subir o
 ambiente, revise migrations pendentes e autorize sua aplicação separadamente.
 Não trate uma atualização do container como operação que nunca altera o banco.
+
+## Roteiro manual de apresentação (10 a 15 minutos)
+
+### Preparação das contas e do material
+
+- Crie uma conta administrativa com `createsuperuser` e duas contas pessoais
+  pelo formulário de cadastro: proprietário e locatário, com e-mails distintos.
+  A conta administrativa é exclusiva de administração, não anuncia nem aluga.
+- Use nomes preenchidos e dados fictícios de documento/CNH. A validade da CNH
+  deve cobrir as datas escolhidas para o aluguel. Prepare imagens JPEG/PNG
+  válidas, preferencialmente identificadas como fictícias, antes de apresentar.
+- Deixe cada papel autenticado em seu próprio perfil de navegador. O site usa
+  e-mail no login; o Django Admin usa o nome de usuário. Evite repetir tentativas
+  incorretas: os limites de login permanecem ativos durante a apresentação.
+- Escolha datas futuras sem conflito com outras reservas ou bloqueios da agenda.
+  Se houver períodos disponíveis cadastrados, confira se cobrem todo o aluguel.
+- Decida se preencherá o cadastro completo ao vivo ou apenas mostrará os campos.
+  Para caber no tempo, preparar as contas manualmente antes é suficiente; não
+  utilize o gerador automático para cumprir esse roteiro.
+
+### Sequência principal
+
+| Etapa | Papel | Ação e resultado esperado |
+| --- | --- | --- |
+| 1. Objetivo e catálogo | Visitante | Apresentar a proposta acadêmica, navegar no carrossel e usar busca/filtros. Mostrar média e quantidade de avaliações quando já houver notas públicas. |
+| 2. Perfis | Proprietário/locatário | Mostrar cadastro manual, completar o perfil do locatário com CNH fictícia e validade e explicar os papéis. Cada usuário acompanha somente seus fluxos pessoais. |
+| 3. Documentação | Proprietário e administrador | Proprietário envia documento fictício. Superusuário aprova o documento no painel, liberando o cadastro de anúncio. |
+| 4. Anúncio | Proprietário | Cadastrar características, cidade, diária e fotos; conferir a agenda. O anúncio aguarda aprovação. |
+| 5. Análises | Administrador | Aprovar anúncio e CNH fictícia do locatário. O anúncio aprovado, ativo e não bloqueado passa a aparecer na busca. |
+| 6. Solicitação | Locatário | Escolher datas disponíveis, conferir a estimativa e solicitar. A reserva fica solicitada e ainda não permite pagamento. |
+| 7. Aceite | Proprietário | Aceitar a reserva. O locatário passa a poder pagar. O administrador não aceita no lugar do proprietário. |
+| 8. Pagamento | Locatário | Simular aprovação, destacando que não existe cobrança real. Conferir as condições da opção escolhida. |
+| 9. Vistoria | Locatário | Fazer check-in com pagamento aprovado e depois check-out, com fotos fictícias, combustível e quilometragem de devolução não inferior à inicial. A reserva é concluída. |
+| 10. Avaliações | Locatário e proprietário | Enviar a primeira nota e mostrar o sigilo. Enviar a nota recíproca e conferir a liberação das avaliações. A nota do locatário ao proprietário compõe a média pública do veículo. |
+| 11. Encerramento | Administrador | Mostrar consulta da reserva e acompanhamento financeiro em modo administrativo. Reforçar separação de papéis, arquivos privados e caráter simulado dos pagamentos. |
+
+Referência de tempo: 2 minutos de introdução/perfis, 3 de anúncio/aprovações,
+4 de reserva/pagamento, 3 de vistorias/avaliações e 1 de encerramento. As etapas
+representam uma simulação funcional, não uma viagem ou transação real.
+
+### Alternativas e cuidados durante a demonstração
+
+- Se faltar tempo, use reservas previamente preparadas **manualmente**, em etapas
+  diferentes, para mostrar pagamento, vistoria e avaliação. Combine antes quais
+  contas e reservas serão usadas; não altere registros de outras demonstrações.
+- Cancelamento e estorno são opcionais: use outra reserva paga, antes do check-in,
+  e não a que será usada para concluir o fluxo principal.
+- Depois de um ensaio, confira o estado das reservas. As ações não são desfeitas
+  automaticamente; repetir a apresentação exige novas reservas em datas livres
+  ou escolher outras previamente preparadas. Não exclua dados nem recrie o banco.
+- Não mostre conteúdo de documentos, links de redefinição de senha, `.env`,
+  senhas ou configurações privadas durante o compartilhamento de tela.
+- Fotos de vistoria só podem ser abertas pelos participantes e pela administração;
+  documentos ficam restritos ao próprio usuário e ao superusuário. Não demonstre
+  privacidade expondo documentos reais.
+- A instalação como PWA é opcional. Só a inclua ao vivo depois de conferir a
+  instalação no navegador da apresentação; não substitui o fluxo principal.
+
+### Conferência do roteiro em 22/11/2026
+
+- Suíte completa com **544 testes aprovados**, `manage.py check` sem problemas
+  e nenhuma mudança de model pendente. Banco PostgreSQL descartável e arquivos
+  isolados; nenhuma migration foi aplicada ao banco local.
+- A jornada integrada exercitou cadastro manual pelos formulários, aprovações,
+  busca, reserva, aceite, pagamento, check-in/check-out e avaliações recíprocas,
+  com CSRF ativo. Trata-se de ensaio funcional automatizado, não de uma
+  apresentação manual completa no navegador com as contas locais.
+- Conferência do banco local em conexão somente leitura: 1 superusuário ativo,
+  4 proprietários com documento aprovado, 6 locatários com CNH aprovada e válida
+  na data da consulta e 7 anúncios públicos. A validade precisa ser conferida
+  novamente para o período escolhido da apresentação.
+- Reservas locais na consulta: 1 solicitada, 3 aceitas, 1 em andamento,
+  4 concluídas e 4 canceladas. Esses totais não substituem a escolha das contas,
+  datas e reservas adequadas a cada etapa; são apenas a fotografia da conferência.
+- Todos os 25 arquivos referenciados foram encontrados no armazenamento.
+  Nenhum conteúdo de documento privado foi exibido na revisão.
+- Homepage e busca responderam HTTP 200 e foram observadas no Firefox desktop;
+  a busca também foi observada em viewport mobile. Fotos, cards, filtros e
+  avaliações públicas apareceram nas páginas capturadas.
+- Não foram solicitadas ou testadas senhas das contas locais nem realizadas
+  operações de cadastro, aprovação, reserva, pagamento ou avaliação nesse banco.
+  Instalação PWA no Chrome/Edge e ensaio manual autenticado permanecem pendentes.
+- O ensaio manual no banco local depende de combinar previamente quais contas
+  e reservas podem ser alteradas. Não há reset automático entre ensaios.
 
 ## Instalação como aplicativo
 

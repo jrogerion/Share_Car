@@ -62,3 +62,16 @@ class Usuario(AbstractUser):
                 name="contas_usuario_email_unico_ci",
             ),
         ]
+
+
+class AlteracaoEmail(models.Model):
+    """Uma confirmação por conta; nesta tabela fica somente o hash do token."""
+
+    usuario = models.OneToOneField(
+        Usuario, on_delete=models.CASCADE, primary_key=True,
+        related_name="alteracao_email_pendente",
+    )
+    novo_email = models.EmailField(max_length=254)
+    token_hash = models.CharField(max_length=64, unique=True)
+    assinatura_conta = models.CharField(max_length=64)
+    expira_em = models.DateTimeField()

@@ -18,10 +18,19 @@ class LimiteAutenticacaoMiddleware(MiddlewareMixin):
             "contas:recuperar_senha", "contas_legacy:recuperar_senha",
         ):
             acao, campo = "recuperacao", "email"
+        elif rota in (
+            "contas:alterar_email", "contas_legacy:alterar_email",
+        ):
+            if not request.user.is_authenticated:
+                return None
+            acao, campo = "alteracao_email", None
         else:
             return None
+        identificador = (
+            str(request.user.pk) if campo is None else request.POST.get(campo, "")
+        )
         espera = consumir_tentativa(
-            acao, ip_da_conexao(request), request.POST.get(campo, ""),
+            acao, ip_da_conexao(request), identificador,
         )
         if not espera:
             return None

@@ -1,0 +1,9 @@
+Uma alteração de e-mail foi solicitada para sua conta no ShareCar.
+
+Entre na conta que fez a solicitação, abra o link abaixo e confirme a troca:
+{{ url }}
+
+O link expira em uma hora. Abrir o link não altera o e-mail automaticamente:
+é necessário confirmar na página. Uma nova solicitação substitui a anterior.
+
+Se você não fez essa solicitação, ignore esta mensagem. Não compartilhe o link.

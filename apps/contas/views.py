@@ -1,21 +1,28 @@
 from decimal import Decimal
+from smtplib import SMTPException
 
+from django import forms
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q, Sum
 from django.http import FileResponse, Http404, HttpResponseRedirect
-from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.urls import reverse, reverse_lazy
+from django.utils.cache import patch_vary_headers
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import FormView, TemplateView, UpdateView
 
 from .forms import (
-    CadastroUsuarioForm, DocumentoIdentidadeForm, LoginEmailForm,
+    AlterarEmailForm, CadastroUsuarioForm, DocumentoIdentidadeForm, LoginEmailForm,
     PerfilUsuarioForm,
 )
 
@@ -24,6 +31,122 @@ from apps.veiculos.models import Veiculo
 
 from .models import Usuario
 from .mixins import ContaPessoalMixin
+from .services import (
+    confirmar_alteracao_email, obter_alteracao_email_valida,
+    solicitar_alteracao_email,
+)
+
+
+_TOKEN_EMAIL_SESSION = "confirmacao_alteracao_email"
+
+
+class EmailPrivadoMixin:
+    @method_decorator(never_cache)
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+        response["Referrer-Policy"] = "no-referrer"
+        patch_vary_headers(response, ["Cookie"])
+        return response
+
+
+@method_decorator(sensitive_post_parameters("senha_atual"), name="dispatch")
+class AlterarEmailView(EmailPrivadoMixin, LoginRequiredMixin, FormView):
+    template_name = "contas/alterar_email.html"
+    form_class = AlterarEmailForm
+    success_url = reverse_lazy("contas:alterar_email")
+
+    def get_form_kwargs(self):
+        return {**super().get_form_kwargs(), "usuario": self.request.user}
+
+    def form_valid(self, form):
+        try:
+            # Falha no envio desfaz a substituição de uma solicitação anterior.
+            with transaction.atomic():
+                pedido, token = solicitar_alteracao_email(
+                    usuario=self.request.user,
+                    novo_email=form.cleaned_data["novo_email"],
+                    senha_atual=form.cleaned_data["senha_atual"],
+                )
+                url = self.request.build_absolute_uri(reverse(
+                    "contas:confirmar_email_link", kwargs={"token": token},
+                ))
+                enviados = send_mail(
+                    "Confirme a alteração de e-mail — ShareCar",
+                    render_to_string("contas/emails/alterar_email.txt", {"url": url}),
+                    None, [pedido.novo_email], fail_silently=False,
+                )
+                if enviados != 1:
+                    raise OSError("Envio de confirmação não concluído.")
+        except ValidationError as error:
+            form.add_error(None, error)
+            return self.form_invalid(form)
+        except (OSError, SMTPException):
+            form.add_error(
+                None, "Não foi possível enviar a confirmação. Tente novamente mais tarde.",
+            )
+            return self.form_invalid(form)
+        messages.success(
+            self.request,
+            "Confirmação enviada ao novo e-mail. Seu login atual permanece válido até confirmar.",
+        )
+        return super().form_valid(form)
+
+
+class ConfirmarEmailLinkView(EmailPrivadoMixin, LoginRequiredMixin, View):
+    http_method_names = ["get", "head", "options"]
+
+    def get(self, request, token):
+        if obter_alteracao_email_valida(request.user, token):
+            # Como na redefinição de senha do Django, retira o token da página
+            # de confirmação. GET não troca o e-mail nem consome a solicitação.
+            request.session[_TOKEN_EMAIL_SESSION] = token
+            return redirect("contas:confirmar_email")
+        request.session.pop(_TOKEN_EMAIL_SESSION, None)
+        return render(
+            request, "contas/confirmar_email.html", {"pedido": None}, status=400,
+        )
+
+
+class ConfirmarEmailView(EmailPrivadoMixin, LoginRequiredMixin, FormView):
+    template_name = "contas/confirmar_email.html"
+    form_class = forms.Form
+    success_url = reverse_lazy("contas:perfil")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["pedido"] = obter_alteracao_email_valida(
+            self.request.user, self.request.session.get(_TOKEN_EMAIL_SESSION),
+        )
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        if not context["pedido"]:
+            request.session.pop(_TOKEN_EMAIL_SESSION, None)
+        return self.render_to_response(
+            context, status=200 if context["pedido"] else 400,
+        )
+
+    def form_valid(self, form):
+        try:
+            email = confirmar_alteracao_email(
+                usuario=self.request.user,
+                token=self.request.session.get(_TOKEN_EMAIL_SESSION),
+            )
+        except ValidationError as error:
+            self.request.session.pop(_TOKEN_EMAIL_SESSION, None)
+            form.add_error(None, error)
+            return self.render_to_response(
+                self.get_context_data(form=form), status=400,
+            )
+        self.request.session.pop(_TOKEN_EMAIL_SESSION, None)
+        self.request.session.cycle_key()
+        self.request.user.email = email
+        messages.success(
+            self.request,
+            "E-mail alterado. Use o novo endereço para entrar no site.",
+        )
+        return super().form_valid(form)
 
 
 class LoginEmailView(LoginView):

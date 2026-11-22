@@ -1,0 +1,30 @@
+{% extends "core/page.html" %}
+{% block title %}Alterar e-mail — ShareCar{% endblock %}
+{% block back_url %}{% url 'contas:perfil' %}{% endblock %}
+{% block back_label %}Minha conta{% endblock %}
+{% block page_kicker %}ShareCar · Segurança da conta{% endblock %}
+{% block page_title %}Alterar e-mail{% endblock %}
+{% block page_subtitle %}Confirme sua senha e verifique o novo endereço antes de trocar o login.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <div class="flow-columns">
+    <section class="flow-panel flow-fields" aria-labelledby="email-title">
+      <h2 id="email-title">Novo endereço de acesso</h2>
+      <p><strong>E-mail atual:</strong> {{ user.email|default:"Não informado" }}</p>
+      <form method="post" action="{% url 'contas:alterar_email' %}" class="flow-fields" novalidate>
+        {% csrf_token %}
+        {% include "contas/erros_formulario.html" %}
+        {% include "contas/campo.html" with field=form.novo_email %}
+        {% include "contas/campo.html" with field=form.senha_atual %}
+        <button class="discovery-button" type="submit">Enviar confirmação</button>
+      </form>
+    </section>
+    <aside class="flow-panel" aria-labelledby="email-ajuda-title">
+      <h2 id="email-ajuda-title">Como confirmar</h2>
+      <p>Enviaremos um link ao novo endereço. Entre na conta que fez a solicitação, abra o link e confirme a troca. O link expira em uma hora e só pode ser usado uma vez.</p>
+      <p>Até confirmar, continue usando o e-mail atual. Uma nova solicitação invalida o link anterior.</p>
+      <p class="flow-small">No ambiente local padrão, a mensagem aparece no console do serviço web, sem envio real. Não compartilhe o link ou os logs.</p>
+      <a href="{% url 'contas:perfil' %}">Voltar à minha conta</a>
+    </aside>
+  </div>
+{% endblock %}

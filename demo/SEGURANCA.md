@@ -31,7 +31,7 @@ continuam no servidor, mesmo que o navegador seja manipulado.
 ## Verificações
 
 - Os testes de reprodução falharam antes das correções e passaram depois.
-- Suíte completa: **544 testes passaram**; `manage.py check` sem problemas e
+- Suíte completa: **578 testes passaram**; `manage.py check` sem problemas e
   `makemigrations --check --dry-run` sem mudanças pendentes no modelo.
 - Cobertura adicional: CSRF no bloqueio administrativo, injeção de privilégios
   no perfil, redirecionamento externo no login, resolução e metadados de uploads.
@@ -139,6 +139,76 @@ Esta revisão não é certificação nem garantia de ausência de vulnerabilidad
   Histórico de migrations e contadores preservados; `manage.py check` sem
   problemas e homepage, login e busca respondendo HTTP 200. Nenhum agendamento
   foi ativado. Detalhes operacionais em `APRESENTACAO.md`.
+
+## Alteração de e-mail — primeira entrega, 22/11/2026
+
+Disponível em **Minha conta → Alterar e-mail**, inclusive para contas
+administrativas. Encerramento de conta é uma entrega separada e ainda não foi
+implementado.
+
+### Fluxo de uso
+
+1. Entrar com o e-mail atual, informar o novo endereço e a senha atual.
+2. Abrir a mensagem enviada ao novo endereço e acessar o link, autenticado na
+   mesma conta que fez a solicitação. Em outro navegador, entrar com o e-mail
+   antigo antes de continuar.
+3. Confirmar na página. Abrir o link por GET não muda o e-mail; a efetivação
+   exige POST com CSRF. O novo endereço só passa a ser o login após confirmar.
+
+No ambiente local padrão, a mensagem aparece no console, sem envio real. Esse
+modo simula a confirmação e não comprova acesso a uma caixa de e-mail real.
+Não compartilhe mensagens, links ou logs. Envio real depende de SMTP configurado
+separadamente; nenhuma configuração de e-mail foi alterada nesta entrega.
+
+### Proteções e limites
+
+- Endereço normalizado, diferente do atual e único sem distinção de caixa,
+  inclusive em relação a contas inativas. A disponibilidade é revalidada na
+  confirmação; a restrição do PostgreSQL protege também contra concorrência.
+- Senha atual verificada no formulário e novamente sob bloqueio da conta.
+  Identificadores, e-mail final e privilégios enviados indevidamente pelo cliente
+  não substituem o usuário autenticado nem os dados validados da solicitação.
+- Um pedido pendente por usuário. Token aleatório de 32 bytes, válido por uma
+  hora, guardado como SHA-256 na tabela de pedidos. A assinatura HMAC do estado
+  da conta invalida o pedido se a senha ou o e-mail deixar de corresponder.
+- Uma nova solicitação substitui a anterior. A confirmação consome o pedido;
+  confirmações concorrentes não usam o mesmo link duas vezes. O endereço ocupado
+  por outra conta não é transferido nem sobrescrito.
+- O GET inicial valida o token e o guarda na sessão autenticada, redirecionando
+  para a página de confirmação sem token na URL, como no fluxo de redefinição de
+  senha do Django. As páginas têm `no-store`, `Vary: Cookie` e `no-referrer`.
+- Solicitações limitadas a 5 por IP e 3 por combinação IP/conta em 15 minutos,
+  incluindo tentativas inválidas. O alias `/contas/` compartilha a contagem;
+  trocar o novo endereço ou enviar outro identificador não contorna esse limite.
+- Falha de envio SMTP não muda o login nem substitui uma solicitação anterior
+  válida. O erro exibido é genérico, sem detalhes do servidor ou da senha.
+- A confirmação mantém senha, identificador da conta, papéis e históricos, e
+  rotaciona a chave da sessão atual. Não revoga sessões de outros dispositivos;
+  não deve ser apresentada como um recurso de logout global.
+- Pedidos expirados ficam inutilizáveis, mas não são removidos automaticamente:
+  permanecem limitados a um por conta, até substituição ou consumo. O comando de
+  limpeza de contadores não exclui pedidos de alteração de e-mail.
+
+### Ativação e verificação
+
+- Migration `contas/0004_alteracaoemail` aplicada ao banco local com autorização
+  específica. Cria a tabela de confirmações; não migra e-mails existentes.
+  O plano foi conferido para conter somente essa migration.
+- Somente o web foi atualizado, com rede, aliases, porta local, ambiente e volumes
+  preservados. O PostgreSQL não foi recriado ou reiniciado. Não havia migrations
+  pendentes após a ativação, e `manage.py check` não apontou problemas.
+- Usuários, anúncios, reservas, pagamentos, registros/fotos de vistoria, fotos
+  de anúncios e avaliações existentes foram comparados por assinatura antes e
+  depois, sem alterações. Nenhum e-mail de conta local foi trocado nos testes.
+- 34 regressões adicionais; suíte completa com **578 testes aprovados** em banco
+  e arquivos isolados, incluindo concorrência real no PostgreSQL, expiração,
+  repetição, CSRF, origem externa, erro de envio, limites e preservação de reserva.
+- Perfil e formulário novos renderizados no serviço atualizado usando conexão
+  somente leitura e requisições em memória, sem login de teste, sessão persistida
+  ou envio de e-mail local. Homepage, login e busca responderam HTTP 200.
+- O backup validado anteriormente é anterior a esta migration. Sua restauração
+  com o código atual requer conferir e autorizar a migration pendente; o backup
+  original não foi substituído nem um novo backup foi criado automaticamente.
 
 ## Validação de IPs — 22/11/2026
 

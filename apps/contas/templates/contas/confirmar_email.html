@@ -1,0 +1,26 @@
+{% extends "core/page.html" %}
+{% block title %}Confirmar e-mail — ShareCar{% endblock %}
+{% block back_url %}{% url 'contas:perfil' %}{% endblock %}
+{% block back_label %}Minha conta{% endblock %}
+{% block page_kicker %}ShareCar · Segurança da conta{% endblock %}
+{% block page_title %}Confirmar alteração de e-mail{% endblock %}
+{% block page_subtitle %}A troca só é realizada depois da sua confirmação.{% endblock %}
+{% block demo_notice %}{% endblock %}
+{% block page_content %}
+  <section class="flow-panel flow-fields" aria-labelledby="confirmar-title">
+    {% if form.non_field_errors %}<div class="flow-notice flow-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% if pedido %}
+      <h2 id="confirmar-title">Confirme seu novo login</h2>
+      <p>Seu e-mail de acesso será alterado para <strong>{{ pedido.novo_email }}</strong>. Sua senha e seus históricos permanecem os mesmos.</p>
+      <form method="post" action="{% url 'contas:confirmar_email' %}" class="flow-fields">
+        {% csrf_token %}
+        <button class="discovery-button" type="submit">Confirmar novo e-mail</button>
+      </form>
+    {% else %}
+      <h2 id="confirmar-title">Confirmação indisponível</h2>
+      <p>O link pode ter expirado, sido substituído ou já utilizado. Também é necessário entrar na conta que solicitou a alteração.</p>
+      <a class="discovery-button" href="{% url 'contas:alterar_email' %}">Solicitar nova alteração</a>
+    {% endif %}
+    <a href="{% url 'contas:perfil' %}">Voltar à minha conta</a>
+  </section>
+{% endblock %}

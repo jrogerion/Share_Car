@@ -1,5 +1,10 @@
 # Cenário fictício para apresentação
 
+Este documento descreve o gerador opcional já existente. O roteiro principal
+atual usa cadastro manual de contas e anúncios e está em
+[APRESENTACAO.md](APRESENTACAO.md). Não é necessário executar este comando para
+apresentar ou testar o site. Dados já criados por ele não devem ser apagados.
+
 O comando `criar_demo` cria exclusivamente dados demonstrativos. Só funciona com
 `DEBUG=True` e confirmação explícita do banco local. Não cria administradores,
 não altera a configuração de comissão e não modifica contas preexistentes.
@@ -72,5 +77,7 @@ escolha períodos futuros não ocupados. O cenário não é atualizado diariamen
 - A criação ocorre em transação; arquivos criados são removidos em caso de erro.
 - Fotos ilustrativas e licenças: [créditos](imagens/veiculos/CREDITOS.md).
 - Os créditos também são incluídos nas descrições dos anúncios fictícios.
-- As fotos de vistoria continuam no armazenamento público, conforme a decisão
-  anterior do projeto. Use exclusivamente imagens fictícias nesta apresentação.
+- Fotos de vistoria ficam no armazenamento privado e são acessíveis somente aos
+  participantes da reserva e à administração pela rota autenticada. Documentos
+  ficam restritos ao próprio usuário e ao superusuário. Não publique
+  `private_media`; use exclusivamente imagens e dados fictícios na apresentação.

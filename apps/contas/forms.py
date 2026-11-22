@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from django import forms
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password
 from django.contrib.auth.forms import (
     AdminUserCreationForm,
     AuthenticationForm,
@@ -13,6 +14,7 @@ from django.utils import timezone
 from PIL import Image
 
 from .models import Usuario
+from .services import validar_novo_email
 from apps.core.imagens import preparar_imagem_privada
 
 
@@ -109,6 +111,30 @@ class DocumentoIdentidadeForm(forms.ModelForm):
                 "documento_identidade", "aprovacao_documento",
             ])
         return usuario
+
+
+class AlterarEmailForm(forms.Form):
+    novo_email = forms.EmailField(
+        label="Novo e-mail", max_length=254,
+        widget=forms.EmailInput(attrs={"autocomplete": "email"}),
+    )
+    senha_atual = forms.CharField(
+        label="Senha atual", strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    )
+
+    def __init__(self, *args, usuario, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.usuario = usuario
+
+    def clean_novo_email(self):
+        return validar_novo_email(self.usuario, self.cleaned_data["novo_email"])
+
+    def clean_senha_atual(self):
+        senha = self.cleaned_data["senha_atual"]
+        if not check_password(senha, self.usuario.password):
+            raise forms.ValidationError("A senha atual não foi confirmada.")
+        return senha
 
 
 class PerfilUsuarioForm(forms.ModelForm):
